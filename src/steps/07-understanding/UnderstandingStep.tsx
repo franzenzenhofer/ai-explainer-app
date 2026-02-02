@@ -1,11 +1,10 @@
 // Step 7: Understanding - The Prediction Engine (AI-Powered!)
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Bird, Brain, Sparkles, Send, RotateCcw } from 'lucide-react'
 import { StepLayout } from '../../core/components'
 import type { StepProps } from '../../core/types/step-props'
 import { generateWithGemini } from '../../services/gemini'
-import { tokenize } from '../02-tokenization/tokenizer'
 
 interface TestCase {
   id: string
@@ -54,13 +53,39 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
   const [responseTokens, setResponseTokens] = useState<string[]>([])
   const [showParrot, setShowParrot] = useState(true)
 
+  // AbortController to cancel requests when navigating away
+  const abortControllerRef = useRef<AbortController | null>(null)
+
+  // Cleanup: cancel any pending requests when component unmounts
+  useEffect(() => {
+    return () => {
+      if (abortControllerRef.current) {
+        abortControllerRef.current.abort()
+      }
+    }
+  }, [])
+
   const askAI = useCallback(async (question: string) => {
+    // Cancel any previous request
+    if (abortControllerRef.current) {
+      abortControllerRef.current.abort()
+    }
+
+    // Create new AbortController for this request
+    abortControllerRef.current = new AbortController()
+
     setIsLoading(true)
     setAiResponse(null)
     setResponseTokens([])
 
     try {
       const result = await generateWithGemini(question, 50)
+
+      // Check if request was aborted
+      if (abortControllerRef.current?.signal.aborted) {
+        return
+      }
+
       if (result.error) {
         setAiResponse(`Error: ${result.error}`)
         setResponseTokens([])
@@ -68,7 +93,11 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
         setAiResponse(result.text)
         setResponseTokens(result.tokens)
       }
-    } catch {
+    } catch (err) {
+      // Ignore abort errors
+      if (err instanceof Error && err.name === 'AbortError') {
+        return
+      }
       setAiResponse('Failed to get response')
       setResponseTokens([])
     } finally {
