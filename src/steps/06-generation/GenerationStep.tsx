@@ -1,6 +1,6 @@
 // Step 6: Generation - Token by Token (Powered by Real AI!)
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { motion } from 'motion/react'
+import { motion, AnimatePresence } from 'motion/react'
 import { Play, Pause, RotateCcw, Zap, Sparkles } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import { StepLayout, ControlSlider, ProgressBar } from '../../core/components'
@@ -10,6 +10,14 @@ import { generateWithGemini } from '../../services/gemini'
 import { getTokenColor } from '../../core/utils/colors'
 
 const MAX_TOKENS = 30
+
+type Phase = 'processing' | 'calculating' | 'choosing' | null
+
+const PHASE_CONFIG: Record<NonNullable<Phase>, { label: string; color: string }> = {
+  processing: { label: 'Processing input...', color: 'text-blue-600' },
+  calculating: { label: 'Calculating next possible tokens...', color: 'text-amber-600' },
+  choosing: { label: 'Choosing next token...', color: 'text-emerald-600' },
+}
 
 export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
   const tokens = useAppStore((s) => s.tokens)
@@ -24,8 +32,9 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
   const [pendingTokens, setPendingTokens] = useState<Token[]>([])
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [phase, setPhase] = useState<Phase>(null)
   const tokenIndexRef = useRef(0)
-  const intervalRef = useRef<number | null>(null)
+  const phaseTimeoutsRef = useRef<number[]>([])
 
   const fetchCompletion = useCallback(async () => {
     const inputText = tokens.map((t) => t.text).join('')
@@ -33,13 +42,10 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       setError('Please enter some text first')
       return
     }
-
     setIsLoading(true)
     setError(null)
-
     try {
       const result = await generateWithGemini(inputText, MAX_TOKENS, 'continuation')
-
       if (result.error) {
         setError(result.error)
         setIsLoading(false)
@@ -51,7 +57,6 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
         setIsLoading(false)
         return
       }
-
       setPendingTokens(result.tokens)
       tokenIndexRef.current = 0
       setIsLoading(false)
@@ -62,27 +67,42 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     }
   }, [tokens, setIsGenerating])
 
+  // Phase-cycling generation: processing → calculating → choosing → token appears
   useEffect(() => {
-    if (isGenerating && tokenIndexRef.current < pendingTokens.length) {
-      const interval = 1000 / generationSpeed
-      intervalRef.current = window.setTimeout(() => {
-        const realToken = pendingTokens[tokenIndexRef.current]
-        addGeneratedToken({
-          id: generatedTokens.length,
-          text: realToken.text,
-          tokenId: realToken.tokenId,
-          colorIndex: realToken.colorIndex,
-        })
-        tokenIndexRef.current++
-      }, interval)
-    } else if (tokenIndexRef.current >= pendingTokens.length && pendingTokens.length > 0) {
-      setIsGenerating(false)
+    phaseTimeoutsRef.current.forEach(clearTimeout)
+    phaseTimeoutsRef.current = []
+
+    if (!isGenerating || tokenIndexRef.current >= pendingTokens.length) {
+      if (tokenIndexRef.current >= pendingTokens.length && pendingTokens.length > 0) {
+        setIsGenerating(false)
+        setPhase(null)
+      }
+      return
     }
 
+    const totalInterval = 1000 / generationSpeed
+    const step = totalInterval / 4
+
+    setPhase('processing')
+
+    const t1 = window.setTimeout(() => setPhase('calculating'), step)
+    const t2 = window.setTimeout(() => setPhase('choosing'), step * 2)
+    const t3 = window.setTimeout(() => {
+      const next = pendingTokens[tokenIndexRef.current]
+      addGeneratedToken({
+        id: generatedTokens.length,
+        text: next.text,
+        tokenId: next.tokenId,
+        colorIndex: next.colorIndex,
+      })
+      tokenIndexRef.current++
+      setPhase(null)
+    }, step * 3)
+
+    phaseTimeoutsRef.current = [t1, t2, t3]
     return () => {
-      if (intervalRef.current) {
-        clearTimeout(intervalRef.current)
-      }
+      phaseTimeoutsRef.current.forEach(clearTimeout)
+      phaseTimeoutsRef.current = []
     }
   }, [isGenerating, generatedTokens.length, generationSpeed, pendingTokens, addGeneratedToken, setIsGenerating])
 
@@ -94,7 +114,10 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     }
   }
 
-  const handlePause = () => setIsGenerating(false)
+  const handlePause = () => {
+    setIsGenerating(false)
+    setPhase(null)
+  }
 
   const handleStep = () => {
     if (pendingTokens.length === 0) {
@@ -102,12 +125,12 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       return
     }
     if (tokenIndexRef.current < pendingTokens.length) {
-      const realToken = pendingTokens[tokenIndexRef.current]
+      const next = pendingTokens[tokenIndexRef.current]
       addGeneratedToken({
         id: generatedTokens.length,
-        text: realToken.text,
-        tokenId: realToken.tokenId,
-        colorIndex: realToken.colorIndex,
+        text: next.text,
+        tokenId: next.tokenId,
+        colorIndex: next.colorIndex,
       })
       tokenIndexRef.current++
     }
@@ -119,107 +142,38 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     setPendingTokens([])
     tokenIndexRef.current = 0
     setError(null)
+    setPhase(null)
   }
 
   const progress = pendingTokens.length > 0
     ? generatedTokens.length / pendingTokens.length
     : 0
 
-  // Compact text row for viz-full
+  const showCursor = isGenerating || isLoading ||
+    (pendingTokens.length > 0 && generatedTokens.length < pendingTokens.length)
+
   const leftPanel = (
-    <div className="flex flex-wrap items-center gap-4">
-      <div className="flex items-center gap-2">
-        <Sparkles className="h-4 w-4 text-emerald-600" />
-        <span className="text-sm font-semibold text-emerald-900">Powered by a Real Language Model</span>
-      </div>
-      <div className="flex items-center gap-2 text-xs text-slate-500">
-        <span className="rounded-md bg-slate-100 px-2 py-1">Tokens</span>
-        <span>&rarr;</span>
-        <span className="rounded-md bg-slate-100 px-2 py-1">Embed</span>
-        <span>&rarr;</span>
-        <span className="rounded-md bg-slate-100 px-2 py-1">Attend</span>
-        <span>&rarr;</span>
-        <span className="rounded-md bg-slate-100 px-2 py-1">Predict</span>
-        <span>&rarr;</span>
-        <span className="rounded-md bg-slate-100 px-2 py-1">Sample</span>
-        <motion.span
-          className="text-slate-400"
-          animate={isGenerating ? { rotate: 360 } : {}}
-          transition={{ duration: 2, repeat: isGenerating ? Infinity : 0, ease: 'linear' }}
-        >
-          &darr;
-        </motion.span>
-      </div>
-      <span className="text-xs text-orange-600 font-medium">
-        Each output token becomes part of the new input!
-      </span>
-    </div>
+    <GenerationPipeline isGenerating={isGenerating} />
   )
 
   const controls = (
-    <div className="flex items-center justify-between">
-      <div className="flex items-center gap-2">
-        <motion.button
-          onClick={isGenerating ? handlePause : handleStart}
-          disabled={isLoading || (generatedTokens.length >= pendingTokens.length && pendingTokens.length > 0)}
-          className="flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-white transition-colors disabled:opacity-50"
-          style={{ backgroundColor: stepConfig.accentColor }}
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          {isLoading ? (
-            <>
-              <Sparkles className="h-4 w-4 animate-spin" /> Calling model...
-            </>
-          ) : isGenerating ? (
-            <>
-              <Pause className="h-4 w-4" /> Pause
-            </>
-          ) : (
-            <>
-              <Play className="h-4 w-4" /> {generatedTokens.length > 0 ? 'Continue' : 'Generate with AI'}
-            </>
-          )}
-        </motion.button>
-
-        <motion.button
-          onClick={handleStep}
-          disabled={isGenerating || isLoading || (generatedTokens.length >= pendingTokens.length && pendingTokens.length > 0)}
-          className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <Zap className="h-4 w-4" /> Step
-        </motion.button>
-
-        <motion.button
-          onClick={handleReset}
-          className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-slate-600 transition-colors hover:bg-slate-50"
-          whileHover={{ scale: 1.02 }}
-          whileTap={{ scale: 0.98 }}
-        >
-          <RotateCcw className="h-4 w-4" /> Reset
-        </motion.button>
-      </div>
-
-      <div className="w-48">
-        <ControlSlider
-          label="Speed"
-          value={generationSpeed}
-          onChange={setGenerationSpeed}
-          min={0.5}
-          max={5}
-          step={0.5}
-          formatValue={(v) => `${v}x`}
-          accentColor={stepConfig.accentColor}
-        />
-      </div>
-    </div>
+    <GenerationControls
+      isGenerating={isGenerating}
+      isLoading={isLoading}
+      isDone={generatedTokens.length >= pendingTokens.length && pendingTokens.length > 0}
+      generationSpeed={generationSpeed}
+      hasTokens={generatedTokens.length > 0}
+      accentColor={stepConfig.accentColor}
+      onStart={handleStart}
+      onPause={handlePause}
+      onStep={handleStep}
+      onReset={handleReset}
+      onSpeedChange={setGenerationSpeed}
+    />
   )
 
   const rightPanel = (
     <div className="flex h-full flex-col gap-2">
-      {/* Progress */}
       <ProgressBar
         progress={progress}
         label={`Generation Progress (${generatedTokens.length}/${pendingTokens.length || '?'})`}
@@ -246,20 +200,24 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
               {token.text}
             </motion.span>
           ))}
-          {(isGenerating || isLoading || generatedTokens.length < pendingTokens.length) && (
+          {showCursor && (
             <motion.span
-              className="inline-block w-0.5 h-5 ml-0.5 align-middle"
-              style={{ backgroundColor: stepConfig.accentColor }}
-              animate={{ opacity: [1, 0] }}
-              transition={{ duration: 0.5, repeat: Infinity, repeatType: 'reverse' }}
-            />
+              className="ml-1 inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 align-middle text-[11px] font-medium text-emerald-700"
+              animate={{ opacity: [0.6, 1] }}
+              transition={{ duration: 0.8, repeat: Infinity, repeatType: 'reverse' }}
+            >
+              &rarr; requesting next token
+            </motion.span>
           )}
         </div>
       </div>
 
-      {/* Token Stream */}
+      {/* Phase status line + Token Stream */}
       <div>
-        <h4 className="mb-2 text-sm font-medium text-slate-500">Token Stream</h4>
+        <div className="mb-1 flex items-center justify-between">
+          <h4 className="text-sm font-medium text-slate-500">Token Stream</h4>
+          <PhaseIndicator phase={phase} />
+        </div>
         <div className="flex flex-wrap gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
           {generatedTokens.length > 0 ? (
             generatedTokens.map((token, i) => (
@@ -294,15 +252,11 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       >
         <div className="flex justify-center gap-6 text-center">
           <div>
-            <div className="text-2xl font-bold text-slate-900">
-              {generatedTokens.length}
-            </div>
+            <div className="text-2xl font-bold text-slate-900">{generatedTokens.length}</div>
             <div className="text-xs text-slate-500">Generated tokens</div>
           </div>
           <div>
-            <div className="text-2xl font-bold text-slate-900">
-              {tokens.length + generatedTokens.length}
-            </div>
+            <div className="text-2xl font-bold text-slate-900">{tokens.length + generatedTokens.length}</div>
             <div className="text-xs text-slate-500">Total context</div>
           </div>
         </div>
@@ -323,5 +277,136 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       totalSteps={totalSteps}
       layout="viz-full"
     />
+  )
+}
+
+// --- Sub-components ---
+
+function PhaseIndicator({ phase }: { phase: Phase }) {
+  return (
+    <div className="h-5 flex items-center">
+      <AnimatePresence mode="wait">
+        {phase && (
+          <motion.div
+            key={phase}
+            className="flex items-center gap-1.5"
+            initial={{ opacity: 0, x: 10 }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={{ opacity: 0, x: -10 }}
+            transition={{ duration: 0.15 }}
+          >
+            <motion.span
+              className="h-1.5 w-1.5 rounded-full bg-current"
+              animate={{ scale: [1, 1.4, 1] }}
+              transition={{ duration: 0.6, repeat: Infinity }}
+            />
+            <span className={`text-xs font-medium ${PHASE_CONFIG[phase].color}`}>
+              {PHASE_CONFIG[phase].label}
+            </span>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  )
+}
+
+function GenerationPipeline({ isGenerating }: { isGenerating: boolean }) {
+  return (
+    <div className="flex flex-wrap items-center gap-4">
+      <div className="flex items-center gap-2">
+        <Sparkles className="h-4 w-4 text-emerald-600" />
+        <span className="text-sm font-semibold text-emerald-900">Powered by a Real Language Model</span>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-slate-500">
+        <span className="rounded-md bg-slate-100 px-2 py-1">Tokens</span>
+        <span>&rarr;</span>
+        <span className="rounded-md bg-slate-100 px-2 py-1">Embed</span>
+        <span>&rarr;</span>
+        <span className="rounded-md bg-slate-100 px-2 py-1">Attend</span>
+        <span>&rarr;</span>
+        <span className="rounded-md bg-slate-100 px-2 py-1">Predict</span>
+        <span>&rarr;</span>
+        <span className="rounded-md bg-slate-100 px-2 py-1">Sample</span>
+        <motion.span
+          className="text-slate-400"
+          animate={isGenerating ? { rotate: 360 } : {}}
+          transition={{ duration: 2, repeat: isGenerating ? Infinity : 0, ease: 'linear' }}
+        >
+          &darr;
+        </motion.span>
+      </div>
+      <span className="text-xs text-orange-600 font-medium">
+        Each output token becomes part of the new input!
+      </span>
+    </div>
+  )
+}
+
+function GenerationControls({
+  isGenerating, isLoading, isDone, generationSpeed, hasTokens, accentColor,
+  onStart, onPause, onStep, onReset, onSpeedChange,
+}: {
+  isGenerating: boolean
+  isLoading: boolean
+  isDone: boolean
+  generationSpeed: number
+  hasTokens: boolean
+  accentColor: string
+  onStart: () => void
+  onPause: () => void
+  onStep: () => void
+  onReset: () => void
+  onSpeedChange: (v: number) => void
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-2">
+        <motion.button
+          onClick={isGenerating ? onPause : onStart}
+          disabled={isLoading || isDone}
+          className="flex items-center gap-2 rounded-lg px-4 py-2 font-medium text-white transition-colors disabled:opacity-50"
+          style={{ backgroundColor: accentColor }}
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          {isLoading ? (
+            <><Sparkles className="h-4 w-4 animate-spin" /> Calling model...</>
+          ) : isGenerating ? (
+            <><Pause className="h-4 w-4" /> Pause</>
+          ) : (
+            <><Play className="h-4 w-4" /> {hasTokens ? 'Continue' : 'Generate with AI'}</>
+          )}
+        </motion.button>
+        <motion.button
+          onClick={onStep}
+          disabled={isGenerating || isLoading || isDone}
+          className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-slate-600 transition-colors hover:bg-slate-50 disabled:opacity-50"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <Zap className="h-4 w-4" /> Step
+        </motion.button>
+        <motion.button
+          onClick={onReset}
+          className="flex items-center gap-2 rounded-lg border border-slate-300 px-4 py-2 text-slate-600 transition-colors hover:bg-slate-50"
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+        >
+          <RotateCcw className="h-4 w-4" /> Reset
+        </motion.button>
+      </div>
+      <div className="w-48">
+        <ControlSlider
+          label="Speed"
+          value={generationSpeed}
+          onChange={onSpeedChange}
+          min={0.5}
+          max={5}
+          step={0.5}
+          formatValue={(v) => `${v}x`}
+          accentColor={accentColor}
+        />
+      </div>
+    </div>
   )
 }
