@@ -1,7 +1,8 @@
 // Step 4: Attention - Context understanding (viz-full layout)
 import { useEffect, useMemo, useState } from 'react'
 import { motion } from 'motion/react'
-import { AlertCircle, Grid3X3, Layers, Lock, Network } from 'lucide-react'
+import { AlertCircle, Grid3X3, Layers, Lock, Network, X } from 'lucide-react'
+import { AnimatePresence } from 'motion/react'
 import { useAppStore } from '../../store/appStore'
 import { StepLayout, ControlSlider, TokenList } from '../../core/components'
 import { MODEL_SPECS } from '../../core/types'
@@ -14,6 +15,59 @@ import {
 import { AttentionHeatmap } from './AttentionHeatmap'
 import { AttentionNetwork } from './AttentionNetwork'
 import { getTokenColor } from '../../core/utils/colors'
+
+const KNOWN_HEAD_TYPES = [
+  {
+    name: 'Previous Token Head',
+    what: 'Always attends to the token at position i−1.',
+    example: '"The cat sat" → "sat" attends to "cat", "cat" attends to "The"',
+  },
+  {
+    name: 'Induction Head',
+    what: 'Completes patterns. If [A][B] appeared before, then seeing [A] again → predicts [B].',
+    example: '"Harry Potter … Harry" → predicts "Potter"',
+  },
+  {
+    name: 'Duplicate Token Head',
+    what: 'Attends to earlier occurrences of the same token in the sequence.',
+    example: '"the cat and the dog" → second "the" attends strongly to first "the"',
+  },
+  {
+    name: 'Name Mover Head',
+    what: 'Copies a name from earlier in the sentence to the output position.',
+    example: '"Mary gave a book to John. John gave it back to __" → copies "Mary"',
+  },
+  {
+    name: 'S-Inhibition Head',
+    what: 'Prevents the model from attending to the wrong subject when multiple names are present.',
+    example: '"Mary gave to John. John gave back to __" → suppresses "John" so "Mary" wins',
+  },
+  {
+    name: 'Successor Head',
+    what: 'Predicts the next item in an ordered sequence.',
+    example: '"Monday, Tuesday, __" → predicts "Wednesday"',
+  },
+  {
+    name: 'Copy Suppression Head',
+    what: 'Prevents the model from naively repeating the most recent token.',
+    example: 'After generating "the", suppresses "the" so the model picks a noun instead',
+  },
+  {
+    name: 'Retrieval Head',
+    what: 'Attends to factual information stated earlier in a long context.',
+    example: '"The capital of France is Paris. … What is the capital of France?" → attends to "Paris"',
+  },
+  {
+    name: 'Greater-Than Head',
+    what: 'Performs numerical comparison between tokens representing numbers.',
+    example: '"The war lasted from 1732 to 17__" → suppresses years ≤ 1732',
+  },
+  {
+    name: 'Positional Head',
+    what: 'Attends based on fixed position offsets regardless of content. Shows as diagonal stripes in the heatmap.',
+    example: 'Token at position 5 always attends to position 1, regardless of what words are there',
+  },
+]
 
 const ATTENTION_WORKFLOW = [
   {
@@ -41,6 +95,7 @@ export function AttentionStep({ stepNumber, totalSteps, stepConfig }: StepProps)
   const selectedQueryToken = useAppStore((s) => s.selectedQueryToken)
   const setSelectedQueryToken = useAppStore((s) => s.setSelectedQueryToken)
   const [viewMode, setViewMode] = useState<'heatmap' | 'network'>('heatmap')
+  const [showHeadTypes, setShowHeadTypes] = useState(false)
 
   // Generate attention weights when tokens/layer/head change
   useEffect(() => {
@@ -108,6 +163,12 @@ export function AttentionStep({ stepNumber, totalSteps, stepConfig }: StepProps)
             Each head is one independent attention lens. Multiple heads run in parallel and learn different patterns
             (pronouns, local grammar, long-range references), then their outputs are combined.
           </p>
+          <button
+            onClick={() => setShowHeadTypes(true)}
+            className="mt-1 text-[11px] font-medium text-indigo-600 underline decoration-indigo-300 underline-offset-2 hover:text-indigo-800 hover:decoration-indigo-500 transition-colors"
+          >
+            See known head types &rarr;
+          </button>
         </motion.div>
 
         <motion.div
@@ -299,17 +360,72 @@ export function AttentionStep({ stepNumber, totalSteps, stepConfig }: StepProps)
   )
 
   return (
-    <StepLayout
-      title={stepConfig.title}
-      subtitle={stepConfig.subtitle}
-      accentColor={stepConfig.accentColor}
-      leftPanel={leftPanel}
-      rightPanel={rightPanel}
-      controls={controls}
-      educational={stepConfig.educational}
-      stepNumber={stepNumber}
-      totalSteps={totalSteps}
-      layout="viz-full"
-    />
+    <>
+      <StepLayout
+        title={stepConfig.title}
+        subtitle={stepConfig.subtitle}
+        accentColor={stepConfig.accentColor}
+        leftPanel={leftPanel}
+        rightPanel={rightPanel}
+        controls={controls}
+        educational={stepConfig.educational}
+        stepNumber={stepNumber}
+        totalSteps={totalSteps}
+        layout="viz-full"
+      />
+
+      {/* Head Types Overlay */}
+      <AnimatePresence>
+        {showHeadTypes && (
+          <motion.div
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setShowHeadTypes(false)}
+          >
+            <motion.div
+              className="relative max-h-[85vh] w-full max-w-2xl overflow-y-auto rounded-xl border border-indigo-200 bg-white shadow-2xl"
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <div className="sticky top-0 z-10 flex items-center justify-between border-b border-indigo-100 bg-indigo-50 px-4 py-3">
+                <div>
+                  <h3 className="text-sm font-bold text-indigo-900">Known Attention Head Types</h3>
+                  <p className="text-[11px] text-indigo-700">
+                    Discovered through mechanistic interpretability research
+                  </p>
+                </div>
+                <button
+                  onClick={() => setShowHeadTypes(false)}
+                  className="flex h-7 w-7 items-center justify-center rounded-lg text-indigo-500 hover:bg-indigo-100 hover:text-indigo-800 transition-colors"
+                >
+                  <X className="h-4 w-4" />
+                </button>
+              </div>
+              <div className="divide-y divide-indigo-50 px-4 py-2">
+                {KNOWN_HEAD_TYPES.map((head) => (
+                  <div key={head.name} className="py-2.5">
+                    <h4 className="text-xs font-bold text-indigo-900">{head.name}</h4>
+                    <p className="mt-0.5 text-[11px] leading-snug text-slate-700">{head.what}</p>
+                    <p className="mt-1 rounded border border-indigo-100 bg-indigo-50/50 px-2 py-1 text-[11px] italic text-indigo-800">
+                      {head.example}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-indigo-100 bg-slate-50 px-4 py-2.5">
+                <p className="text-[10px] text-slate-500">
+                  These head types have been identified through research on transformer models.
+                  Real models contain hundreds of heads, many with overlapping or as-yet-unnamed behaviors.
+                </p>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </>
   )
 }
