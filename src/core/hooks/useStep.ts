@@ -46,9 +46,9 @@ const STEPS: StepConfig[] = [
     subtitle: 'Tokens Become Numbers',
     accentColor: STEP_COLORS.embeddings,
     educational: {
-      what: 'Each token becomes a list of 4,096 numbers — like GPS coordinates for meaning.',
-      how: 'Similar tokens end up with similar numbers — "king" and "queen" are mathematically close.',
-      why: 'Computers work with numbers, not text. These number lists let the model calculate similarity and relationships.',
+      what: 'Each token becomes a vector — a list of 4,096 numbers, like GPS coordinates for meaning.',
+      how: 'Learned during training: tokens appearing in similar contexts get pushed to similar vectors. No human labels needed.',
+      why: 'Computers work with numbers, not text. Vectors let the model calculate similarity and relationships mathematically.',
     },
   },
   {

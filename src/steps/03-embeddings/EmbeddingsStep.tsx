@@ -42,12 +42,37 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
           <div>
             <h4 className="text-sm font-semibold text-blue-900">What are Embeddings?</h4>
             <p className="mt-0.5 text-xs text-blue-800">
-              Each token gets converted into a list of <strong>{MODEL_SPECS.embeddingDim.toLocaleString()} numbers</strong> — like GPS coordinates for meaning.
-              Tokens with similar meanings have similar numbers, so &quot;king&quot; and &quot;queen&quot; are mathematically close.
-              This is how the model represents meaning as math the computer can process.
+              Each token becomes a <strong>vector</strong> — a list of {MODEL_SPECS.embeddingDim.toLocaleString()} numbers.
+              For example, the token &quot;king&quot; might become:
+            </p>
+            <p className="mt-1 rounded border border-blue-200 bg-white/80 px-2 py-1 font-mono text-[11px] text-blue-900">
+              [0.231, -1.872, 0.544, 3.019, -0.712, ... 4,096 numbers total]
+            </p>
+            <p className="mt-1 text-xs text-blue-800">
+              These numbers are <strong>not predefined</strong> — the model <strong>learns</strong> them during training.
+              By reading billions of sentences, it adjusts each vector so that tokens used in similar contexts
+              (like &quot;king&quot; and &quot;queen&quot;) end up with similar numbers. It&apos;s like GPS coordinates for meaning:
+              nearby coordinates = similar meaning.
             </p>
           </div>
         </div>
+      </motion.div>
+
+      {/* How are embeddings learned? */}
+      <motion.div
+        className="rounded-lg border border-amber-200 bg-amber-50 px-2.5 py-2"
+        initial={{ opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <h4 className="text-xs font-semibold text-amber-900">How does the model learn these vectors?</h4>
+        <p className="mt-0.5 text-[11px] leading-snug text-amber-800">
+          During training, the model sees sentences like &quot;The <strong>king</strong> ruled the land&quot;
+          and &quot;The <strong>queen</strong> ruled the land.&quot; Because &quot;king&quot; and &quot;queen&quot;
+          appear in the same contexts, the training process gradually pushes their vectors closer together.
+          Tokens that never appear in similar contexts drift apart. After billions of examples,
+          the vectors encode rich relationships — entirely from patterns, no human labeling needed.
+        </p>
       </motion.div>
 
       {/* Token List */}
