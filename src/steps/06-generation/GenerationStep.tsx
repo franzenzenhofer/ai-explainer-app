@@ -3,7 +3,7 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { motion } from 'motion/react'
 import { Play, Pause, RotateCcw, Zap, Sparkles } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
-import { StepLayout, ControlSlider, ProgressBar } from '../../core/components'
+import { StepLayout, ControlSlider } from '../../core/components'
 import type { Token } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
 import { generateWithGemini } from '../../services/gemini'
@@ -11,9 +11,15 @@ import { getTokenColor } from '../../core/utils/colors'
 
 const MAX_TOKENS = 30
 
-type Phase = 'processing' | 'calculating' | 'choosing' | 'reveal' | null
+type Phase = 'intake' | 'processing' | 'calculating' | 'choosing' | 'reveal' | null
 
 const PHASE_STYLES: Record<NonNullable<Phase>, { label: string; dotClass: string; textClass: string; bgClass: string }> = {
+  intake: {
+    label: '', // dynamic — filled with token count
+    dotClass: 'bg-orange-500',
+    textClass: 'text-orange-700',
+    bgClass: 'border-orange-200 bg-orange-50',
+  },
   processing: {
     label: 'Processing input...',
     dotClass: 'bg-blue-500',
@@ -56,6 +62,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
   const [phase, setPhase] = useState<Phase>(null)
   const [revealText, setRevealText] = useState<string>('')
   const [revealColor, setRevealColor] = useState<number>(0)
+  const [intakeCount, setIntakeCount] = useState<number>(0)
   const tokenIndexRef = useRef(0)
   const phaseTimeoutsRef = useRef<number[]>([])
 
@@ -95,7 +102,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     }
   }, [tokens, setIsGenerating])
 
-  // 4-phase cycle: processing → calculating → choosing → reveal token → add to stream
+  // 5-phase cycle: intake → processing → calculating → choosing → reveal → add
   useEffect(() => {
     clearPhaseTimeouts()
 
@@ -108,20 +115,22 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     }
 
     const totalInterval = 2500 / generationSpeed
-    const step = totalInterval / 5 // 5 steps: 3 phases + reveal + add
+    const step = totalInterval / 6 // 6 steps: intake + 3 phases + reveal + add
 
     const nextToken = pendingTokens[tokenIndexRef.current]
 
-    setPhase('processing')
+    setIntakeCount(tokens.length + generatedTokens.length)
+    setPhase('intake')
 
-    const t1 = window.setTimeout(() => setPhase('calculating'), step)
-    const t2 = window.setTimeout(() => setPhase('choosing'), step * 2)
-    const t3 = window.setTimeout(() => {
+    const t1 = window.setTimeout(() => setPhase('processing'), step)
+    const t2 = window.setTimeout(() => setPhase('calculating'), step * 2)
+    const t3 = window.setTimeout(() => setPhase('choosing'), step * 3)
+    const t4 = window.setTimeout(() => {
       setRevealText(nextToken.text)
       setRevealColor(nextToken.colorIndex)
       setPhase('reveal')
-    }, step * 3)
-    const t4 = window.setTimeout(() => {
+    }, step * 4)
+    const t5 = window.setTimeout(() => {
       addGeneratedToken({
         id: generatedTokens.length,
         text: nextToken.text,
@@ -130,11 +139,11 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       })
       tokenIndexRef.current++
       setPhase(null)
-    }, step * 4)
+    }, step * 5)
 
-    phaseTimeoutsRef.current = [t1, t2, t3, t4]
+    phaseTimeoutsRef.current = [t1, t2, t3, t4, t5]
     return clearPhaseTimeouts
-  }, [isGenerating, generatedTokens.length, generationSpeed, pendingTokens, addGeneratedToken, setIsGenerating, clearPhaseTimeouts])
+  }, [isGenerating, generatedTokens.length, generationSpeed, pendingTokens, tokens.length, addGeneratedToken, setIsGenerating, clearPhaseTimeouts])
 
   const handleStart = () => {
     if (pendingTokens.length === 0 || generatedTokens.length === 0) {
@@ -175,7 +184,6 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     setPhase(null)
   }
 
-  const progress = pendingTokens.length > 0 ? generatedTokens.length / pendingTokens.length : 0
   const showCursor = isGenerating || isLoading ||
     (pendingTokens.length > 0 && generatedTokens.length < pendingTokens.length)
 
@@ -199,14 +207,12 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
   const rightPanel = (
     <div className="flex h-full flex-col gap-2">
-      <ProgressBar
-        progress={progress}
-        label={`Generation Progress (${generatedTokens.length}/${pendingTokens.length || '?'})`}
-        accentColor={stepConfig.accentColor}
-      />
-
       {/* Generated Output */}
-      <div className="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white p-3">
+      <div className={`flex-1 overflow-auto rounded-lg border p-3 transition-all duration-300 ${
+        phase === 'intake'
+          ? 'border-orange-400 bg-orange-50/60 ring-2 ring-orange-300/50'
+          : 'border-slate-200 bg-white'
+      }`}>
         {error && <p className="text-xs text-red-600 font-medium mb-2">{error}</p>}
         <div className="min-h-[100px] text-lg leading-relaxed">
           <span className="text-slate-500">{tokens.map((t) => t.text).join('')}</span>
@@ -234,7 +240,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       </div>
 
       {/* Phase status line — full width, fixed height, no layout shifts */}
-      <PhaseStatusLine phase={phase} revealText={revealText} revealColor={revealColor} />
+      <PhaseStatusLine phase={phase} revealText={revealText} revealColor={revealColor} intakeCount={intakeCount} />
 
       {/* Token Stream */}
       <div>
@@ -303,10 +309,11 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
 // --- Sub-components ---
 
-function PhaseStatusLine({ phase, revealText, revealColor }: {
+function PhaseStatusLine({ phase, revealText, revealColor, intakeCount }: {
   phase: Phase
   revealText: string
   revealColor: number
+  intakeCount: number
 }) {
   if (!phase) return <div className="h-7" /> // stable placeholder — no layout shift
 
@@ -315,7 +322,15 @@ function PhaseStatusLine({ phase, revealText, revealColor }: {
   return (
     <div className={`flex h-7 items-center gap-2 rounded-md border px-2.5 transition-colors duration-150 ${style.bgClass}`}>
       <span className={`h-2 w-2 rounded-full ${style.dotClass} animate-pulse`} />
-      {phase === 'reveal' ? (
+      {phase === 'intake' ? (
+        <span className="text-xs font-medium">
+          <span className={style.textClass}>Reading all </span>
+          <span className="inline-block rounded bg-orange-200 px-1.5 py-0.5 font-mono font-bold text-orange-900">
+            {intakeCount}
+          </span>
+          <span className={style.textClass}> tokens into context...</span>
+        </span>
+      ) : phase === 'reveal' ? (
         <span className="text-xs font-medium">
           <span className={style.textClass}>Next token: </span>
           <span
