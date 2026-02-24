@@ -107,7 +107,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       return
     }
 
-    const totalInterval = 1000 / generationSpeed
+    const totalInterval = 2500 / generationSpeed
     const step = totalInterval / 5 // 5 steps: 3 phases + reveal + add
 
     const nextToken = pendingTokens[tokenIndexRef.current]
@@ -425,9 +425,9 @@ function GenerationControls({
           label="Speed"
           value={generationSpeed}
           onChange={onSpeedChange}
-          min={0.5}
-          max={5}
-          step={0.5}
+          min={0.25}
+          max={3}
+          step={0.25}
           formatValue={(v) => `${v}x`}
           accentColor={accentColor}
         />

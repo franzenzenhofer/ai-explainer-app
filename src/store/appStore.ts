@@ -84,7 +84,7 @@ const initialState = {
   topP: 0.9,
   generatedTokens: [],
   isGenerating: false,
-  generationSpeed: 1.0,
+  generationSpeed: 0.5,
   debugMode: false,
 }
 
