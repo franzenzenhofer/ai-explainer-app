@@ -20,9 +20,9 @@ export function VectorDisplay({ token, embedding }: VectorDisplayProps) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-xl border border-slate-200 bg-white p-4"
+      className="rounded-lg border border-slate-200 bg-white p-2.5"
     >
-      <div className="mb-3 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <h4 className="text-sm font-medium text-slate-500">
           Embedding for "
           <span style={{ color }}>{token.text}</span>"
@@ -33,14 +33,14 @@ export function VectorDisplay({ token, embedding }: VectorDisplayProps) {
       </div>
 
       {/* Vector Values Grid */}
-      <div className="grid grid-cols-4 gap-2">
+      <div className="grid grid-cols-4 gap-1.5">
         {displayValues.map((value, i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: i * 0.02 }}
-            className="flex flex-col items-center rounded bg-slate-50 p-2"
+            className="flex flex-col items-center rounded bg-slate-50 px-1.5 py-1"
           >
             <span className="text-[10px] text-slate-400">dim[{i}]</span>
             <span

@@ -218,7 +218,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
   )
 
   const rightPanel = (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-2">
       {/* Progress */}
       <ProgressBar
         progress={progress}
@@ -227,7 +227,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       />
 
       {/* Generated Output */}
-      <div className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-4">
+      <div className="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white p-3">
         {error && (
           <p className="text-xs text-red-600 font-medium mb-2">{error}</p>
         )}
@@ -260,7 +260,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       {/* Token Stream */}
       <div>
         <h4 className="mb-2 text-sm font-medium text-slate-500">Token Stream</h4>
-        <div className="flex flex-wrap gap-2 rounded-xl border border-slate-200 bg-slate-50 p-3">
+        <div className="flex flex-wrap gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
           {generatedTokens.length > 0 ? (
             generatedTokens.map((token, i) => (
               <motion.span
@@ -287,12 +287,12 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
       {/* Stats */}
       <motion.div
-        className="rounded-xl border border-slate-200 bg-slate-50 p-3"
+        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.2 }}
       >
-        <div className="flex justify-center gap-8 text-center">
+        <div className="flex justify-center gap-6 text-center">
           <div>
             <div className="text-2xl font-bold text-slate-900">
               {generatedTokens.length}

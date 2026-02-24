@@ -29,7 +29,7 @@ export function App() {
   const StepComponent = STEP_COMPONENTS[currentStep]
 
   return (
-    <div className="flex h-screen flex-col gap-4 p-4">
+    <div className="flex h-screen flex-col gap-1.5 p-2">
       {/* Main Content Area */}
       <main className="flex-1 overflow-hidden">
         <StepComponent

@@ -25,11 +25,11 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
   const stats = getTokenStats(inputText, tokens)
 
   const leftPanel = (
-    <div className="space-y-4">
+    <div className="space-y-2">
       {/* Original Text with Token Highlights */}
       <div>
-        <h3 className="mb-2 text-sm font-medium text-slate-500">Original Text</h3>
-        <div className="rounded-xl border border-slate-200 bg-white p-4 text-lg leading-relaxed text-slate-900">
+        <h3 className="mb-1 text-xs font-medium text-slate-500">Original Text</h3>
+        <div className="rounded-lg border border-slate-200 bg-white p-2.5 text-base leading-relaxed text-slate-900">
           {inputText || (
             <span className="text-slate-400 italic">No input yet. Go back and enter text.</span>
           )}
@@ -38,16 +38,16 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
 
       {/* Educational Explanation */}
       <motion.div
-        className="rounded-xl border-2 border-blue-300 bg-blue-50 p-4"
+        className="rounded-lg border-2 border-blue-300 bg-blue-50 p-2.5"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <div className="flex items-start gap-3">
-          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+        <div className="flex items-start gap-2">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
           <div>
-            <h4 className="font-semibold text-blue-900">What are Tokens?</h4>
-            <p className="mt-1 text-sm text-blue-800">
+            <h4 className="text-sm font-semibold text-blue-900">What are Tokens?</h4>
+            <p className="mt-0.5 text-xs text-blue-800">
               Language models don&apos;t read letters or words like humans do. Instead, they break text into <strong>tokens</strong> —
               substrings of text that the model has learned are useful. A token might be a whole word like &quot;the&quot;,
               part of a word like &quot;ing&quot;, or even punctuation. For example: &quot;Großmutter&quot; (grandmother)
@@ -61,7 +61,7 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
       {/* BPE Demo Toggle */}
       <button
         onClick={() => setShowBPE(!showBPE)}
-        className="flex items-center gap-2 rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
+        className="flex items-center gap-1.5 rounded-lg border border-slate-300 bg-white px-3 py-1.5 text-xs font-medium text-slate-700 transition-colors hover:bg-slate-100"
       >
         <Scissors className="h-4 w-4" />
         {showBPE ? 'Hide' : 'Show'} How Byte-Pair Encoding Works
@@ -75,11 +75,11 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
   )
 
   const rightPanel = (
-    <div className="flex h-full flex-col gap-6">
+    <div className="flex h-full flex-col gap-2">
       {/* Token List */}
       <div className="flex-1">
-        <div className="mb-3 flex items-center justify-between">
-          <h3 className="text-sm font-medium text-slate-500">Tokens</h3>
+        <div className="mb-1.5 flex items-center justify-between">
+          <h3 className="text-xs font-medium text-slate-500">Tokens</h3>
           <span className="text-xs text-slate-400">Click a token to inspect</span>
         </div>
 
@@ -99,7 +99,7 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
 
       {/* Statistics */}
       <motion.div
-        className="grid grid-cols-4 gap-4 rounded-xl border border-slate-200 bg-slate-50 p-4"
+        className="grid grid-cols-4 gap-3 rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -125,7 +125,7 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
 
       {/* Vocabulary info */}
       <motion.div
-        className="rounded-xl border border-slate-200 bg-white p-4 text-center"
+        className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.4 }}

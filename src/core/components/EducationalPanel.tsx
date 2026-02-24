@@ -16,23 +16,23 @@ const SECTIONS = [
 export function EducationalPanel({ content, accentColor }: EducationalPanelProps) {
   // Show ALL sections expanded - no clicking needed!
   return (
-    <div className="rounded-xl border-2 border-slate-300 bg-white shadow-sm">
+    <div className="rounded-lg border border-slate-300 bg-white shadow-sm">
       <div className="grid grid-cols-3 divide-x divide-slate-200">
-        {SECTIONS.map(({ key, label, icon: Icon, description }) => (
-          <div key={key} className="p-4">
-            <div className="flex items-center gap-2 mb-2">
+        {SECTIONS.map(({ key, label, icon: Icon }) => (
+          <div key={key} className="px-3 py-2">
+            <div className="flex items-center gap-1.5 mb-1">
               <Icon
-                className="h-4 w-4"
+                className="h-3.5 w-3.5"
                 style={{ color: accentColor }}
               />
               <span
-                className="text-sm font-bold"
+                className="text-xs font-bold"
                 style={{ color: accentColor }}
               >
                 {label}
               </span>
             </div>
-            <p className="text-sm leading-relaxed text-slate-700">
+            <p className="text-xs leading-snug text-slate-700">
               {content[key]}
             </p>
           </div>

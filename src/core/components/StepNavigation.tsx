@@ -11,7 +11,7 @@ export function StepNavigation() {
 
   return (
     <motion.nav
-      className="flex items-center justify-between rounded-xl border border-slate-200 bg-white/90 p-3 backdrop-blur shadow-sm"
+      className="flex items-center justify-between rounded-lg border border-slate-200 bg-white/90 px-3 py-2 backdrop-blur shadow-sm"
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: 0.2 }}

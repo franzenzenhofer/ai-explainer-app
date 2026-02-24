@@ -36,8 +36,8 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
   }, [tokens, temperature, topK, topP, setPredictions])
 
   const controls = (
-    <div className="space-y-4">
-      <div className="grid grid-cols-3 gap-6">
+    <div className="space-y-2">
+      <div className="grid grid-cols-3 gap-4">
         <div className="space-y-2">
           <ControlSlider
             label="Temperature"
@@ -86,18 +86,18 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
   )
 
   const leftPanel = (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-2">
       {/* Educational Explanation */}
       <motion.div
-        className="rounded-xl border-2 border-blue-300 bg-blue-50 p-4"
+        className="rounded-lg border-2 border-blue-300 bg-blue-50 p-2.5"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="flex items-start gap-3">
-          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+        <div className="flex items-start gap-2">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
           <div>
-            <h4 className="font-semibold text-blue-900">How does the model choose the next token?</h4>
-            <p className="mt-1 text-sm text-blue-800">
+            <h4 className="text-sm font-semibold text-blue-900">How does the model choose the next token?</h4>
+            <p className="mt-0.5 text-xs text-blue-800">
               The model calculates a <strong>probability</strong> for each of the {MODEL_SPECS.vocabulary.toLocaleString()} possible tokens
               in its vocabulary. Think of it like a weighted dice — some outcomes are more likely than others.
               <strong> Temperature</strong> controls creativity: low = predictable, high = more random.
@@ -110,13 +110,13 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
       </motion.div>
 
       {/* Sampling Explanation */}
-      <div className="space-y-4">
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Thermometer className="h-4 w-4 text-orange-500" />
-            <h4 className="font-medium text-slate-700">Temperature = {temperature}</h4>
+      <div className="space-y-1.5">
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <Thermometer className="h-3.5 w-3.5 text-orange-500" />
+            <h4 className="text-sm font-medium text-slate-700">Temperature = {temperature}</h4>
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs text-slate-500">
             {temperature === 0
               ? 'Greedy: Always picks the highest probability token.'
               : temperature < 0.7
@@ -127,23 +127,23 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Filter className="h-4 w-4 text-blue-500" />
-            <h4 className="font-medium text-slate-700">Top-K = {topK}</h4>
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <Filter className="h-3.5 w-3.5 text-blue-500" />
+            <h4 className="text-sm font-medium text-slate-700">Top-K = {topK}</h4>
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs text-slate-500">
             Only the top {topK} most likely tokens are considered.
             {topK < 10 ? ' Very focused output.' : topK < 50 ? ' Balanced selection.' : ' Wide variety possible.'}
           </p>
         </div>
 
-        <div className="rounded-xl border border-slate-200 bg-white p-4">
-          <div className="flex items-center gap-2 mb-2">
-            <Percent className="h-4 w-4 text-green-500" />
-            <h4 className="font-medium text-slate-700">Top-P = {topP.toFixed(2)}</h4>
+        <div className="rounded-lg border border-slate-200 bg-white px-3 py-2">
+          <div className="flex items-center gap-1.5 mb-0.5">
+            <Percent className="h-3.5 w-3.5 text-green-500" />
+            <h4 className="text-sm font-medium text-slate-700">Top-P = {topP.toFixed(2)}</h4>
           </div>
-          <p className="text-sm text-slate-500">
+          <p className="text-xs text-slate-500">
             Consider tokens until cumulative probability reaches {(topP * 100).toFixed(0)}%.
             {topP < 0.5 ? ' Very restrictive.' : topP < 0.9 ? ' Nucleus sampling.' : ' Nearly all tokens eligible.'}
           </p>
@@ -153,7 +153,7 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
   )
 
   const rightPanel = (
-    <div className="flex h-full flex-col gap-3">
+    <div className="flex h-full flex-col gap-1.5">
       {/* View Mode Toggle */}
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
@@ -190,11 +190,11 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
       {/* Stats */}
       <motion.div
-        className="rounded-xl border border-slate-200 bg-slate-50 p-3"
+        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
-        <div className="grid grid-cols-3 gap-4 text-center">
+        <div className="grid grid-cols-3 gap-3 text-center">
           <div>
             <div className="text-lg font-bold text-slate-900">{predictions.length}</div>
             <div className="text-[10px] text-slate-500">Candidates</div>

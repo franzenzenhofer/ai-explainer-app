@@ -40,15 +40,15 @@ export function BPEVisualizer() {
 
   return (
     <motion.div
-      className="rounded-xl border border-slate-200 bg-white p-4"
+      className="rounded-lg border border-slate-200 bg-white p-2.5"
       initial={{ opacity: 0, height: 0 }}
       animate={{ opacity: 1, height: 'auto' }}
       exit={{ opacity: 0, height: 0 }}
     >
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between">
         <div>
-          <h4 className="font-semibold text-slate-900">Byte-Pair Encoding Demo</h4>
-          <p className="text-sm text-slate-600">See how "{DEMO_WORD}" gets tokenized step by step</p>
+          <h4 className="text-sm font-semibold text-slate-900">Byte-Pair Encoding Demo</h4>
+          <p className="text-xs text-slate-600">See how "{DEMO_WORD}" gets tokenized step by step</p>
         </div>
 
         <div className="flex gap-2">
@@ -71,7 +71,7 @@ export function BPEVisualizer() {
       </div>
 
       {/* Progress Steps */}
-      <div className="mb-4 flex gap-2">
+      <div className="mb-2 flex gap-1.5">
         {BPE_STEPS.map((step, i) => (
           <div
             key={step.phase}
@@ -83,7 +83,7 @@ export function BPEVisualizer() {
       </div>
 
       {/* Current Step Display */}
-      <div className="min-h-[120px]">
+      <div className="min-h-[90px]">
         {currentStep ? (
           <motion.div
             key={currentIndex}
@@ -104,7 +104,7 @@ export function BPEVisualizer() {
                   initial={{ scale: 0.8, opacity: 0 }}
                   animate={{ scale: 1, opacity: 1 }}
                   transition={{ delay: i * 0.1 }}
-                  className="rounded-lg border px-3 py-2 font-mono text-lg"
+                  className="rounded border px-2 py-1 font-mono text-base"
                   style={{
                     backgroundColor: getTokenColor(i) + '20',
                     borderColor: getTokenColor(i) + '40',
@@ -117,7 +117,7 @@ export function BPEVisualizer() {
             </div>
 
             {/* Token count indicator */}
-            <p className="mt-4 text-sm text-slate-500">
+            <p className="mt-2 text-xs text-slate-500">
               {currentStep.tokens.length} {currentStep.tokens.length === 1 ? 'token' : 'tokens'}
             </p>
           </motion.div>

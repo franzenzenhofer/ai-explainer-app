@@ -30,18 +30,18 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
     : []
 
   const leftPanel = (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-2">
       {/* Educational Explanation */}
       <motion.div
-        className="rounded-xl border-2 border-blue-300 bg-blue-50 p-4"
+        className="rounded-lg border-2 border-blue-300 bg-blue-50 p-2.5"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <div className="flex items-start gap-3">
-          <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
+        <div className="flex items-start gap-2">
+          <AlertCircle className="mt-0.5 h-4 w-4 flex-shrink-0 text-blue-600" />
           <div>
-            <h4 className="font-semibold text-blue-900">What are Embeddings?</h4>
-            <p className="mt-1 text-sm text-blue-800">
+            <h4 className="text-sm font-semibold text-blue-900">What are Embeddings?</h4>
+            <p className="mt-0.5 text-xs text-blue-800">
               Each token gets converted into a list of <strong>{MODEL_SPECS.embeddingDim.toLocaleString()} numbers</strong> — like GPS coordinates for meaning.
               Tokens with similar meanings have similar numbers, so &quot;king&quot; and &quot;queen&quot; are mathematically close.
               This is how the model represents meaning as math the computer can process.
@@ -52,7 +52,7 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
       {/* Token List */}
       <div>
-        <h3 className="mb-2 text-sm font-medium text-slate-700">Select a Token</h3>
+        <h3 className="mb-1 text-xs font-medium text-slate-700">Select a Token</h3>
         {tokens.length > 0 ? (
           <TokenList
             tokens={tokens}
@@ -77,12 +77,12 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
         <motion.div
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="rounded-xl border border-slate-200 bg-white p-4"
+          className="rounded-lg border border-slate-200 bg-white p-2.5"
         >
-          <h4 className="mb-3 text-sm font-medium text-slate-500">
+          <h4 className="mb-1.5 text-xs font-medium text-slate-500">
             Similar to &quot;{selectedToken.text}&quot;
           </h4>
-          <div className="space-y-2">
+          <div className="space-y-1">
             {neighbors.map((neighbor, i) => (
               <div key={neighbor.word} className="flex items-center justify-between">
                 <span className="text-slate-700">{neighbor.word}</span>
@@ -109,10 +109,10 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
   )
 
   const rightPanel = (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-1.5">
       {/* Semantic Space Visualization */}
       <div className="flex-1">
-        <div className="mb-2">
+        <div className="mb-1">
           <h3 className="text-sm font-semibold text-slate-700">Semantic Space (Simplified 2D View)</h3>
           <p className="text-xs text-orange-600 font-medium">
             This is a 2-dimensional simplification — real models use {MODEL_SPECS.embeddingDim.toLocaleString()} dimensions per token
@@ -127,12 +127,12 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
       {/* Specs */}
       <motion.div
-        className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        <div className="grid grid-cols-2 gap-4 text-center">
+        <div className="grid grid-cols-2 gap-3 text-center">
           <div>
             <div className="text-2xl font-bold text-slate-900">
               {MODEL_SPECS.embeddingDim.toLocaleString()}
@@ -146,7 +146,7 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
             <div className="text-xs text-slate-500">Vocabulary size</div>
           </div>
         </div>
-        <p className="mt-3 text-center text-xs text-slate-400">
+        <p className="mt-1.5 text-center text-[11px] text-slate-400">
           Each token becomes a {MODEL_SPECS.embeddingDim}-dimensional list of numbers
         </p>
       </motion.div>

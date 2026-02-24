@@ -24,14 +24,14 @@ export function InputStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
   const wordCount = countWords(inputText)
 
   const leftPanel = (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-2">
       {/* Text Input */}
       <div className="relative flex-1">
         <textarea
           value={inputText}
           onChange={(e) => setInputText(e.target.value)}
           placeholder="Enter your prompt here..."
-          className="h-full w-full resize-none rounded-xl border border-slate-300 bg-white p-4 text-lg text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+          className="h-full w-full resize-none rounded-lg border border-slate-300 bg-white p-3 text-lg text-slate-900 placeholder:text-slate-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
           autoFocus
         />
 
@@ -51,10 +51,10 @@ export function InputStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
   )
 
   const rightPanel = (
-    <div className="flex h-full flex-col items-center justify-center gap-8">
+    <div className="flex h-full flex-col items-center justify-center gap-4">
       {/* Stats Display */}
       <motion.div
-        className="grid grid-cols-3 gap-8"
+        className="grid grid-cols-3 gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
@@ -81,12 +81,12 @@ export function InputStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
 
       {/* Pipeline Preview */}
       <motion.div
-        className="rounded-xl border border-slate-200 bg-slate-50 p-6"
+        className="rounded-lg border border-slate-200 bg-slate-50 px-4 py-3"
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
         transition={{ delay: 0.4 }}
       >
-        <h3 className="mb-4 text-center text-sm font-medium text-slate-500">
+        <h3 className="mb-2 text-center text-xs font-medium text-slate-500">
           The AI Pipeline
         </h3>
         <div className="flex items-center gap-2">

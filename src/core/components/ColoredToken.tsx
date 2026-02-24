@@ -93,7 +93,7 @@ export function TokenList({
 }: TokenListProps) {
   return (
     <motion.div
-      className={cn('flex flex-wrap gap-2', className)}
+      className={cn('flex flex-wrap gap-1.5', className)}
       initial="initial"
       animate="animate"
       variants={{

@@ -138,10 +138,10 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
   const currentTest = TEST_CASES.find(t => t.id === selectedTest)
 
   const leftPanel = (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-2">
       {/* AI Badge */}
       <motion.div
-        className="rounded-xl border-2 border-purple-300 bg-purple-50 p-3"
+        className="rounded-lg border-2 border-purple-300 bg-purple-50 px-2.5 py-2"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
       >
@@ -159,7 +159,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
 
       {/* Stochastic Parrot / Brain Toggle */}
       <motion.div
-        className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-4"
+        className="flex flex-col items-center justify-center rounded-lg border border-slate-200 bg-white p-2.5"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
       >
@@ -209,13 +209,13 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
 
       {/* The Key Insight */}
       <motion.div
-        className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4"
+        className="rounded-lg border-2 border-amber-300 bg-amber-50 px-3 py-2"
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <h4 className="font-semibold text-amber-900 mb-2">The Mechanical Truth</h4>
-        <p className="text-sm text-amber-800">
+        <h4 className="text-sm font-semibold text-amber-900 mb-1">The Mechanical Truth</h4>
+        <p className="text-xs text-amber-800">
           <strong>It's Vector Math, not Meaning.</strong><br />
           The AI maps input integers (tokens) to output probability distributions.
           What looks like "intelligence" is statistical pattern matching.
@@ -224,13 +224,13 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
 
       {/* Reality Check Table */}
       <motion.div
-        className="rounded-xl border border-slate-200 bg-white p-3"
+        className="rounded-lg border border-slate-200 bg-white px-2.5 py-2"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.3 }}
       >
-        <h4 className="text-xs font-semibold text-slate-500 mb-2">HYPE vs REALITY</h4>
-        <div className="space-y-2 text-xs">
+        <h4 className="text-[11px] font-semibold text-slate-500 mb-1">HYPE vs REALITY</h4>
+        <div className="space-y-1 text-xs">
           <div className="flex gap-2">
             <span className="text-red-500 line-through flex-1">AI "thinks"</span>
             <span className="text-green-700 flex-1">AI predicts next token</span>
@@ -249,10 +249,10 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
   )
 
   const rightPanel = (
-    <div className="flex h-full flex-col gap-4">
+    <div className="flex h-full flex-col gap-2">
       {/* Test Case Buttons */}
       <div>
-        <h3 className="mb-2 text-sm font-medium text-slate-500">Test the AI's Limitations</h3>
+        <h3 className="mb-1 text-xs font-medium text-slate-500">Test the AI's Limitations</h3>
         <div className="grid grid-cols-2 gap-2">
           {TEST_CASES.map((test) => (
             <motion.button
@@ -338,12 +338,12 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
         ) : selectedTest && aiResponse ? (
           <motion.div
             key="response"
-            className="flex-1 overflow-auto rounded-xl border border-slate-200 bg-white p-4"
+            className="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white p-3"
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
           >
-            <div className="space-y-3">
+            <div className="space-y-2">
               {/* Question */}
               <div>
                 <span className="text-xs text-slate-500">Question:</span>
@@ -443,7 +443,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
 
       {/* Bottom Summary */}
       <motion.div
-        className="rounded-xl border border-slate-200 bg-slate-50 p-3 text-center"
+        className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-center"
         initial={{ opacity: 0 }}
         animate={{ opacity: 1 }}
         transition={{ delay: 0.5 }}
