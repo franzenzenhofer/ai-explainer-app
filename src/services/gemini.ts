@@ -81,11 +81,23 @@ export async function generateWithGemini(
       }
     }
 
+    // For continuations, ensure the generated text has a leading space
+    // if the prompt doesn't end with whitespace and the response doesn't start with it.
+    // Without this, "oder?" + "Und" renders as "oder?Und" with no space.
+    let generatedText = data.text
+    if (mode === 'continuation' && generatedText.length > 0) {
+      const promptEndsWithSpace = /\s$/.test(prompt)
+      const responseStartsWithSpace = /^\s/.test(generatedText)
+      if (!promptEndsWithSpace && !responseStartsWithSpace) {
+        generatedText = ' ' + generatedText
+      }
+    }
+
     // Use REAL tiktoken tokenizer - returns full Token objects with real tokenIds
-    const realTokens = tokenize(data.text)
+    const realTokens = tokenize(generatedText)
 
     return {
-      text: data.text,
+      text: generatedText,
       tokens: realTokens,  // Full Token[] with real tokenIds from tiktoken
     }
   } catch (error) {
