@@ -4,7 +4,7 @@ import { motion } from 'motion/react'
 import { AlertCircle, Thermometer, Filter, Percent, BarChart3, Network } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import { StepLayout, ControlSlider, ControlPresets } from '../../core/components'
-import { GPT5_SPECS } from '../../core/types'
+import { MODEL_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
 import { generatePredictions } from './sampling'
 import { ProbabilityChart } from './ProbabilityChart'
@@ -30,7 +30,6 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
   const setTopP = useAppStore((s) => s.setTopP)
   const [viewMode, setViewMode] = useState<'chart' | 'network'>('network')
 
-  // Generate predictions when parameters change
   useEffect(() => {
     const newPredictions = generatePredictions(tokens, temperature, topK, topP)
     setPredictions(newPredictions)
@@ -60,7 +59,7 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
         </div>
 
         <ControlSlider
-          label="Top-K"
+          label="Top-K (Keep Best K)"
           value={topK}
           onChange={setTopK}
           min={1}
@@ -72,7 +71,7 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
         />
 
         <ControlSlider
-          label="Top-P (Nucleus)"
+          label="Top-P (Probability Cutoff)"
           value={topP}
           onChange={setTopP}
           min={0.1}
@@ -97,10 +96,10 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
         <div className="flex items-start gap-3">
           <AlertCircle className="mt-0.5 h-5 w-5 flex-shrink-0 text-blue-600" />
           <div>
-            <h4 className="font-semibold text-blue-900">How does AI choose the next word?</h4>
+            <h4 className="font-semibold text-blue-900">How does the model choose the next token?</h4>
             <p className="mt-1 text-sm text-blue-800">
-              The AI calculates a <strong>probability</strong> for each of the {GPT5_SPECS.vocabulary.toLocaleString()} possible tokens
-              in its vocabulary. Think of it like a weighted dice - some outcomes are more likely than others.
+              The model calculates a <strong>probability</strong> for each of the {MODEL_SPECS.vocabulary.toLocaleString()} possible tokens
+              in its vocabulary. Think of it like a weighted dice — some outcomes are more likely than others.
               <strong> Temperature</strong> controls creativity: low = predictable, high = more random.
               <strong> Top-K</strong> limits choices to the K most likely tokens.
               <strong> Top-P</strong> limits choices until cumulative probability reaches P%.
@@ -185,7 +184,7 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
         {viewMode === 'chart' ? (
           <ProbabilityChart predictions={predictions.slice(0, 20)} accentColor={stepConfig.accentColor} />
         ) : (
-          <PredictionNetwork inputTokens={tokens} predictions={predictions.slice(0, 10)} accentColor={stepConfig.accentColor} />
+          <PredictionNetwork inputTokens={tokens} accentColor={stepConfig.accentColor} />
         )}
       </div>
 
@@ -207,7 +206,7 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
             <div className="text-[10px] text-slate-500">Top probability</div>
           </div>
           <div>
-            <div className="text-lg font-bold text-slate-900">{GPT5_SPECS.vocabulary.toLocaleString()}</div>
+            <div className="text-lg font-bold text-slate-900">{MODEL_SPECS.vocabulary.toLocaleString()}</div>
             <div className="text-[10px] text-slate-500">Total vocabulary</div>
           </div>
         </div>
@@ -226,6 +225,7 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
       educational={stepConfig.educational}
       stepNumber={stepNumber}
       totalSteps={totalSteps}
+      layout="viz-wide"
     />
   )
 }

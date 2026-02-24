@@ -63,11 +63,14 @@ interface AppState {
   reset: () => void
 }
 
-const TOTAL_STEPS = 7
+const TOTAL_STEPS = 8
+
+// Default example text showcasing tokenization with long words, punctuation, German & English
+const DEFAULT_INPUT_TEXT = 'Künstliche Intelligenz (AI) revolutioniert unsere Weltanschauung! The Donaudampfschifffahrtsgesellschaftskapitän said: "Transformation, Innovation, Kommunikation - these extraordinary words demonstrate how tokenization works!" Außergewöhnlich, oder?'
 
 const initialState = {
   currentStep: 0,
-  inputText: '',
+  inputText: DEFAULT_INPUT_TEXT,
   tokens: [],
   embeddings: [],
   selectedTokenForEmbedding: null,
@@ -138,7 +141,7 @@ export const useAppStore = create<AppState>()(
         reset: () => set(initialState),
       }),
       {
-        name: 'ai-explainer-storage',
+        name: 'ai-explainer-storage-v2', // v2: invalidate old cached text with typos
         partialize: (state) => ({
           inputText: state.inputText,
           debugMode: state.debugMode,

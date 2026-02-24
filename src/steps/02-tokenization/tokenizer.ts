@@ -2,17 +2,17 @@
 import { getEncoding } from 'js-tiktoken'
 import type { Token } from '../../core/types'
 
-// Use o200k_base - the actual GPT-4o/GPT-5 tokenizer
+// Use o200k_base - the tokenizer used by modern language models
 // Falls back to cl100k_base if o200k not available
 let encoder: ReturnType<typeof getEncoding> | null = null
 
 function getEncoder() {
   if (!encoder) {
     try {
-      // Try o200k_base first (GPT-4o, GPT-5)
+      // Try o200k_base first (modern models)
       encoder = getEncoding('o200k_base')
     } catch {
-      // Fallback to cl100k_base (GPT-4)
+      // Fallback to cl100k_base
       encoder = getEncoding('cl100k_base')
     }
   }
@@ -35,7 +35,7 @@ export function tokenize(text: string): Token[] {
         id: index,
         text: bytes,
         tokenId: tokenId,
-        colorIndex: index % 10,
+        colorIndex: tokenId, // Use TOKEN ID - same token = same color everywhere!
       }
     })
 
@@ -43,12 +43,16 @@ export function tokenize(text: string): Token[] {
   } catch (error) {
     console.error('Tokenization error:', error)
     // Fallback to simple split if tiktoken fails
-    return text.split(/(\s+)/).filter(Boolean).map((word, index) => ({
-      id: index,
-      text: word,
-      tokenId: index + 1000,
-      colorIndex: index % 10,
-    }))
+    return text.split(/(\s+)/).filter(Boolean).map((word, index) => {
+      // Hash the word text to get consistent color
+      const hash = word.split('').reduce((acc, char) => acc + char.charCodeAt(0), 0)
+      return {
+        id: index,
+        text: word,
+        tokenId: hash,
+        colorIndex: hash, // Same text = same color
+      }
+    })
   }
 }
 
@@ -105,7 +109,7 @@ export function demonstrateBPE(word: string): Array<{ step: string; result: stri
 export function getTokenizerInfo() {
   return {
     name: 'o200k_base',
-    description: 'GPT-4o / GPT-5 tokenizer',
+    description: 'Tokenizer used by modern language models',
     vocabSize: 200_000,
   }
 }

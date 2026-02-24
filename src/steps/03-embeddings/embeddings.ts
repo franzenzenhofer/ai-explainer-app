@@ -1,7 +1,7 @@
 // Embeddings logic - Simulated vector embeddings
 
 import type { Token, EmbeddingVector } from '../../core/types'
-import { GPT5_SPECS } from '../../core/types'
+import { MODEL_SPECS } from '../../core/types'
 
 // Pre-defined 2D positions for visualization (UMAP-like projection)
 const SEMANTIC_POSITIONS: Record<string, [number, number]> = {
@@ -25,7 +25,7 @@ const SEMANTIC_POSITIONS: Record<string, [number, number]> = {
 // Generate a pseudo-random but consistent embedding vector
 function generateEmbedding(tokenText: string, tokenId: number): number[] {
   const seed = tokenId
-  const dim = GPT5_SPECS.embeddingDim
+  const dim = MODEL_SPECS.embeddingDim
   const values: number[] = []
 
   // Use seeded random for consistency

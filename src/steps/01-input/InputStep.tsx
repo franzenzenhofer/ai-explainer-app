@@ -1,17 +1,12 @@
 // Step 1: Input - Prompt Entry
+import { useMemo } from 'react'
 import { motion } from 'motion/react'
 import { Type, Hash, Puzzle } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import { StepLayout, LabeledCounter } from '../../core/components'
 import type { StepProps } from '../../core/types/step-props'
 import { SamplePrompts } from './SamplePrompts'
-
-// Simple tokenizer approximation for character count
-function estimateTokens(text: string): number {
-  if (!text) return 0
-  // Rough estimate: ~4 chars per token on average for English
-  return Math.ceil(text.length / 4)
-}
+import { tokenize } from '../02-tokenization/tokenizer'
 
 function countWords(text: string): number {
   if (!text.trim()) return 0
@@ -22,9 +17,11 @@ export function InputStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
   const inputText = useAppStore((s) => s.inputText)
   const setInputText = useAppStore((s) => s.setInputText)
 
+  // Use REAL tiktoken tokenization - same tokenizer used throughout the app (DRY)
+  const tokenCount = useMemo(() => tokenize(inputText).length, [inputText])
+
   const charCount = inputText.length
   const wordCount = countWords(inputText)
-  const tokenEstimate = estimateTokens(inputText)
 
   const leftPanel = (
     <div className="flex h-full flex-col gap-4">
@@ -75,8 +72,8 @@ export function InputStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
           accentColor={stepConfig.accentColor}
         />
         <LabeledCounter
-          value={tokenEstimate}
-          label="Est. Tokens"
+          value={tokenCount}
+          label="Tokens"
           icon={<Puzzle className="h-5 w-5" />}
           accentColor={stepConfig.accentColor}
         />
@@ -119,7 +116,7 @@ export function InputStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: 1 }}
       >
-        Enter any text to see how GPT-5 processes it step by step.
+        Enter any text to see how a language model processes it step by step.
         <br />
         Try the examples below or write your own!
       </motion.p>

@@ -21,6 +21,7 @@ export interface AttentionWeight {
 export interface PredictionCandidate {
   token: string
   tokenId: number
+  colorIndex: number  // For consistent colors - same token = same color everywhere
   probability: number
 }
 
@@ -39,6 +40,7 @@ export interface StepConfig {
 }
 
 export type StepId =
+  | 'intro'
   | 'input'
   | 'tokenization'
   | 'embeddings'
@@ -82,13 +84,11 @@ export interface AppState {
   debugMode: boolean
 }
 
-// GPT-5 specifications (used throughout the app)
-export const GPT5_SPECS = {
+// Model specifications (used throughout the app)
+export const MODEL_SPECS = {
   vocabulary: 200_000,
   embeddingDim: 4096,
-  layers: 96,
-  headsPerLayer: 96,
-  contextInput: 272_000,
-  contextOutput: 128_000,
+  layers: 12,
+  headsPerLayer: 12,
   tokenizerName: 'o200k_base',
 } as const

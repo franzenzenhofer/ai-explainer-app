@@ -3,6 +3,7 @@ import { useStep } from '../core/hooks/useStep'
 import { StepNavigation } from '../core/components'
 
 // Step components
+import { IntroStep } from '../steps/00-intro/IntroStep'
 import { InputStep } from '../steps/01-input/InputStep'
 import { TokenizationStep } from '../steps/02-tokenization/TokenizationStep'
 import { EmbeddingsStep } from '../steps/03-embeddings/EmbeddingsStep'
@@ -12,6 +13,7 @@ import { GenerationStep } from '../steps/06-generation/GenerationStep'
 import { UnderstandingStep } from '../steps/07-understanding/UnderstandingStep'
 
 const STEP_COMPONENTS = [
+  IntroStep,
   InputStep,
   TokenizationStep,
   EmbeddingsStep,

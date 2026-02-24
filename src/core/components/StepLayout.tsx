@@ -1,10 +1,13 @@
 // StepLayout - Unified layout for all steps
-import { type ReactNode } from 'react'
+import { type ReactNode, useState, useEffect, useCallback } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
+import { Maximize2, X } from 'lucide-react'
 import { cn } from '../utils/cn'
 import { fadeSlide } from '../utils/animations'
 import { EducationalPanel } from './EducationalPanel'
 import type { EducationalContent } from '../types'
+
+type LayoutMode = 'balanced' | 'viz-wide' | 'viz-full'
 
 interface StepLayoutProps {
   title: string
@@ -16,6 +19,7 @@ interface StepLayoutProps {
   educational: EducationalContent
   stepNumber: number
   totalSteps: number
+  layout?: LayoutMode
 }
 
 export function StepLayout({
@@ -28,7 +32,31 @@ export function StepLayout({
   educational,
   stepNumber,
   totalSteps,
+  layout = 'balanced',
 }: StepLayoutProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false)
+
+  // Close on Escape
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') setIsFullscreen(false)
+  }, [])
+
+  useEffect(() => {
+    if (isFullscreen) {
+      document.addEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = 'hidden'
+    }
+    return () => {
+      document.removeEventListener('keydown', handleKeyDown)
+      document.body.style.overflow = ''
+    }
+  }, [isFullscreen, handleKeyDown])
+
+  const gridClass =
+    layout === 'viz-wide'
+      ? 'grid-cols-[35fr_65fr]'
+      : 'grid-cols-2'
+
   return (
     <motion.div
       className="flex h-full flex-col gap-4"
@@ -71,42 +99,135 @@ export function StepLayout({
         </div>
       </header>
 
-      {/* Main Content - Split View */}
-      <div className="grid flex-1 grid-cols-2 gap-6 overflow-hidden">
-        {/* Left Panel */}
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/80 backdrop-blur shadow-sm">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-medium text-slate-500">Input</h2>
-          </div>
-          <div className="flex-1 overflow-auto p-4">
+      {/* Main Content */}
+      {layout === 'viz-full' ? (
+        <div className="flex flex-1 flex-col gap-4 overflow-hidden">
+          {/* Compact text row from leftPanel */}
+          <div className="rounded-2xl border border-slate-200 bg-white/80 px-5 py-3 shadow-sm backdrop-blur">
             {leftPanel}
           </div>
-        </div>
 
-        {/* Right Panel */}
-        <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/80 backdrop-blur shadow-sm">
-          <div className="border-b border-slate-200 px-4 py-3">
-            <h2 className="text-sm font-medium text-slate-500">Output</h2>
-          </div>
-          <div className="flex-1 overflow-auto p-4">
-            {rightPanel}
+          {/* Controls inline if present */}
+          <AnimatePresence mode="wait">
+            {controls && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 10 }}
+                className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+              >
+                {controls}
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Full-width visualization */}
+          <div className="flex flex-1 flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-2">
+              <h2 className="text-sm font-medium text-slate-500">{title}</h2>
+              <button
+                onClick={() => setIsFullscreen(true)}
+                className="rounded-lg p-1.5 text-slate-400 transition-all hover:bg-slate-100 hover:text-slate-600"
+                title="Fullscreen (Esc to close)"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              {rightPanel}
+            </div>
           </div>
         </div>
-      </div>
+      ) : (
+        /* balanced or viz-wide: two-column grid */
+        <div className={cn('grid flex-1 gap-6 overflow-hidden', gridClass)}>
+          {/* Left Panel */}
+          <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur">
+            <div className="border-b border-slate-200 px-4 py-3">
+              <h2 className="text-sm font-medium text-slate-500">{title}</h2>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              {leftPanel}
+            </div>
+          </div>
 
-      {/* Controls (if any) */}
-      <AnimatePresence mode="wait">
-        {controls && (
+          {/* Right Panel */}
+          <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white/80 shadow-sm backdrop-blur">
+            <div className="flex items-center justify-between border-b border-slate-200 px-4 py-3">
+              <h2 className="text-sm font-medium text-slate-500">{subtitle}</h2>
+              <button
+                onClick={() => setIsFullscreen(true)}
+                className="rounded-lg p-1.5 text-slate-400 transition-all hover:bg-slate-100 hover:text-slate-600"
+                title="Fullscreen (Esc to close)"
+              >
+                <Maximize2 className="h-4 w-4" />
+              </button>
+            </div>
+            <div className="flex-1 overflow-auto p-4">
+              {rightPanel}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Fullscreen Overlay - FULL BROWSER */}
+      <AnimatePresence>
+        {isFullscreen && (
           <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 10 }}
-            className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+            className="fixed inset-0 z-50 flex flex-col bg-white"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
           >
-            {controls}
+            {/* Fullscreen Header */}
+            <div
+              className="flex items-center justify-between border-b px-6 py-4"
+              style={{ borderColor: accentColor + '30' }}
+            >
+              <div className="flex items-center gap-3">
+                <div
+                  className="flex h-10 w-10 items-center justify-center rounded-lg text-lg font-bold text-white"
+                  style={{ backgroundColor: accentColor }}
+                >
+                  {stepNumber}
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold text-slate-800">{title}</h2>
+                  <p className="text-sm text-slate-500">{subtitle}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setIsFullscreen(false)}
+                className="rounded-lg p-2 text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
+                title="Close (Esc)"
+              >
+                <X className="h-6 w-6" />
+              </button>
+            </div>
+
+            {/* Fullscreen Content */}
+            <div className="flex-1 overflow-auto p-6">
+              {rightPanel}
+            </div>
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Controls (only for non-viz-full, since viz-full renders them inline) */}
+      {layout !== 'viz-full' && (
+        <AnimatePresence mode="wait">
+          {controls && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 10 }}
+              className="rounded-xl border border-slate-200 bg-slate-50 p-4"
+            >
+              {controls}
+            </motion.div>
+          )}
+        </AnimatePresence>
+      )}
 
       {/* Educational Panel */}
       <EducationalPanel content={educational} accentColor={accentColor} />

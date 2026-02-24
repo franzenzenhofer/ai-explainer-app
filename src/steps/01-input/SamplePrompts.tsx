@@ -8,24 +8,29 @@ interface SamplePromptsProps {
 
 const SAMPLE_PROMPTS = [
   {
-    label: 'Human Rights',
-    text: 'All human beings are born free and equal in dignity and rights. They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.',
-    lang: 'en',
+    label: '🎯 Tokenization Demo',
+    text: 'Künstliche Intelligenz (AI) revolutioniert unsere Weltanschauung! The Donaudampfschifffahrtsgesellschaftskapitän said: "Transformation, Innovation, Kommunikation - these extraordinary words demonstrate how tokenization works!" Außergewöhnlich, oder?',
+    lang: 'mixed',
     highlight: true,
   },
   {
-    label: 'Menschenrechte',
-    text: 'Alle Menschen sind frei und gleich an Würde und Rechten geboren. Sie sind mit Vernunft und Gewissen begabt und sollen einander im Geist der Brüderlichkeit begegnen.',
+    label: 'German Compounds',
+    text: 'Rindfleischetikettierungsüberwachungsaufgabenübertragungsgesetz, Grundstücksverkehrsgenehmigungszuständigkeitsübertragungsverordnung und Donaudampfschifffahrtselektrizitätenhauptbetriebswerkbauunterbeamtengesellschaft!',
     lang: 'de',
   },
   {
-    label: 'Fairy Tale',
-    text: 'Es war einmal eine kleine Prinzessin, die in einem großen Schloss lebte.',
-    lang: 'de',
+    label: 'Inspiration',
+    text: 'Dream big, work hard, stay focused! Träume groß, arbeite hart, bleib fokussiert! Success is not final, failure is not fatal: Erfolg ist nicht endgültig, Scheitern ist nicht tödlich.',
+    lang: 'mixed',
   },
   {
-    label: 'Science',
-    text: 'Explain quantum entanglement in simple terms.',
+    label: 'Punctuation',
+    text: 'Hello, world! How are you? I\'m fine... "Really?" Yes! No? Maybe: perhaps; definitely—absolutely! @AI #tokenization $100 50% (parentheses) [brackets] {braces}',
+    lang: 'en',
+  },
+  {
+    label: 'Long English',
+    text: 'Supercalifragilisticexpialidocious! Pneumonoultramicroscopicsilicovolcanoconiosis is extraordinarily antidisestablishmentarianism. Incomprehensibilities!',
     lang: 'en',
   },
   {
@@ -34,8 +39,13 @@ const SAMPLE_PROMPTS = [
     lang: 'code',
   },
   {
-    label: 'Geography',
-    text: 'The capital of France is',
+    label: 'Menschenrechte',
+    text: 'Alle Menschen sind frei und gleich an Würde und Rechten geboren. Sie sind mit Vernunft und Gewissen begabt und sollen einander im Geist der Brüderlichkeit begegnen.',
+    lang: 'de',
+  },
+  {
+    label: 'Human Rights',
+    text: 'All human beings are born free and equal in dignity and rights. They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.',
     lang: 'en',
   },
 ]
@@ -63,7 +73,7 @@ export function SamplePrompts({ onSelect }: SamplePromptsProps) {
           >
             <span className="font-medium">{prompt.label}</span>
             <span className="ml-1.5 opacity-60">
-              {prompt.lang === 'de' ? '🇩🇪' : prompt.lang === 'code' ? '💻' : '🇬🇧'}
+              {prompt.lang === 'de' ? '🇩🇪' : prompt.lang === 'code' ? '💻' : prompt.lang === 'mixed' ? '🌍' : '🇬🇧'}
             </span>
           </motion.button>
         ))}

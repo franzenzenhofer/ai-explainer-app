@@ -202,7 +202,7 @@ export function AttentionNetwork({
                     backgroundColor: weight > 0.3 ? '#fbbf24' : weight > 0.15 ? '#f97316' : '#9333ea',
                   }}
                   initial={{ width: 0 }}
-                  animate={{ width: `${Math.max(2, weight * 100)}%` }}
+                  animate={{ width: `${weight * 100}%` }}
                   transition={{ delay: index * 0.03, duration: 0.3 }}
                 />
               </div>

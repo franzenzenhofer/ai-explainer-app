@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Scissors, AlertCircle } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import { StepLayout, TokenList, LabeledCounter } from '../../core/components'
-import { GPT5_SPECS } from '../../core/types'
+import { MODEL_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
 import { tokenize, getTokenStats } from './tokenizer'
 import { BPEVisualizer } from './BPEVisualizer'
@@ -14,10 +14,9 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
   const tokens = useAppStore((s) => s.tokens)
   const setTokens = useAppStore((s) => s.setTokens)
 
-  const [showBPE, setShowBPE] = useState(true) // Show expanded by default
+  const [showBPE, setShowBPE] = useState(true)
   const [selectedTokenIdx, setSelectedTokenIdx] = useState<number | null>(null)
 
-  // Tokenize when input changes
   useEffect(() => {
     const newTokens = tokenize(inputText)
     setTokens(newTokens)
@@ -49,11 +48,11 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
           <div>
             <h4 className="font-semibold text-blue-900">What are Tokens?</h4>
             <p className="mt-1 text-sm text-blue-800">
-              AI doesn't read letters or words like humans do. Instead, it breaks text into <strong>tokens</strong> -
-              chunks of text that the AI has learned are useful. A token might be a whole word like "the",
-              part of a word like "ing", or even punctuation. For example: "Großmutter" (grandmother)
-              becomes two tokens: ["Groß", "mutter"]. This is why AI sometimes struggles with spelling
-              or counting letters - it literally doesn't see individual characters!
+              Language models don&apos;t read letters or words like humans do. Instead, they break text into <strong>tokens</strong> —
+              substrings of text that the model has learned are useful. A token might be a whole word like &quot;the&quot;,
+              part of a word like &quot;ing&quot;, or even punctuation. For example: &quot;Großmutter&quot; (grandmother)
+              becomes two tokens: [&quot;Groß&quot;, &quot;mutter&quot;]. This is why these models sometimes struggle with spelling
+              or counting letters — they literally don&apos;t see individual characters!
             </p>
           </div>
         </div>
@@ -65,7 +64,7 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
         className="flex items-center gap-2 rounded-lg border-2 border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-700 transition-colors hover:bg-slate-100"
       >
         <Scissors className="h-4 w-4" />
-        {showBPE ? 'Hide' : 'Show'} How BPE (Byte-Pair Encoding) Works
+        {showBPE ? 'Hide' : 'Show'} How Byte-Pair Encoding Works
       </button>
 
       {/* BPE Visualizer */}
@@ -124,7 +123,7 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
         </div>
       </motion.div>
 
-      {/* GPT-5 Spec */}
+      {/* Vocabulary info */}
       <motion.div
         className="rounded-xl border border-slate-200 bg-white p-4 text-center"
         initial={{ opacity: 0 }}
@@ -132,9 +131,9 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
         transition={{ delay: 0.4 }}
       >
         <p className="text-sm text-slate-500">
-          GPT-5 uses <strong className="text-slate-900">{GPT5_SPECS.vocabulary.toLocaleString()}</strong> unique tokens
+          Modern language models use <strong className="text-slate-900">{MODEL_SPECS.vocabulary.toLocaleString()}</strong> unique tokens
           <br />
-          <span className="text-xs text-slate-400">Tokenizer: {GPT5_SPECS.tokenizerName}</span>
+          <span className="text-xs text-slate-400">Tokenizer: same one used by ChatGPT and similar models</span>
         </p>
       </motion.div>
     </div>
@@ -150,6 +149,7 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
       educational={stepConfig.educational}
       stepNumber={stepNumber}
       totalSteps={totalSteps}
+      layout="viz-wide"
     />
   )
 }

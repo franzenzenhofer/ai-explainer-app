@@ -1,7 +1,7 @@
 // VectorDisplay - Shows embedding vector values
 import { motion } from 'motion/react'
 import type { Token, EmbeddingVector } from '../../core/types'
-import { GPT5_SPECS } from '../../core/types'
+import { MODEL_SPECS } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
 import { formatVectorValue } from '../../core/utils/formatters'
 
@@ -28,7 +28,7 @@ export function VectorDisplay({ token, embedding }: VectorDisplayProps) {
           <span style={{ color }}>{token.text}</span>"
         </h4>
         <span className="text-xs text-slate-400">
-          {GPT5_SPECS.embeddingDim} dimensions
+          {MODEL_SPECS.embeddingDim} dimensions
         </span>
       </div>
 
@@ -68,7 +68,7 @@ export function VectorDisplay({ token, embedding }: VectorDisplayProps) {
 
       {/* Ellipsis indicator */}
       <div className="mt-2 text-center text-xs text-slate-400">
-        ... and {GPT5_SPECS.embeddingDim - DISPLAY_DIMS} more dimensions
+        ... and {MODEL_SPECS.embeddingDim - DISPLAY_DIMS} more dimensions
       </div>
     </motion.div>
   )

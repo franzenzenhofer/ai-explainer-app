@@ -19,8 +19,8 @@ const BPE_STEPS = [
     tokens: ['Gr', 'oß', 'mu', 'tt', 'er'],
   },
   {
-    phase: 'Subwords',
-    description: 'Merge into common subwords',
+    phase: 'Substrings',
+    description: 'Merge into common substrings',
     tokens: ['Groß', 'mutter'],
   },
   {
@@ -47,7 +47,7 @@ export function BPEVisualizer() {
     >
       <div className="mb-4 flex items-center justify-between">
         <div>
-          <h4 className="font-semibold text-slate-900">BPE (Byte-Pair Encoding) Demo</h4>
+          <h4 className="font-semibold text-slate-900">Byte-Pair Encoding Demo</h4>
           <p className="text-sm text-slate-600">See how "{DEMO_WORD}" gets tokenized step by step</p>
         </div>
 

@@ -1,15 +1,14 @@
-// Step 3: Embeddings - Words become vectors
+// Step 3: Embeddings - Tokens become numbers
 import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { AlertCircle } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import { StepLayout, TokenList } from '../../core/components'
-import { GPT5_SPECS } from '../../core/types'
+import { MODEL_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
-import { createEmbeddings, get2DPosition, getNearestNeighbors } from './embeddings'
+import { createEmbeddings, getNearestNeighbors } from './embeddings'
 import { SemanticSpace } from './SemanticSpace'
 import { VectorDisplay } from './VectorDisplay'
-import { getTokenColor } from '../../core/utils/colors'
 
 export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
   const tokens = useAppStore((s) => s.tokens)
@@ -18,7 +17,6 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
   const selectedTokenForEmbedding = useAppStore((s) => s.selectedTokenForEmbedding)
   const setSelectedTokenForEmbedding = useAppStore((s) => s.setSelectedTokenForEmbedding)
 
-  // Create embeddings when tokens change
   useEffect(() => {
     const newEmbeddings = createEmbeddings(tokens)
     setEmbeddings(newEmbeddings)
@@ -27,7 +25,6 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
   const selectedToken = selectedTokenForEmbedding !== null ? tokens[selectedTokenForEmbedding] : null
   const selectedEmbedding = selectedTokenForEmbedding !== null ? embeddings[selectedTokenForEmbedding] : null
 
-  // Get neighbors for selected token
   const neighbors = selectedToken
     ? getNearestNeighbors(selectedToken.text, selectedToken.tokenId)
     : []
@@ -45,9 +42,9 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
           <div>
             <h4 className="font-semibold text-blue-900">What are Embeddings?</h4>
             <p className="mt-1 text-sm text-blue-800">
-              Each token gets converted into a list of <strong>{GPT5_SPECS.embeddingDim.toLocaleString()} numbers</strong> (called a "vector").
-              Tokens with similar meanings have similar numbers, so "king" and "queen" are mathematically close.
-              This is how AI represents the "meaning" of words as math the computer can process.
+              Each token gets converted into a list of <strong>{MODEL_SPECS.embeddingDim.toLocaleString()} numbers</strong> — like GPS coordinates for meaning.
+              Tokens with similar meanings have similar numbers, so &quot;king&quot; and &quot;queen&quot; are mathematically close.
+              This is how the model represents meaning as math the computer can process.
             </p>
           </div>
         </div>
@@ -83,7 +80,7 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
           className="rounded-xl border border-slate-200 bg-white p-4"
         >
           <h4 className="mb-3 text-sm font-medium text-slate-500">
-            Similar to "{selectedToken.text}"
+            Similar to &quot;{selectedToken.text}&quot;
           </h4>
           <div className="space-y-2">
             {neighbors.map((neighbor, i) => (
@@ -118,7 +115,7 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
         <div className="mb-2">
           <h3 className="text-sm font-semibold text-slate-700">Semantic Space (Simplified 2D View)</h3>
           <p className="text-xs text-orange-600 font-medium">
-            ⚠️ SIMPLIFICATION: Real embeddings have {GPT5_SPECS.embeddingDim.toLocaleString()} dimensions - we compress to 2D so you can see it!
+            This is a 2-dimensional simplification — real models use {MODEL_SPECS.embeddingDim.toLocaleString()} dimensions per token
           </p>
         </div>
         <SemanticSpace
@@ -138,19 +135,19 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
         <div className="grid grid-cols-2 gap-4 text-center">
           <div>
             <div className="text-2xl font-bold text-slate-900">
-              {GPT5_SPECS.embeddingDim.toLocaleString()}
+              {MODEL_SPECS.embeddingDim.toLocaleString()}
             </div>
             <div className="text-xs text-slate-500">Dimensions per token</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-slate-900">
-              {GPT5_SPECS.vocabulary.toLocaleString()}
+              {MODEL_SPECS.vocabulary.toLocaleString()}
             </div>
             <div className="text-xs text-slate-500">Vocabulary size</div>
           </div>
         </div>
         <p className="mt-3 text-center text-xs text-slate-400">
-          Each token becomes a {GPT5_SPECS.embeddingDim}-dimensional vector
+          Each token becomes a {MODEL_SPECS.embeddingDim}-dimensional list of numbers
         </p>
       </motion.div>
     </div>
@@ -166,6 +163,7 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
       educational={stepConfig.educational}
       stepNumber={stepNumber}
       totalSteps={totalSteps}
+      layout="viz-wide"
     />
   )
 }

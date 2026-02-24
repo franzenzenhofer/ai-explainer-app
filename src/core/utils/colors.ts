@@ -16,6 +16,7 @@ export const TOKEN_COLORS = [
 
 // Step accent colors - each step has its own color identity
 export const STEP_COLORS = {
+  intro: 'hsl(240, 70%, 60%)',
   input: 'hsl(220, 90%, 56%)',
   tokenization: 'hsl(25, 95%, 53%)',
   embeddings: 'hsl(270, 91%, 65%)',
@@ -50,36 +51,59 @@ export function getTokenBgColor(index: number, opacity = 0.2): string {
   return `hsla(${Math.round(hue)}, ${saturation}%, ${lightness}%, ${opacity})`
 }
 
-// Attention heatmap color scale - HIGH CONTRAST INFERNO colormap
-// Maximum contrast: black → purple → red → orange → yellow → white
+// Attention heatmap color scale - TURBO RAINBOW with OPACITY
+// Color = position in rainbow, Opacity = strength of attention
 export function getAttentionColor(weight: number): string {
   const t = Math.min(1, Math.max(0, weight))
 
-  // High-contrast inferno colormap - dramatic visual difference
-  if (t < 0.05) {
-    // Near zero: almost black
-    return `rgb(5, 5, 20)`
-  } else if (t < 0.2) {
-    // Very low: dark purple
-    const p = (t - 0.05) / 0.15
-    return `rgb(${Math.round(5 + p * 50)}, ${Math.round(5 + p * 10)}, ${Math.round(20 + p * 80)})`
-  } else if (t < 0.4) {
-    // Low: purple to magenta
-    const p = (t - 0.2) / 0.2
-    return `rgb(${Math.round(55 + p * 120)}, ${Math.round(15 + p * 20)}, ${Math.round(100 + p * 30)})`
+  // OPACITY based on weight - low attention = transparent, high = opaque
+  // Using exponential curve for more dramatic effect
+  const opacity = Math.pow(t, 0.7) * 0.95 + 0.05 // Range: 0.05 to 1.0
+
+  // Get hue from rainbow based on weight (0 = blue, 1 = hot pink)
+  // Blue(240) → Cyan(180) → Green(120) → Yellow(60) → Orange(30) → Red(0) → Pink(330)
+  let hue: number
+  let saturation: number
+  let lightness: number
+
+  if (t < 0.15) {
+    // Blue to Cyan
+    hue = 240 - (t / 0.15) * 60 // 240 → 180
+    saturation = 90
+    lightness = 50
+  } else if (t < 0.3) {
+    // Cyan to Green
+    hue = 180 - ((t - 0.15) / 0.15) * 60 // 180 → 120
+    saturation = 95
+    lightness = 45
+  } else if (t < 0.45) {
+    // Green to Lime/Yellow-Green
+    hue = 120 - ((t - 0.3) / 0.15) * 40 // 120 → 80
+    saturation = 100
+    lightness = 50
   } else if (t < 0.6) {
-    // Medium: magenta to red-orange
-    const p = (t - 0.4) / 0.2
-    return `rgb(${Math.round(175 + p * 60)}, ${Math.round(35 + p * 60)}, ${Math.round(130 - p * 90)})`
-  } else if (t < 0.8) {
-    // High: red-orange to orange
-    const p = (t - 0.6) / 0.2
-    return `rgb(${Math.round(235 + p * 20)}, ${Math.round(95 + p * 100)}, ${Math.round(40 - p * 20)})`
+    // Lime to Yellow
+    hue = 80 - ((t - 0.45) / 0.15) * 30 // 80 → 50
+    saturation = 100
+    lightness = 55
+  } else if (t < 0.75) {
+    // Yellow to Orange
+    hue = 50 - ((t - 0.6) / 0.15) * 25 // 50 → 25
+    saturation = 100
+    lightness = 55
+  } else if (t < 0.9) {
+    // Orange to Red
+    hue = 25 - ((t - 0.75) / 0.15) * 25 // 25 → 0
+    saturation = 100
+    lightness = 50
   } else {
-    // Very high: orange to bright yellow
-    const p = (t - 0.8) / 0.2
-    return `rgb(255, ${Math.round(195 + p * 60)}, ${Math.round(20 + p * 150)})`
+    // Red to Hot Pink/Magenta
+    hue = 360 - ((t - 0.9) / 0.1) * 30 // 360 → 330
+    saturation = 100
+    lightness = 55
   }
+
+  return `hsla(${Math.round(hue)}, ${saturation}%, ${lightness}%, ${opacity.toFixed(2)})`
 }
 
 // Probability bar colors

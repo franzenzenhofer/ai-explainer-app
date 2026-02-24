@@ -26,13 +26,31 @@ export function formatVectorValue(value: number): string {
   return value.toFixed(4)
 }
 
-// Format token for display - KISS: just show the text simply
+// Format token for display - make whitespace VISIBLE so users understand tokenization
 export function formatTokenDisplay(token: string): string {
-  // Only replace invisible special characters
+  // Replace invisible special characters with visible symbols
   if (token === '\n') return '↵'
-  if (token === '\t') return '  '
+  if (token === '\t') return '⇥'
+  if (token === ' ') return '_'  // Single space = underscore
+  if (token === '  ') return '__' // Double space
 
-  // Show the token as-is - spaces are visible naturally
+  // Make leading spaces visible (very common in tokenization!)
+  // " the" → "_the", "  code" → "__code"
+  if (token.startsWith(' ')) {
+    const leadingSpaces = token.match(/^( +)/)?.[1] || ''
+    const rest = token.slice(leadingSpaces.length)
+    const visibleSpaces = leadingSpaces.split('').map(() => '_').join('')
+    return visibleSpaces + rest
+  }
+
+  // Make trailing spaces visible too
+  if (token.endsWith(' ')) {
+    const trailingSpaces = token.match(/( +)$/)?.[1] || ''
+    const rest = token.slice(0, -trailingSpaces.length)
+    const visibleSpaces = trailingSpaces.split('').map(() => '_').join('')
+    return rest + visibleSpaces
+  }
+
   return token
 }
 

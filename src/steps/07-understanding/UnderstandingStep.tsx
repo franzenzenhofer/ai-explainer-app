@@ -4,6 +4,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Bird, Brain, Sparkles, Send, RotateCcw } from 'lucide-react'
 import { StepLayout } from '../../core/components'
 import type { StepProps } from '../../core/types/step-props'
+import type { Token } from '../../core/types'
 import { generateWithGemini } from '../../services/gemini'
 
 interface TestCase {
@@ -15,6 +16,13 @@ interface TestCase {
 }
 
 const TEST_CASES: TestCase[] = [
+  {
+    id: 'calculation',
+    question: 'What is 347 × 892? Show your work.',
+    expectedIssue: 'No real calculation',
+    explanation: 'AI cannot actually calculate! It predicts tokens that LOOK like math. Without "tool use" (calling a calculator), it\'s just guessing numbers that seem plausible. The answer 309,524 is correct - but AI might give wrong answers for unusual numbers because it\'s pattern-matching, not computing.',
+    mechanicalTruth: 'Token prediction ≠ calculation. Tool use required for real math.',
+  },
   {
     id: 'sensory',
     question: 'What does the color red feel like when you touch it? Describe the texture.',
@@ -50,7 +58,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
   const [customQuestion, setCustomQuestion] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [aiResponse, setAiResponse] = useState<string | null>(null)
-  const [responseTokens, setResponseTokens] = useState<string[]>([])
+  const [responseTokens, setResponseTokens] = useState<Token[]>([])
   const [showParrot, setShowParrot] = useState(true)
 
   // AbortController to cancel requests when navigating away
@@ -79,7 +87,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
     setResponseTokens([])
 
     try {
-      const result = await generateWithGemini(question, 50)
+      const result = await generateWithGemini(question, 50, 'qa')
 
       // Check if request was aborted
       if (abortControllerRef.current?.signal.aborted) {
@@ -140,8 +148,8 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
         <div className="flex items-center gap-2">
           <Sparkles className="h-5 w-5 text-purple-600" />
           <div>
-            <span className="font-semibold text-purple-900">Real AI Test!</span>
-            <span className="ml-2 text-sm text-purple-700">Powered by Gemini</span>
+            <span className="font-semibold text-purple-900">Real Language Model Test!</span>
+            <span className="ml-2 text-sm text-purple-700">Powered by a real language model</span>
           </div>
         </div>
         <p className="mt-1 text-xs text-purple-700">
@@ -267,20 +275,32 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
       </div>
 
       {/* Custom Question Input */}
-      <div className="flex gap-2">
+      <form
+        className="flex gap-2"
+        onSubmit={(e) => {
+          e.preventDefault()
+          handleCustomQuestion()
+        }}
+      >
+        <label htmlFor="custom-question" className="sr-only">
+          Ask a custom question
+        </label>
         <input
+          id="custom-question"
+          name="customQuestion"
           type="text"
           value={customQuestion}
           onChange={(e) => setCustomQuestion(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && handleCustomQuestion()}
           placeholder="Ask your own question..."
           disabled={isLoading}
           className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-purple-400 focus:outline-none disabled:opacity-50"
         />
         <motion.button
-          onClick={handleCustomQuestion}
+          type="submit"
           disabled={isLoading || !customQuestion.trim()}
           className="rounded-lg px-3 py-2 text-white disabled:opacity-50"
+          aria-label="Send custom question"
+          title="Send question"
           style={{ backgroundColor: stepConfig.accentColor }}
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
@@ -288,14 +308,17 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
           <Send className="h-4 w-4" />
         </motion.button>
         <motion.button
+          type="button"
           onClick={handleReset}
           className="rounded-lg border border-slate-300 px-3 py-2 text-slate-600 hover:bg-slate-50"
+          aria-label="Reset understanding step"
+          title="Reset"
           whileHover={{ scale: 1.02 }}
           whileTap={{ scale: 0.98 }}
         >
           <RotateCcw className="h-4 w-4" />
         </motion.button>
-      </div>
+      </form>
 
       {/* Response Area */}
       <AnimatePresence mode="wait">
@@ -337,19 +360,31 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
                 </p>
               </div>
 
-              {/* Response as Tokens */}
+              {/* Response as REAL Tokens (tiktoken BPE) */}
               {responseTokens.length > 0 && (
                 <div>
-                  <span className="text-xs text-slate-500">As Tokens ({responseTokens.length}):</span>
+                  <span className="text-xs text-slate-500">As Tokens ({responseTokens.length}) - Real BPE:</span>
                   <div className="flex flex-wrap gap-1 mt-1">
-                    {responseTokens.slice(0, 30).map((token, i) => (
-                      <span
-                        key={i}
-                        className="rounded bg-purple-100 px-1.5 py-0.5 text-xs font-mono text-purple-800"
-                      >
-                        {token || '␣'}
-                      </span>
-                    ))}
+                    {responseTokens.slice(0, 30).map((token, i) => {
+                      // Show whitespace visually: space=·, newline=↵, tab=→
+                      const displayToken = token.text
+                        .replace(/ /g, '·')
+                        .replace(/\n/g, '↵')
+                        .replace(/\t/g, '→')
+                      const isWhitespace = /^[\s·↵→]+$/.test(displayToken)
+                      return (
+                        <span
+                          key={i}
+                          className={`rounded px-1.5 py-0.5 text-xs font-mono ${
+                            isWhitespace
+                              ? 'bg-slate-200 text-slate-500'
+                              : 'bg-purple-100 text-purple-800'
+                          }`}
+                        >
+                          {displayToken || '␣'}
+                        </span>
+                      )
+                    })}
                     {responseTokens.length > 30 && (
                       <span className="text-xs text-slate-400">+{responseTokens.length - 30} more</span>
                     )}

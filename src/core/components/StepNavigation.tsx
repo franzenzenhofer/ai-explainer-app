@@ -22,6 +22,7 @@ export function StepNavigation() {
           <motion.button
             key={step.id}
             onClick={() => setCurrentStep(index)}
+            aria-label={`Go to step ${index + 1}: ${step.title}`}
             className={cn(
               'group relative h-8 rounded-lg px-3 text-xs font-medium transition-all',
               'hover:bg-slate-100',
@@ -54,7 +55,14 @@ export function StepNavigation() {
               >
                 {index + 1}
               </span>
-              <span className="hidden lg:inline">{step.title}</span>
+              <span
+                className={cn(
+                  'max-w-[7rem] truncate',
+                  index === currentStep ? 'inline lg:inline' : 'hidden lg:inline'
+                )}
+              >
+                {step.title}
+              </span>
             </span>
           </motion.button>
         ))}
@@ -68,6 +76,7 @@ export function StepNavigation() {
           className="flex h-9 w-9 items-center justify-center rounded-lg text-slate-500 transition-colors hover:bg-slate-100 hover:text-slate-700"
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          aria-label="Reset all steps"
           title="Reset"
         >
           <RotateCcw className="h-4 w-4" />
@@ -77,6 +86,7 @@ export function StepNavigation() {
         <motion.button
           onClick={prevStep}
           disabled={isFirstStep}
+          aria-label="Go to previous step"
           className={cn(
             'flex h-9 items-center gap-1 rounded-lg px-3 text-sm font-medium transition-all',
             isFirstStep
@@ -94,6 +104,7 @@ export function StepNavigation() {
         <motion.button
           onClick={nextStep}
           disabled={isLastStep}
+          aria-label={isLastStep ? 'All steps complete' : 'Go to next step'}
           className={cn(
             'flex h-9 items-center gap-1 rounded-lg px-4 text-sm font-medium transition-all',
             isLastStep

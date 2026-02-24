@@ -1,7 +1,6 @@
 // Attention logic - Simulated self-attention weights
 
 import type { Token, AttentionWeight } from '../../core/types'
-import { GPT5_SPECS } from '../../core/types'
 
 // Generate attention weights for a layer/head combination
 export function generateAttentionWeights(
@@ -21,6 +20,12 @@ export function generateAttentionWeights(
     let sumExp = 0
 
     for (let key = 0; key < n; key++) {
+      // Decoder-only causal mask: no attention to future tokens
+      if (key > query) {
+        rawScores.push(Number.NEGATIVE_INFINITY)
+        continue
+      }
+
       // Create somewhat realistic patterns
       let score = 0
 
@@ -36,10 +41,6 @@ export function generateAttentionWeights(
       else if (key < query) {
         score = 0.5 + pseudoRandom(seed + query * 100 + key) * 0.8
       }
-      // Future tokens get some attention too (for educational purposes)
-      else {
-        score = 0.2 + pseudoRandom(seed + query * 100 + key) * 0.3
-      }
 
       rawScores.push(score)
       sumExp += Math.exp(score)
@@ -47,10 +48,14 @@ export function generateAttentionWeights(
 
     // Softmax normalization
     for (let key = 0; key < n; key++) {
+      const rawScore = rawScores[key]
+      const weight = Number.isFinite(rawScore) && sumExp > 0
+        ? Math.exp(rawScore) / sumExp
+        : 0
       weights.push({
         queryIdx: query,
         keyIdx: key,
-        weight: Math.exp(rawScores[key]) / sumExp,
+        weight,
       })
     }
   }
@@ -64,7 +69,7 @@ export function getQueryAttention(
   queryIdx: number
 ): Array<{ keyIdx: number; weight: number }> {
   return weights
-    .filter((w) => w.queryIdx === queryIdx)
+    .filter((w) => w.queryIdx === queryIdx && w.weight > 0)
     .map((w) => ({ keyIdx: w.keyIdx, weight: w.weight }))
     .sort((a, b) => b.weight - a.weight)
 }

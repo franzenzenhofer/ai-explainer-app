@@ -2,24 +2,30 @@
 // CLICK any context token to see predictions from that point!
 import { useMemo, useRef, useState, useEffect } from 'react'
 import { motion } from 'motion/react'
-import type { Token, Prediction } from '../../core/types'
+import type { Token } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
+import { generatePredictions } from './sampling'
+import { useAppStore } from '../../store/appStore'
+import { formatTokenDisplay } from '../../core/utils/formatters'
 
 interface PredictionNetworkProps {
   inputTokens: Token[]
-  predictions: Prediction[]
   accentColor: string
 }
 
 export function PredictionNetwork({
   inputTokens,
-  predictions,
   accentColor,
 }: PredictionNetworkProps) {
   const containerRef = useRef<HTMLDivElement>(null)
   const [dimensions, setDimensions] = useState({ width: 600, height: 400 })
   // Track which token is selected (defaults to last token)
   const [selectedTokenIdx, setSelectedTokenIdx] = useState<number | null>(null)
+
+  // Get sampling parameters from store
+  const temperature = useAppStore((s) => s.temperature)
+  const topK = useAppStore((s) => s.topK)
+  const topP = useAppStore((s) => s.topP)
 
   useEffect(() => {
     const updateDimensions = () => {
@@ -33,11 +39,20 @@ export function PredictionNetwork({
     return () => window.removeEventListener('resize', updateDimensions)
   }, [])
 
-  // Show last 8 tokens and top 8 predictions
-  const visibleTokens = useMemo(() => inputTokens.slice(-8), [inputTokens])
+  // Show last 10 tokens (fullscreen handled by StepLayout)
+  const visibleTokens = useMemo(() => inputTokens.slice(-10), [inputTokens])
 
   // Default to last token if none selected
   const activeTokenIdx = selectedTokenIdx ?? (visibleTokens.length - 1)
+
+  // Calculate the ACTUAL index in the full token array
+  const fullTokenIndex = inputTokens.length - visibleTokens.length + activeTokenIdx
+
+  // Generate predictions based on selected token position - DIFFERENT for each token!
+  const predictions = useMemo(() => {
+    return generatePredictions(inputTokens, temperature, topK, topP, fullTokenIndex)
+  }, [inputTokens, temperature, topK, topP, fullTokenIndex])
+
   const visiblePredictions = useMemo(() => predictions.slice(0, 8), [predictions])
 
   // Layout calculation
@@ -82,7 +97,8 @@ export function PredictionNetwork({
   return (
     <div
       ref={containerRef}
-      className="relative h-full w-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-yellow-50"
+      className="relative h-full w-full overflow-auto rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-yellow-50"
+      style={{ minHeight: 320 }}
     >
       {/* SVG for connection lines */}
       <svg className="pointer-events-none absolute inset-0" width={dimensions.width} height={dimensions.height}>
@@ -160,7 +176,7 @@ export function PredictionNetwork({
               whileHover={{ scale: 1.05 }}
               animate={{ scale: isSelected ? 1.1 : 1 }}
             >
-              {token.text.trim() || '␣'}
+              {formatTokenDisplay(token.text)}
             </motion.div>
             {isSelected && (
               <motion.div
@@ -198,12 +214,15 @@ export function PredictionNetwork({
             />
           </div>
 
-          {/* Prediction token */}
+          {/* Prediction token - using REAL tokenId colors for consistency */}
           <div
-            className="rounded-lg px-2 py-1 text-xs font-semibold shadow-md whitespace-nowrap"
-            style={{ backgroundColor: `${accentColor}20`, color: accentColor }}
+            className="rounded-lg px-2 py-1 text-xs font-semibold shadow-md whitespace-nowrap font-mono"
+            style={{
+              backgroundColor: getTokenColor(prediction.colorIndex) + '25',
+              color: getTokenColor(prediction.colorIndex),
+            }}
           >
-            {prediction.token}
+            {formatTokenDisplay(prediction.token)}
           </div>
 
           {/* Probability percentage */}

@@ -23,6 +23,24 @@ export function AttentionHeatmap({
     [weights, tokens.length]
   )
 
+  // NORMALIZE weights to use FULL color range (0-1)
+  // Find min/max and scale so highest = 1.0 (red), lowest = 0.0 (blue)
+  const { minWeight, maxWeight } = useMemo(() => {
+    const allWeights = matrix.flat()
+    if (allWeights.length === 0) return { minWeight: 0, maxWeight: 1 }
+    return {
+      minWeight: Math.min(...allWeights),
+      maxWeight: Math.max(...allWeights),
+    }
+  }, [matrix])
+
+  // Normalize a weight to 0-1 range
+  const normalizeWeight = (weight: number): number => {
+    const range = maxWeight - minWeight
+    if (range === 0) return 0.5
+    return (weight - minWeight) / range
+  }
+
   if (tokens.length === 0) {
     return (
       <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-slate-300 text-slate-400">
@@ -31,7 +49,7 @@ export function AttentionHeatmap({
     )
   }
 
-  const cellSize = Math.min(40, Math.max(20, 300 / tokens.length))
+  const cellSize = Math.min(40, Math.max(16, 600 / tokens.length))
 
   return (
     <div className="flex h-full flex-col overflow-auto rounded-xl border border-slate-200 bg-white p-4">
@@ -95,7 +113,7 @@ export function AttentionHeatmap({
                   style={{
                     width: cellSize,
                     height: cellSize,
-                    backgroundColor: getAttentionColor(weight),
+                    backgroundColor: getAttentionColor(normalizeWeight(weight)),
                     outline: isQueryRow || isKeyCol ? '1px solid rgba(255,255,255,0.3)' : undefined,
                   }}
                   initial={{ scale: 0, opacity: 0 }}
