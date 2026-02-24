@@ -1,6 +1,6 @@
 // Step 6: Generation - Token by Token (Powered by Real AI!)
 import { useEffect, useRef, useCallback, useState } from 'react'
-import { motion, AnimatePresence } from 'motion/react'
+import { motion } from 'motion/react'
 import { Play, Pause, RotateCcw, Zap, Sparkles } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import { StepLayout, ControlSlider, ProgressBar } from '../../core/components'
@@ -11,12 +11,33 @@ import { getTokenColor } from '../../core/utils/colors'
 
 const MAX_TOKENS = 30
 
-type Phase = 'processing' | 'calculating' | 'choosing' | null
+type Phase = 'processing' | 'calculating' | 'choosing' | 'reveal' | null
 
-const PHASE_CONFIG: Record<NonNullable<Phase>, { label: string; color: string }> = {
-  processing: { label: 'Processing input...', color: 'text-blue-600' },
-  calculating: { label: 'Calculating next possible tokens...', color: 'text-amber-600' },
-  choosing: { label: 'Choosing next token...', color: 'text-emerald-600' },
+const PHASE_STYLES: Record<NonNullable<Phase>, { label: string; dotClass: string; textClass: string; bgClass: string }> = {
+  processing: {
+    label: 'Processing input...',
+    dotClass: 'bg-blue-500',
+    textClass: 'text-blue-700',
+    bgClass: 'border-blue-200 bg-blue-50',
+  },
+  calculating: {
+    label: 'Calculating next possible tokens...',
+    dotClass: 'bg-amber-500',
+    textClass: 'text-amber-700',
+    bgClass: 'border-amber-200 bg-amber-50',
+  },
+  choosing: {
+    label: 'Choosing next token...',
+    dotClass: 'bg-emerald-500',
+    textClass: 'text-emerald-700',
+    bgClass: 'border-emerald-200 bg-emerald-50',
+  },
+  reveal: {
+    label: '', // filled dynamically with token text
+    dotClass: 'bg-violet-500',
+    textClass: 'text-violet-700',
+    bgClass: 'border-violet-300 bg-violet-50',
+  },
 }
 
 export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
@@ -33,8 +54,15 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [phase, setPhase] = useState<Phase>(null)
+  const [revealText, setRevealText] = useState<string>('')
+  const [revealColor, setRevealColor] = useState<number>(0)
   const tokenIndexRef = useRef(0)
   const phaseTimeoutsRef = useRef<number[]>([])
+
+  const clearPhaseTimeouts = useCallback(() => {
+    phaseTimeoutsRef.current.forEach(clearTimeout)
+    phaseTimeoutsRef.current = []
+  }, [])
 
   const fetchCompletion = useCallback(async () => {
     const inputText = tokens.map((t) => t.text).join('')
@@ -67,10 +95,9 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     }
   }, [tokens, setIsGenerating])
 
-  // Phase-cycling generation: processing → calculating → choosing → token appears
+  // 4-phase cycle: processing → calculating → choosing → reveal token → add to stream
   useEffect(() => {
-    phaseTimeoutsRef.current.forEach(clearTimeout)
-    phaseTimeoutsRef.current = []
+    clearPhaseTimeouts()
 
     if (!isGenerating || tokenIndexRef.current >= pendingTokens.length) {
       if (tokenIndexRef.current >= pendingTokens.length && pendingTokens.length > 0) {
@@ -81,30 +108,33 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     }
 
     const totalInterval = 1000 / generationSpeed
-    const step = totalInterval / 4
+    const step = totalInterval / 5 // 5 steps: 3 phases + reveal + add
+
+    const nextToken = pendingTokens[tokenIndexRef.current]
 
     setPhase('processing')
 
     const t1 = window.setTimeout(() => setPhase('calculating'), step)
     const t2 = window.setTimeout(() => setPhase('choosing'), step * 2)
     const t3 = window.setTimeout(() => {
-      const next = pendingTokens[tokenIndexRef.current]
+      setRevealText(nextToken.text)
+      setRevealColor(nextToken.colorIndex)
+      setPhase('reveal')
+    }, step * 3)
+    const t4 = window.setTimeout(() => {
       addGeneratedToken({
         id: generatedTokens.length,
-        text: next.text,
-        tokenId: next.tokenId,
-        colorIndex: next.colorIndex,
+        text: nextToken.text,
+        tokenId: nextToken.tokenId,
+        colorIndex: nextToken.colorIndex,
       })
       tokenIndexRef.current++
       setPhase(null)
-    }, step * 3)
+    }, step * 4)
 
-    phaseTimeoutsRef.current = [t1, t2, t3]
-    return () => {
-      phaseTimeoutsRef.current.forEach(clearTimeout)
-      phaseTimeoutsRef.current = []
-    }
-  }, [isGenerating, generatedTokens.length, generationSpeed, pendingTokens, addGeneratedToken, setIsGenerating])
+    phaseTimeoutsRef.current = [t1, t2, t3, t4]
+    return clearPhaseTimeouts
+  }, [isGenerating, generatedTokens.length, generationSpeed, pendingTokens, addGeneratedToken, setIsGenerating, clearPhaseTimeouts])
 
   const handleStart = () => {
     if (pendingTokens.length === 0 || generatedTokens.length === 0) {
@@ -145,16 +175,11 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     setPhase(null)
   }
 
-  const progress = pendingTokens.length > 0
-    ? generatedTokens.length / pendingTokens.length
-    : 0
-
+  const progress = pendingTokens.length > 0 ? generatedTokens.length / pendingTokens.length : 0
   const showCursor = isGenerating || isLoading ||
     (pendingTokens.length > 0 && generatedTokens.length < pendingTokens.length)
 
-  const leftPanel = (
-    <GenerationPipeline isGenerating={isGenerating} />
-  )
+  const leftPanel = <GenerationPipeline isGenerating={isGenerating} />
 
   const controls = (
     <GenerationControls
@@ -182,13 +207,9 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
       {/* Generated Output */}
       <div className="flex-1 overflow-auto rounded-lg border border-slate-200 bg-white p-3">
-        {error && (
-          <p className="text-xs text-red-600 font-medium mb-2">{error}</p>
-        )}
+        {error && <p className="text-xs text-red-600 font-medium mb-2">{error}</p>}
         <div className="min-h-[100px] text-lg leading-relaxed">
-          <span className="text-slate-500">
-            {tokens.map((t) => t.text).join('')}
-          </span>
+          <span className="text-slate-500">{tokens.map((t) => t.text).join('')}</span>
           {generatedTokens.map((token, i) => (
             <motion.span
               key={i}
@@ -212,12 +233,12 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
         </div>
       </div>
 
-      {/* Phase status line + Token Stream */}
+      {/* Phase status line — full width, fixed height, no layout shifts */}
+      <PhaseStatusLine phase={phase} revealText={revealText} revealColor={revealColor} />
+
+      {/* Token Stream */}
       <div>
-        <div className="mb-1 flex items-center justify-between">
-          <h4 className="text-sm font-medium text-slate-500">Token Stream</h4>
-          <PhaseIndicator phase={phase} />
-        </div>
+        <h4 className="mb-1 text-sm font-medium text-slate-500">Token Stream</h4>
         <div className="flex flex-wrap gap-1.5 rounded-lg border border-slate-200 bg-slate-50 px-2.5 py-2">
           {generatedTokens.length > 0 ? (
             generatedTokens.map((token, i) => (
@@ -282,30 +303,34 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
 // --- Sub-components ---
 
-function PhaseIndicator({ phase }: { phase: Phase }) {
+function PhaseStatusLine({ phase, revealText, revealColor }: {
+  phase: Phase
+  revealText: string
+  revealColor: number
+}) {
+  if (!phase) return <div className="h-7" /> // stable placeholder — no layout shift
+
+  const style = PHASE_STYLES[phase]
+
   return (
-    <div className="h-5 flex items-center">
-      <AnimatePresence mode="wait">
-        {phase && (
-          <motion.div
-            key={phase}
-            className="flex items-center gap-1.5"
-            initial={{ opacity: 0, x: 10 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -10 }}
-            transition={{ duration: 0.15 }}
+    <div className={`flex h-7 items-center gap-2 rounded-md border px-2.5 transition-colors duration-150 ${style.bgClass}`}>
+      <span className={`h-2 w-2 rounded-full ${style.dotClass} animate-pulse`} />
+      {phase === 'reveal' ? (
+        <span className="text-xs font-medium">
+          <span className={style.textClass}>Next token: </span>
+          <span
+            className="inline-block rounded px-1.5 py-0.5 font-mono font-bold"
+            style={{
+              backgroundColor: getTokenColor(revealColor) + '25',
+              color: getTokenColor(revealColor),
+            }}
           >
-            <motion.span
-              className="h-1.5 w-1.5 rounded-full bg-current"
-              animate={{ scale: [1, 1.4, 1] }}
-              transition={{ duration: 0.6, repeat: Infinity }}
-            />
-            <span className={`text-xs font-medium ${PHASE_CONFIG[phase].color}`}>
-              {PHASE_CONFIG[phase].label}
-            </span>
-          </motion.div>
-        )}
-      </AnimatePresence>
+            {revealText}
+          </span>
+        </span>
+      ) : (
+        <span className={`text-xs font-medium ${style.textClass}`}>{style.label}</span>
+      )}
     </div>
   )
 }
