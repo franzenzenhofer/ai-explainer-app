@@ -61,13 +61,13 @@ export function TokenProbabilityGraphic() {
     >
       {/* Title */}
       <h3 className="mb-1 text-center text-base font-semibold text-slate-800">
-        The Core Idea: Every Token Connects to Every Token
+        The One Idea: Predict the Next Token
       </h3>
       <p className="mb-1 text-center text-xs text-slate-500">
-        The model stores probability relationships between all 200,000 tokens
+        The AI knows a probability between every token and every other token — about 200,000 in total.
       </p>
       <p className="mb-3 text-center text-[11px] font-medium text-amber-600">
-        Tokens are substrings! "tokenization" → "token" + "ization"
+        A token is a piece of text. "tokenization" → "token" + "ization"
       </p>
 
       {/* Graphic */}

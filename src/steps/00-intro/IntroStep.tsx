@@ -17,11 +17,14 @@ export function IntroStep({ stepConfig }: StepProps) {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <h1 className="mb-2 text-4xl font-bold text-slate-900">
-          How Artificial Intelligence Generates Text
+        <h1 className="mb-2 text-4xl font-bold tracking-tight text-slate-900">
+          How AI Works
         </h1>
-        <p className="text-lg text-slate-600">
-          An interactive journey from text to tokens to predictions
+        <p className="text-xl font-medium text-slate-700">
+          It predicts the next token. Over and over again.
+        </p>
+        <p className="mt-2 text-sm text-slate-500">
+          An interactive walk-through — in 8 small steps — of the one idea every modern AI runs on.
         </p>
       </motion.div>
 
@@ -55,7 +58,7 @@ export function IntroStep({ stepConfig }: StepProps) {
         animate={{ opacity: 1 }}
         transition={{ delay: 0.8 }}
       >
-        7 interactive steps · Real tokenization · Live attention visualization
+        8 interactive steps · Real tokenization · Live AI predictions
       </motion.p>
     </div>
   )

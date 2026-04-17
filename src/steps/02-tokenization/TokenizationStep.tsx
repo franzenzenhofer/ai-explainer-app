@@ -48,11 +48,10 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
           <div>
             <h4 className="text-sm font-semibold text-blue-900">What are Tokens?</h4>
             <p className="mt-0.5 text-xs text-blue-800">
-              Language models don&apos;t read letters or words like humans do. Instead, they break text into <strong>tokens</strong> —
-              substrings of text that the model has learned are useful. A token might be a whole word like &quot;the&quot;,
-              part of a word like &quot;ing&quot;, or even punctuation. For example: &quot;Großmutter&quot; (grandmother)
-              becomes two tokens: [&quot;Groß&quot;, &quot;mutter&quot;]. This is why these models sometimes struggle with spelling
-              or counting letters — they literally don&apos;t see individual characters!
+              The AI never sees your text as letters. It splits it into <strong>tokens</strong> — small pieces of text
+              with a fixed ID number. A token can be a whole word like &quot;the&quot;, part of a word like &quot;ing&quot;,
+              or punctuation. Example: &quot;Großmutter&quot; (grandmother) becomes two tokens: [&quot;Groß&quot;, &quot;mutter&quot;].
+              Tokens are the only units the AI predicts — that is why it sometimes miscounts letters or misspells words.
             </p>
           </div>
         </div>
