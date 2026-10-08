@@ -316,7 +316,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
               {/* AI Response */}
               <div>
                 <span className="text-xs text-slate-500">AI Response:</span>
-                <p className="text-sm font-medium" style={{ color: stepConfig.accentColor }}>
+                <p className="text-sm font-medium text-slate-900">
                   {aiResponse}
                 </p>
               </div>
