@@ -4,7 +4,6 @@ import { DEFAULT_INPUT_TEXT, useAppStore } from './appStore'
 import {
   selectAttentionWeights,
   selectDistribution,
-  selectEmbeddings,
   selectGeneratedTokens,
   selectPredictionPosition,
   selectPredictions,
@@ -33,9 +32,8 @@ describe('derived selectors', () => {
     expect(selectDistribution(state())).toBe(selectDistribution(state()))
   })
 
-  it('derives embeddings, attention and predictions without any chapter being opened', () => {
+  it('derives attention and predictions without any chapter being opened', () => {
     const tokenCount = selectTokens(state()).length
-    expect(selectEmbeddings(state())).toHaveLength(tokenCount)
     expect(selectAttentionWeights(state())).toHaveLength(tokenCount * tokenCount)
     expect(selectPredictions(state()).length).toBeGreaterThan(0)
   })

@@ -7,11 +7,6 @@ export interface Token {
   colorIndex: number
 }
 
-export interface EmbeddingVector {
-  tokenId: number
-  values: number[]
-}
-
 export interface AttentionWeight {
   queryIdx: number
   keyIdx: number
@@ -72,4 +67,15 @@ export const TOKENIZER_SPECS = {
   name: 'o200k_base',
   vocabulary: 199_998,
   publishedFor: 'gpt-4o',
+} as const
+
+// Where the real GPT-2 small numbers in public/data come from (the Numbers and Stacking chapters).
+// The test in model/gpt2Table.test.ts checks the revision against the data file.
+export const GPT2_EXPORT = {
+  model: 'openai-community/gpt2',
+  revision: '607a30d783dfa663caf39e06633721c8d4cfcd7e',
+  script: 'scripts/gpt2-export/export_gpt2.py',
+  tokenFile: 'gpt2-small-embeddings.json',
+  vectorFile: 'gpt2-small-embeddings.int8.bin',
+  activationFile: 'demo-activations.json',
 } as const

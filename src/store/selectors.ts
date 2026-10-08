@@ -2,11 +2,10 @@
 // Each derivation is memoized on its inputs so React gets a stable reference between renders.
 
 import { tokenize } from '../model/tokenizer'
-import { createEmbeddings } from '../model/vectors'
 import { generateAttentionWeights } from '../model/attention'
 import { illustrativeDistribution } from '../model/distribution'
 import { applySampling } from '../model/sampling'
-import type { AttentionWeight, EmbeddingVector, PredictionCandidate, Token } from '../core/types'
+import type { AttentionWeight, PredictionCandidate, Token } from '../core/types'
 import type { AppStoreState } from './appStore'
 
 function memoizeLast<Args extends unknown[], Result>(compute: (...args: Args) => Result) {
@@ -24,7 +23,6 @@ function memoizeLast<Args extends unknown[], Result>(compute: (...args: Args) =>
 }
 
 const tokenizeMemo = memoizeLast(tokenize)
-const embeddingsMemo = memoizeLast(createEmbeddings)
 const attentionMemo = memoizeLast(generateAttentionWeights)
 const distributionMemo = memoizeLast(illustrativeDistribution)
 const samplingMemo = memoizeLast((candidates: PredictionCandidate[], temperature: number, topK: number, topP: number) =>
@@ -33,8 +31,6 @@ const samplingMemo = memoizeLast((candidates: PredictionCandidate[], temperature
 const generatedMemo = memoizeLast((continuation: Token[], count: number) => continuation.slice(0, count))
 
 export const selectTokens = (state: AppStoreState): Token[] => tokenizeMemo(state.inputText)
-
-export const selectEmbeddings = (state: AppStoreState): EmbeddingVector[] => embeddingsMemo(selectTokens(state))
 
 export const selectAttentionWeights = (state: AppStoreState): AttentionWeight[] =>
   attentionMemo(selectTokens(state), state.selectedLens)

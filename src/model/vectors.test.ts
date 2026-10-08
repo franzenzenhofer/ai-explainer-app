@@ -1,7 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { addVectors, createEmbeddings, feedForward, positionVector, residualStream, seededValues, tokenVector } from './vectors'
-import { tokenize } from './tokenizer'
-import { MODEL_SPECS } from '../core/types'
+import { addVectors, feedForward, positionVector, seededValues, tokenVector } from './vectors'
 
 describe('simulated vectors', () => {
   it('gives the same token the same vector and a different token a different one', () => {
@@ -14,13 +12,6 @@ describe('simulated vectors', () => {
       expect(value).toBeGreaterThanOrEqual(-1)
       expect(value).toBeLessThan(1)
     }
-  })
-
-  it('makes one vector of the demo width per token', () => {
-    const tokens = tokenize('The dog barked')
-    const embeddings = createEmbeddings(tokens)
-    expect(embeddings).toHaveLength(tokens.length)
-    for (const embedding of embeddings) expect(embedding.values).toHaveLength(MODEL_SPECS.embeddingDim)
   })
 
   it('changes the position vector with the position', () => {
@@ -42,22 +33,5 @@ describe('feedForward', () => {
     const delta = out.map((value, i) => value - x[i])
     expect(addVectors(x, delta).map((v) => v.toFixed(10))).toEqual(out.map((v) => v.toFixed(10)))
     expect(delta.some((value) => value !== 0)).toBe(true)
-  })
-})
-
-describe('residualStream', () => {
-  const tokens = tokenize('The dog barked because it was hungry.')
-
-  it('has the start vector plus one entry per block', () => {
-    expect(residualStream(tokens, MODEL_SPECS.layers, 32)).toHaveLength(MODEL_SPECS.layers + 1)
-  })
-
-  it('changes the vector at every block', () => {
-    const stream = residualStream(tokens, 3, 16)
-    for (let block = 1; block < stream.length; block++) expect(stream[block]).not.toEqual(stream[block - 1])
-  })
-
-  it('is empty without tokens', () => {
-    expect(residualStream([], 3, 16)).toEqual([])
   })
 })

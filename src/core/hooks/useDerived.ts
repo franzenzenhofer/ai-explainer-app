@@ -5,7 +5,6 @@ import { useAppStore } from '../../store/appStore'
 import {
   selectAttentionWeights,
   selectDistribution,
-  selectEmbeddings,
   selectGeneratedTokens,
   selectPredictionPosition,
   selectPredictions,
@@ -13,7 +12,6 @@ import {
 } from '../../store/selectors'
 
 export const useTokens = () => useAppStore(selectTokens)
-export const useEmbeddings = () => useAppStore(selectEmbeddings)
 export const useAttentionWeights = () => useAppStore(selectAttentionWeights)
 export const usePredictions = () => useAppStore(selectPredictions)
 export const useDistribution = () => useAppStore(selectDistribution)

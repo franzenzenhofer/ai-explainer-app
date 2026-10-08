@@ -1,43 +1,59 @@
-// The start of one token's list of numbers, and the same list after its position is added.
-import { useMemo } from 'react'
+// One token's real list of 768 numbers from GPT-2 small, with its most similar tokens.
 import type { Token } from '../../core/types'
 import { MODEL_SPECS } from '../../core/types'
+import { LoadNotice } from '../../core/components/LoadNotice'
 import { VisualFrame, type Provenance } from '../../core/components'
 import { VectorStrip } from '../../core/components/VectorStrip'
-import { formatTokenDisplay } from '../../core/utils/formatters'
-import { addVectors, positionVector, tokenVector } from '../../model/vectors'
+import type { LoadState } from '../../core/hooks/useLoaded'
+import { formatTokenDisplay, formatVectorValue } from '../../core/utils/formatters'
+import { lookupToken, tokenEmbedding, type Gpt2Table } from '../../model/gpt2Table'
+import { SimilarTokens } from './SimilarTokens'
 
-export const provenance: Provenance = 'simulated'
+export const provenance: Provenance = 'real'
 
-export const SHOWN_VALUES = 32
-const STRIP_SCALE = 1.3
+const PRINTED_VALUES = 8
+const STRIP_HEIGHT = 140
 
 interface TokenVectorProps {
+  state: LoadState<Gpt2Table>
   token: Token
-  position: number
+  outside: boolean
 }
 
-export function TokenVector({ token, position }: TokenVectorProps) {
-  const own = useMemo(() => tokenVector(token.tokenId, SHOWN_VALUES), [token.tokenId])
-  const placed = useMemo(() => addVectors(own, positionVector(position, SHOWN_VALUES)), [own, position])
+const caption = `Real numbers from ${MODEL_SPECS.modelName}, the token-embedding table, ${MODEL_SPECS.embeddingDim} per token. ${MODEL_SPECS.modelName} cuts text slightly differently from the tokenizer in the Tokens chapter, so only tokens it also has are shown. Before the first block the model adds a second list that encodes the position.`
+
+function Body({ table, token, outside }: { table: Gpt2Table; token: Token; outside: boolean }) {
+  const entry = lookupToken(table, token.text)
   const name = formatTokenDisplay(token.text)
-  return (
-    <VisualFrame
-      title={`The numbers for "${name}"`}
-      provenance={provenance}
-      caption={`${SHOWN_VALUES} of the ${MODEL_SPECS.embeddingDim} numbers ${MODEL_SPECS.modelName} uses per token. These values are seeded stand-ins, not GPT-2's table; the real table arrives in a later version.`}
-    >
-      <h3 className="m-0 text-base font-semibold">Token ID {token.tokenId.toLocaleString('en-US')}: its own list</h3>
-      <VectorStrip values={own} scale={STRIP_SCALE} label={`${SHOWN_VALUES} simulated numbers for the token ${name}`} />
-      <h3 className="m-0 mt-6 text-base font-semibold">Plus position {position + 1}: what the first block reads</h3>
-      <VectorStrip
-        values={placed}
-        scale={STRIP_SCALE}
-        label={`The same numbers after adding position ${position + 1}`}
-      />
-      <p className="m-0 mt-3 text-base text-ink-2">
-        The first list is the same wherever &quot;{name}&quot; appears. The second changes with the position, so the model knows word order.
+  if (!entry || outside) {
+    return (
+      <p className="m-0 text-lg text-ink-2">
+        &quot;{name}&quot;: not in demo set. The demo keeps {table.file.tokenCount.toLocaleString('en-US')} common whole words with a leading
+        space, so a first word, a word piece or a symbol has no list here.
       </p>
+    )
+  }
+  const values = tokenEmbedding(table, entry)
+  const scale = Math.max(...values.map(Math.abs))
+  return (
+    <>
+      <h3 className="m-0 text-base font-semibold">
+        {MODEL_SPECS.modelName} token ID {entry.id.toLocaleString('en-US')}: all {values.length} numbers
+      </h3>
+      <VectorStrip values={values} scale={scale} height={STRIP_HEIGHT} label={`All ${values.length} numbers for the token ${name}`} />
+      <p className="m-0 mt-3 text-base text-ink-2">
+        First {PRINTED_VALUES}: {values.slice(0, PRINTED_VALUES).map(formatVectorValue).join(', ')}. Up is positive, down is negative.
+        The list is the same wherever &quot;{name}&quot; appears.
+      </p>
+      <SimilarTokens entry={entry} />
+    </>
+  )
+}
+
+export function TokenVector({ state, token, outside }: TokenVectorProps) {
+  return (
+    <VisualFrame title={`The numbers for "${formatTokenDisplay(token.text)}"`} provenance={provenance} caption={caption}>
+      {state.status === 'ready' ? <Body table={state.value} token={token} outside={outside} /> : <LoadNotice state={state} what="the GPT-2 table" />}
     </VisualFrame>
   )
 }

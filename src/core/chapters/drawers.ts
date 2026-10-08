@@ -1,12 +1,13 @@
 // Text for every chapter's "Go deeper" drawer. Numbers follow the plan's numbers policy:
 // GPT-2 small for the demo model, GPT-3 175B for scale, closed models undisclosed.
 
-import { LARGE_MODEL_SPECS, MODEL_SPECS, TOKENIZER_SPECS } from '../types'
+import { GPT2_EXPORT, LARGE_MODEL_SPECS, MODEL_SPECS, TOKENIZER_SPECS } from '../types'
 import type { ChapterId, DrawerSection } from './types'
 
 const VOCABULARY = TOKENIZER_SPECS.vocabulary.toLocaleString('en-US')
 const DEMO_WIDTH = MODEL_SPECS.embeddingDim.toLocaleString('en-US')
 const LARGE_WIDTH = LARGE_MODEL_SPECS.embeddingDim.toLocaleString('en-US')
+const EXPORT_SOURCE = `${MODEL_SPECS.modelName} (${GPT2_EXPORT.model}, revision ${GPT2_EXPORT.revision}), exported once by ${GPT2_EXPORT.script} in this app's repository`
 
 export const DRAWERS: Record<ChapterId, DrawerSection[]> = {
   home: [
@@ -54,6 +55,13 @@ export const DRAWERS: Record<ChapterId, DrawerSection[]> = {
       ],
     },
     {
+      heading: 'Where these numbers come from',
+      paragraphs: [
+        `They are real: the token-embedding table of ${EXPORT_SOURCE}. The demo keeps 2,980 common whole words, each stored as 768 whole numbers from -127 to 127 plus one scale per token; decoded values are within 0.005 of the originals. The map and the similar-token lists were computed from the original values, not the stored ones.`,
+        `${MODEL_SPECS.modelName} has its own token list and splits text slightly differently from the tokenizer in the Tokens chapter. Tokens that are not in the demo set, such as a sentence-initial word without a leading space, a word piece or a symbol, are shown in grey and get no list.`,
+      ],
+    },
+    {
       heading: 'How long the lists are',
       paragraphs: [
         `${MODEL_SPECS.modelName}, the demo model: ${DEMO_WIDTH} numbers per token. ${LARGE_MODEL_SPECS.modelName}: ${LARGE_WIDTH}. The sizes of current closed models such as ChatGPT, Claude and Gemini are not published.`,
@@ -97,6 +105,13 @@ export const DRAWERS: Record<ChapterId, DrawerSection[]> = {
       paragraphs: [
         'Each position keeps one running list of numbers from start to finish. Every attention step and every feed-forward step reads it and adds its result to it.',
         'Nothing is replaced. After the last block the list is the sum of the original token and position numbers and every block\'s contribution.',
+      ],
+    },
+    {
+      heading: 'Where these numbers come from',
+      paragraphs: [
+        `They are real: the running vector at the last position, taken from ${EXPORT_SOURCE}, for four sample prompts. Entry 0 is the token plus position numbers; entry k is the raw output of block k, before any normalisation.`,
+        `${MODEL_SPECS.modelName} splits text slightly differently from the tokenizer in the Tokens chapter, so the pieces shown above the numbers are its own. A prompt outside the four samples gets no numbers rather than invented ones.`,
       ],
     },
     {
