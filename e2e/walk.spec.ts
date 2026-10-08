@@ -15,6 +15,12 @@ const VIEWPORTS = [
   { name: 'phone', width: 390, height: 844 },
 ]
 
+// page.goto that waits until React has hydrated, so the first click reaches a live control.
+async function open(page: Page, route: string) {
+  await page.goto(route)
+  await page.locator('html[data-ready="true"]').waitFor({ state: 'attached' })
+}
+
 function trackConsoleErrors(page: Page): string[] {
   const errors: string[] = []
   page.on('console', (message) => {
@@ -39,17 +45,37 @@ for (const viewport of VIEWPORTS) {
     test('opens every chapter by deep link with zero console errors', async ({ page }) => {
       const errors = trackConsoleErrors(page)
       for (const [index, chapter] of CHAPTERS.entries()) {
-        await page.goto(chapter.route)
+        await open(page, chapter.route)
         await expectChapter(page, index)
         await page.waitForTimeout(SETTLE_MS)
         if (STRICT_LAYOUT) await checkLayout(page, `${chapter.route} at ${viewport.name}`)
+        await page.locator('[data-drawer] button[aria-expanded]').click()
+        await expect(page.locator('[data-drawer] button[aria-expanded]')).toHaveAttribute('aria-expanded', 'true')
+        if (STRICT_LAYOUT) await checkLayout(page, `${chapter.route} with its drawer open at ${viewport.name}`)
       }
       expect(errors).toEqual([])
     })
 
+    test('second views keep the layout: attention grid, feed-forward next to attention, a hard sample text', async ({ page }) => {
+      await open(page, '/attention')
+      await page.getByRole('button', { name: 'Grid' }).click()
+      await expect(page.locator('[data-visual] table')).toBeVisible()
+      if (STRICT_LAYOUT) await checkLayout(page, `attention grid at ${viewport.name}`)
+      await open(page, '/feedforward')
+      await page.getByRole('button', { name: 'Next to attention' }).click()
+      if (STRICT_LAYOUT) await checkLayout(page, `feed-forward next to attention at ${viewport.name}`)
+      await open(page, '/tokens')
+      await page.getByRole('button', { name: 'Try a hard one' }).click()
+      await page.getByRole('button', { name: 'German compounds' }).click()
+      for (const route of ['/tokens', '/numbers', '/attention', '/scores', '/loop']) {
+        await open(page, route)
+        if (STRICT_LAYOUT) await checkLayout(page, `${route} with a long text at ${viewport.name}`)
+      }
+    })
+
     test('walks all ten chapters with the Next link', async ({ page }) => {
       const errors = trackConsoleErrors(page)
-      await page.goto('/')
+      await open(page, '/')
       for (let index = 1; index < CHAPTERS.length; index++) {
         await page.getByRole('link', { name: new RegExp(`^Next ${CHAPTERS[index].name}`) }).click()
         await expectChapter(page, index)
@@ -65,7 +91,7 @@ test.describe('navigation', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
   test('the back button, a reload and the arrow keys work', async ({ page }) => {
-    await page.goto('/tokens')
+    await open(page, '/tokens')
     await page.keyboard.press('ArrowRight')
     await expectChapter(page, 2)
     await page.goBack()
@@ -73,13 +99,14 @@ test.describe('navigation', () => {
     await page.goForward()
     await expectChapter(page, 2)
     await page.reload()
+    await page.locator('html[data-ready="true"]').waitFor({ state: 'attached' })
     await expectChapter(page, 2)
     await page.keyboard.press('ArrowLeft')
     await expectChapter(page, 1)
   })
 
   test('the chapter menu lists ten chapters and Escape closes it', async ({ page }) => {
-    await page.goto('/layers')
+    await open(page, '/layers')
     await page.getByRole('button', { name: 'Chapters' }).click()
     const menu = page.getByRole('navigation', { name: 'Chapters' })
     await expect(menu.getByRole('link')).toHaveCount(CHAPTERS.length)
@@ -88,7 +115,7 @@ test.describe('navigation', () => {
   })
 
   test('the drawer is closed by default, Escape closes it, and it remembers its state per chapter', async ({ page }) => {
-    await page.goto('/attention')
+    await open(page, '/attention')
     const toggle = page.locator('[data-drawer] button[aria-expanded]')
     await expect(toggle).toHaveAttribute('aria-expanded', 'false')
     await toggle.click()
@@ -107,7 +134,7 @@ test.describe('navigation', () => {
   })
 
   test('the prompt edited on Tokens is carried to the other chapters', async ({ page }) => {
-    await page.goto('/tokens')
+    await open(page, '/tokens')
     await page.getByRole('button', { name: 'Edit text' }).click()
     await page.getByLabel('Your text').fill('The cat sat on the mat because it was warm.')
     await page.getByRole('button', { name: 'Done editing' }).click()
@@ -123,7 +150,7 @@ test.describe('chapter interactions', () => {
 
   test('home: three presses of Pick the next token append three tokens in under 15 s (live model)', async ({ page }) => {
     const errors = trackConsoleErrors(page)
-    await page.goto('/')
+    await open(page, '/')
     const pick = page.getByRole('button', { name: 'Pick the next token' })
     const started = Date.now()
     for (let press = 1; press <= 3; press++) {
@@ -135,18 +162,18 @@ test.describe('chapter interactions', () => {
   })
 
   test('scores: the tail bar plus the top 20 is the whole list', async ({ page }) => {
-    await page.goto('/scores')
+    await open(page, '/scores')
     await expect(page.getByRole('button', { name: /the other 199,978 tokens/i })).toBeVisible()
   })
 
   test('sampling: pick again shows five picks', async ({ page }) => {
-    await page.goto('/sampling')
+    await open(page, '/sampling')
     await page.locator('[data-primary-control] button').first().click()
     await expect(page.locator('[data-picks] li')).toHaveCount(5)
   })
 
   test('attention: arcs only point left', async ({ page }) => {
-    await page.goto('/attention')
+    await open(page, '/attention')
     const paths = await page.locator('[data-visual] svg path').evaluateAll((elements) =>
       elements.map((element) => element.getAttribute('d') ?? ''),
     )
@@ -158,13 +185,19 @@ test.describe('chapter interactions', () => {
   })
 
   test('feed-forward: Run the block changes every column', async ({ page }) => {
-    await page.goto('/feedforward')
+    await open(page, '/feedforward')
+    const columns = page.locator('[data-column]')
+    const before = await columns.evaluateAll((elements) => elements.map((element) => element.innerHTML))
     await page.getByRole('button', { name: 'Run the block' }).click()
-    await expect(page.locator('[data-visual]').first()).toBeVisible()
+    await expect(page.getByText(/^Run 1:/)).toBeVisible()
+    const after = await columns.evaluateAll((elements) => elements.map((element) => element.innerHTML))
+    expect(after).toHaveLength(before.length)
+    for (const [index, html] of after.entries()) expect(html, `column ${index}`).not.toBe(before[index])
+    await expect(page.locator('[data-visual] svg path')).toHaveCount(0)
   })
 
   test('layers: the stepper walks the blocks', async ({ page }) => {
-    await page.goto('/layers')
+    await open(page, '/layers')
     await page.getByRole('button', { name: 'Block up' }).click()
     await page.getByRole('button', { name: 'Block up' }).click()
     await expect(page.getByRole('button', { name: /Block 2/ }).first()).toHaveAttribute('aria-pressed', 'true')

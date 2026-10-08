@@ -12,7 +12,7 @@ export function HeadTypesList() {
             <h4 className="m-0 text-lg font-semibold">{head.name}</h4>
             <p className="m-0 mt-1 text-base text-ink-2">{head.what}</p>
             <p className="m-0 mt-1 text-base text-ink-2">{head.example}</p>
-            <a href={SOURCES[head.source].url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-block py-2 text-base text-ink underline underline-offset-4">
+            <a href={SOURCES[head.source].url} target="_blank" rel="noopener noreferrer" className="mt-1 inline-flex min-h-11 items-center text-base text-ink underline underline-offset-4">
               {SOURCES[head.source].label}
             </a>
           </li>

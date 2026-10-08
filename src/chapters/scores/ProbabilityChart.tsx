@@ -9,6 +9,8 @@ export const provenance: Provenance = 'simulated'
 
 const FULL_WIDTH_PERCENT = 100
 const MIN_BAR_PERCENT = 0.5
+// Short enough for the label column on a phone; the full wording is the row's accessible name.
+const TAIL_SHORT_LABEL = 'All other tokens'
 
 interface ProbabilityChartProps {
   top: PredictionCandidate[]
@@ -45,7 +47,7 @@ function BarRow({ label, title, probability, maxProbability, selected, onClick }
           selected && 'tint-accent',
         )}
       >
-        <span title={title} className="truncate text-base font-semibold text-ink">{label}</span>
+        <span title={title} className="line-clamp-2 break-words py-1 text-base font-semibold leading-tight text-ink">{label}</span>
         <span className="block h-5">
           <span
             className={cn('block h-full', selected ? 'bg-accent' : 'bg-ink')}
@@ -75,7 +77,7 @@ export function ProbabilityChart({ top, tailProbability, tailLabel, selectedRank
         />
       ))}
       <BarRow
-        label={tailLabel}
+        label={TAIL_SHORT_LABEL}
         title={tailLabel}
         probability={tailProbability}
         maxProbability={maxProbability}

@@ -42,6 +42,8 @@ export function App({ initialChapter }: AppProps) {
 
   useEffect(() => {
     void useAppStore.persist.rehydrate()
+    // Tells the browser walk that React has hydrated and the controls respond.
+    document.documentElement.dataset.ready = 'true'
   }, [])
 
   useEffect(() => {

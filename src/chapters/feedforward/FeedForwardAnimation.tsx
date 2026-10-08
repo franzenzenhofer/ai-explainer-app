@@ -54,7 +54,7 @@ export function Columns({ tokens, columns, highlights }: ColumnsProps) {
   return (
     <div className="flex" style={{ gap: COLUMN_GAP, width: rowWidth(tokens.length) }}>
       {columns.map((column, index) => (
-        <div key={`${index}-${tokens[index].tokenId}`} className="flex flex-col" style={{ width: COLUMN_WIDTH }}>
+        <div key={`${index}-${tokens[index].tokenId}`} data-column className="flex flex-col" style={{ width: COLUMN_WIDTH }}>
           <span className="truncate whitespace-pre border-b-4 border-ink pb-1 text-center text-base" title={tokens[index].text}>
             {formatTokenInline(tokens[index].text)}
           </span>

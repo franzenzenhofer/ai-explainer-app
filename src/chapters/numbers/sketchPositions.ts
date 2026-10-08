@@ -13,7 +13,7 @@ const SEED_B = 214013
 const SEED_C = 2531011
 const MODULUS = 0x7fffffff
 // Keep seeded points off the very edge so labels stay inside the frame.
-const EDGE = 0.8
+const EDGE = 1
 
 export function sketchPosition(text: string, tokenId: number): [number, number] {
   const known = HAND_PLACED[text.trim().toLowerCase()]
