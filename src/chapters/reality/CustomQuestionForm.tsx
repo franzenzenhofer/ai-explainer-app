@@ -11,32 +11,32 @@ interface CustomQuestionFormProps {
 
 export function CustomQuestionForm({ disabled, onAsk }: CustomQuestionFormProps) {
   const [question, setQuestion] = useState('')
-
   return (
     <form
       onSubmit={(event) => {
         event.preventDefault()
         if (question.trim()) onAsk(question.trim())
       }}
-      className="flex flex-col gap-2 sm:flex-row sm:items-end">
-      <div className="flex min-w-0 flex-1 flex-col gap-2">
-        <label htmlFor={CUSTOM_QUESTION_ID} className="text-base font-semibold text-ink">
-          Ask your own question
-        </label>
+      className="flex flex-col gap-1"
+    >
+      <label htmlFor={CUSTOM_QUESTION_ID} className="text-base font-bold" style={{ color: 'var(--concept-strong)' }}>
+        Or ask your own question
+      </label>
+      <div className="flex gap-2">
         <input
           id={CUSTOM_QUESTION_ID}
           name="customQuestion"
           type="text"
           value={question}
           onChange={(event) => setQuestion(event.target.value)}
-          placeholder="For example: Who won the 1987 World Cup?"
+          placeholder="Type a question"
           disabled={disabled}
-          className="min-h-11 w-full rounded-[3px] border-2 border-ink px-3 text-base text-ink placeholder:text-ink-3 disabled:opacity-60"
+          className="min-h-11 min-w-0 flex-1 rounded-lg border-2 border-[var(--concept-soft)] bg-paper px-3 text-base text-ink placeholder:text-ink-3 focus:border-[var(--accent)] disabled:opacity-60"
         />
+        <Button type="submit" variant="primary" disabled={disabled || !question.trim()}>
+          Ask
+        </Button>
       </div>
-      <Button type="submit" variant="primary" disabled={disabled || !question.trim()}>
-        Ask the model
-      </Button>
     </form>
   )
 }

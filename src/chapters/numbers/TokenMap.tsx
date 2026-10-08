@@ -1,16 +1,15 @@
-// The fixed map of the 2,980 demo tokens: a PCA of their 768 numbers down to two. A flat map keeps only
-// a small share of the variation, so tokens that are neighbours in 768 numbers can sit far apart here.
+// The fixed map of the 2,980 demo tokens (the old app's 'semantic space'): a PCA of their 768 numbers
+// down to two. A flat map keeps only a small share of the variation, so tokens that are neighbours in
+// 768 numbers can sit far apart here. Your tokens are labelled in their identity colours; violet rings
+// mark the chosen token's most similar tokens. The similar-token list sits under the map.
 import { useMemo } from 'react'
+import { motion } from 'motion/react'
+import { tokenColor } from '../../core/colors'
 import type { Token } from '../../core/types'
 import { MODEL_SPECS } from '../../core/types'
-import { LoadNotice } from '../../core/components/LoadNotice'
-import { VisualFrame, type Provenance } from '../../core/components'
-import type { LoadState } from '../../core/hooks/useLoaded'
 import { formatPercent, formatTokenDisplay } from '../../core/utils/formatters'
 import { cn } from '../../core/utils/cn'
 import { lookupToken, type Gpt2Table } from '../../model/gpt2Table'
-
-export const provenance: Provenance = 'real'
 
 const PERCENT = 100
 const INSET = 4
@@ -21,7 +20,7 @@ const SVG_WIDTH = 1000
 const SVG_HEIGHT = 600
 
 interface TokenMapProps {
-  state: LoadState<Gpt2Table>
+  table: Gpt2Table
   tokens: Token[]
   selectedIndex: number
   outside: ReadonlySet<number>
@@ -52,7 +51,7 @@ function Cloud({ table }: { table: Gpt2Table }) {
             y={(place.top / PERCENT) * SVG_HEIGHT - DOT_UNITS / 2}
             width={DOT_UNITS}
             height={DOT_UNITS}
-            fill="var(--rule-strong)"
+            fill="var(--concept-soft)"
           />
         )
       })}
@@ -60,13 +59,13 @@ function Cloud({ table }: { table: Gpt2Table }) {
   )
 }
 
-function MapBody({ table, tokens, selectedIndex, outside }: Omit<TokenMapProps, 'state'> & { table: Gpt2Table }) {
+function MapBody({ table, tokens, selectedIndex, outside }: TokenMapProps) {
   const labels = useMemo(
     () =>
       tokens.flatMap((token, index) => {
         const entry = lookupToken(table, token.text)
         if (!entry || outside.has(index)) return []
-        return [{ index, entry, label: formatTokenDisplay(token.text), place: placeOf(table, entry.x, entry.y) }]
+        return [{ index, entry, label: formatTokenDisplay(token.text), place: placeOf(table, entry.x, entry.y), color: tokenColor(token.text) }]
       }),
     [table, tokens, outside],
   )
@@ -79,26 +78,28 @@ function MapBody({ table, tokens, selectedIndex, outside }: Omit<TokenMapProps, 
     [table, selected],
   )
   return (
-    <div role="img" aria-label="Map of the demo tokens with the tokens of your text labelled" className="relative aspect-[5/3] w-full border border-rule">
+    <div role="img" aria-label="Map of the demo tokens with the tokens of your text labelled" className="relative min-h-0 w-full flex-1 rounded-lg border-2 border-[var(--concept-soft)] bg-paper">
       <Cloud table={table} />
       {neighbours.map((neighbour) => (
-        <span
+        <motion.span
           key={neighbour.id}
           aria-hidden="true"
-          className="absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-accent bg-paper"
-          style={{ left: `${neighbour.place.left}%`, top: `${neighbour.place.top}%` }}
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
+          className="absolute -ml-2 -mt-2 h-4 w-4 rounded-full border-[3px] bg-paper"
+          style={{ left: `${neighbour.place.left}%`, top: `${neighbour.place.top}%`, borderColor: 'var(--concept)' }}
         />
       ))}
-      {labels.map(({ index, label, place }) => {
+      {labels.map(({ index, label, place, color }) => {
         const isSelected = index === selectedIndex
         return (
           <span
             key={index}
-            className={cn('absolute -ml-1.5 flex -translate-y-1/2 items-center gap-1.5 whitespace-nowrap text-base', isSelected ? 'z-10 font-bold text-ink' : 'text-ink-2')}
-            style={{ left: `${place.left}%`, top: `${place.top}%`, maxWidth: `${PERCENT - place.left}%` }}
+            className={cn('absolute -ml-1.5 flex -translate-y-1/2 items-center gap-1 whitespace-nowrap text-base', isSelected ? 'z-10 font-bold' : 'font-semibold')}
+            style={{ left: `${place.left}%`, top: `${place.top}%`, color: color.text }}
           >
-            <span aria-hidden="true" className={cn('h-3 w-3 shrink-0 rounded-full', isSelected ? 'bg-accent' : 'bg-ink')} />
-            <span className={cn('truncate', isSelected && 'tint-accent px-1')}>{label}</span>
+            <span aria-hidden="true" className="h-3 w-3 shrink-0 rounded-full" style={{ background: color.mark, boxShadow: isSelected ? '0 0 0 3px var(--concept)' : undefined }} />
+            <span className="rounded px-1" style={{ background: isSelected ? color.fill : 'rgb(255 255 255 / 0.8)' }}>{label}</span>
           </span>
         )
       })}
@@ -106,19 +107,18 @@ function MapBody({ table, tokens, selectedIndex, outside }: Omit<TokenMapProps, 
   )
 }
 
-export function TokenMap({ state, tokens, selectedIndex, outside }: TokenMapProps) {
-  const variance = state.status === 'ready' ? state.value.file.pca.explainedVarianceRatio.reduce((sum, share) => sum + share, 0) : 0
-  const caption =
-    state.status === 'ready'
-      ? `Fixed map computed once offline (PCA) from ${MODEL_SPECS.modelName}'s numbers for ${state.value.file.tokenCount.toLocaleString('en-US')} common words; grey squares are all of them. The two axes keep only ${formatPercent(variance)} of the variation, so the circles (the 8 most similar tokens of the chosen one) are not always close. Tokens with no entry are not drawn.`
-      : `A fixed map of common ${MODEL_SPECS.modelName} tokens.`
+export function mapCaption(table: Gpt2Table): string {
+  const variance = table.file.pca.explainedVarianceRatio.reduce((sum, share) => sum + share, 0)
+  return `The map is computed once offline (PCA) from ${MODEL_SPECS.modelName}'s numbers for ${table.file.tokenCount.toLocaleString('en-US')} common words; the light violet squares are all of them. Its two axes keep only ${formatPercent(variance)} of the variation, so the violet rings (the 8 most similar tokens) are not always close. Tokens with no entry are not drawn.`
+}
+
+export function TokenMap({ table, tokens, selectedIndex, outside }: TokenMapProps) {
   return (
-    <VisualFrame title="A map of tokens" provenance={provenance} caption={caption}>
-      {state.status === 'ready' ? (
-        <MapBody table={state.value} tokens={tokens} selectedIndex={selectedIndex} outside={outside} />
-      ) : (
-        <LoadNotice state={state} what="the GPT-2 map" />
-      )}
-    </VisualFrame>
+    <div className="flex min-h-0 flex-1 flex-col gap-1">
+      <h3 className="m-0 text-base font-bold" style={{ color: 'var(--concept-strong)' }}>
+        Map of {table.file.tokenCount.toLocaleString('en-US')} tokens
+      </h3>
+      <MapBody table={table} tokens={tokens} selectedIndex={selectedIndex} outside={outside} />
+    </div>
   )
 }

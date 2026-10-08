@@ -1,87 +1,91 @@
-// Chapter 2: your text becomes tokens. Real o200k_base tokenization of the shared prompt.
+// Slide: your text becomes tokens. Real o200k_base tokenization of the shared prompt: the text, the
+// colourful token chips with their IDs (they split in one by one), the counts, and the byte pair
+// encoding demo that shows how the fixed list cuts a word.
 import { useState } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { useTokens } from '../../core/hooks/useDerived'
-import { Button, SlideLayout, SentenceTokens, VisualFrame, type Provenance } from '../../core/components'
+import { SentenceTokens, SlideLayout, ToggleGroup, VisualFrame, type Provenance } from '../../core/components'
 import { TOKENIZER_SPECS } from '../../core/types'
-import { formatTokenDisplay } from '../../core/utils/formatters'
-import { tokenByteLength } from '../../model/tokenizer'
 import { BPEVisualizer } from './BPEVisualizer'
 import { SamplePrompts } from './SamplePrompts'
+import { StatTiles } from './StatTiles'
+import { SplitArrow, TextRow, type TextPanel } from './TextRow'
+import { TokenDetail } from './TokenDetail'
 import { TokenFacts } from './TokenFacts'
-import { PromptEditor } from './PromptEditor'
 
 export const provenance: Provenance = 'real'
 
-type Panel = 'none' | 'edit' | 'samples'
+type View = 'tokens' | 'bpe'
 
-function TokenDetail() {
+// Up to this many tokens the chips are drawn large.
+const LARGE_CHIP_LIMIT = 24
+
+const VIEWS: Array<{ value: View; label: string }> = [
+  { value: 'tokens', label: 'Your tokens' },
+  { value: 'bpe', label: 'How a word is cut' },
+]
+
+const CAPTION = `${TOKENIZER_SPECS.name}, the tokenizer OpenAI publishes for ${TOKENIZER_SPECS.publishedFor}, has ${TOKENIZER_SPECS.vocabulary.toLocaleString('en-US')} tokens. The IDs are its real IDs; the merges are computed from its real merge ranks.`
+
+function TokensView({ panel, onSample }: { panel: TextPanel; onSample: (text: string) => void }) {
   const tokens = useTokens()
+  const inputText = useAppStore((s) => s.inputText)
   const selected = useAppStore((s) => s.selectedTokenIndex)
-  const token = selected === null ? undefined : tokens[selected]
-  if (!token) return <p className="m-0 text-lg text-ink-2">No token chosen yet.</p>
+  const setSelected = useAppStore((s) => s.setSelectedTokenIndex)
+  const [replay, setReplay] = useState(0)
   return (
-    <p className="m-0 text-lg" aria-live="polite">
-      <span className="font-semibold">&quot;{formatTokenDisplay(token.text)}&quot;</span>: token ID{' '}
-      <span className="font-semibold tabular-nums">{token.tokenId.toLocaleString('en-US')}</span>, {tokenByteLength(token)}{' '}
-      {tokenByteLength(token) === 1 ? 'byte' : 'bytes'}. A dot stands for a space that belongs to the token.
-    </p>
+    <>
+      <SplitArrow count={tokens.length} onReplay={() => setReplay((count) => count + 1)} />
+      <div className="flex min-h-0 flex-1 flex-col overflow-y-auto rounded-xl border-2 p-2.5" style={{ borderColor: 'var(--concept)', background: 'var(--concept-tint)' }}>
+        {panel === 'samples' ? (
+          <SamplePrompts onSelect={onSample} />
+        ) : (
+          <div key={replay} className="my-auto">
+            <SentenceTokens
+              tokens={tokens}
+              selectedIndex={selected}
+              onSelect={setSelected}
+              label="Tokens of your text"
+              size={tokens.length > LARGE_CHIP_LIMIT ? 'md' : 'lg'}
+            />
+          </div>
+        )}
+      </div>
+      <TokenDetail />
+      <StatTiles text={inputText} tokenCount={tokens.length} />
+    </>
   )
 }
 
 export function TokensChapter() {
-  const tokens = useTokens()
-  const selected = useAppStore((s) => s.selectedTokenIndex)
-  const setSelected = useAppStore((s) => s.setSelectedTokenIndex)
   const setInputText = useAppStore((s) => s.setInputText)
-  const [panel, setPanel] = useState<Panel>('none')
-  const toggle = (target: Panel) => setPanel((open) => (open === target ? 'none' : target))
+  const [panel, setPanel] = useState<TextPanel>('none')
+  const [view, setView] = useState<View>('tokens')
+  const toggle = (target: TextPanel) => setPanel((open) => (open === target ? 'none' : target))
+  const onSample = (text: string) => {
+    setInputText(text)
+    setPanel('none')
+  }
 
   return (
-    <SlideLayout
-      id="tokens"
-      drawerExtra={
-        <div className="space-y-8">
-          <TokenFacts />
-          <BPEVisualizer />
-        </div>
-      }
-    >
+    <SlideLayout id="tokens" drawerExtra={<TokenFacts />}>
       <VisualFrame
         title="Your text, cut into tokens"
         provenance={provenance}
-        caption={`${TOKENIZER_SPECS.name}, the tokenizer OpenAI publishes for ${TOKENIZER_SPECS.publishedFor}, has ${TOKENIZER_SPECS.vocabulary.toLocaleString('en-US')} tokens.`}
+        caption={CAPTION}
+        actions={<ToggleGroup label="What to show" options={VIEWS} value={view} onChange={setView} />}
       >
-        {panel === 'edit' ? (
-          <PromptEditor onDone={() => setPanel('none')} />
-        ) : (
-          <SentenceTokens tokens={tokens} selectedIndex={selected} onSelect={setSelected} label="Tokens of your text" />
-        )}
-        <p className="m-0 mt-6 font-serif text-3xl font-semibold tabular-nums" aria-live="polite">
-          {tokens.length} {tokens.length === 1 ? 'token' : 'tokens'}
-        </p>
-        <div className="mt-2">
-          <TokenDetail />
+        <div className="flex min-h-0 flex-1 flex-col gap-2">
+          {view === 'tokens' ? (
+            <>
+              <TextRow panel={panel} onToggle={toggle} />
+              <TokensView panel={panel} onSample={onSample} />
+            </>
+          ) : (
+            <BPEVisualizer />
+          )}
         </div>
       </VisualFrame>
-      <div className="mt-6 flex flex-wrap gap-2" data-primary-control>
-        <Button variant="primary" aria-expanded={panel === 'edit'} onClick={() => toggle('edit')}>
-          {panel === 'edit' ? 'Done editing' : 'Edit text'}
-        </Button>
-        <Button aria-expanded={panel === 'samples'} onClick={() => toggle('samples')}>
-          Try a hard one
-        </Button>
-      </div>
-      {panel === 'samples' && (
-        <div className="mt-4">
-          <SamplePrompts
-            onSelect={(text) => {
-              setInputText(text)
-              setPanel('none')
-            }}
-          />
-        </div>
-      )}
     </SlideLayout>
   )
 }

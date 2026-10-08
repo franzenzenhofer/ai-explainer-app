@@ -1,46 +1,45 @@
-// SamplingChart - the model's real candidates, kept or cut by the settings.
+// SamplingChart - the model's real candidates, kept (rose) or cut (dashed) by the settings, in two
+// columns. The bars reshape smoothly when a setting moves; during a roll the highlight runs over the
+// kept rows and the landed pick turns amber.
+import { CONCEPT_COLORS } from '../../core/colors'
 import type { Provenance } from '../../core/components/ProvenanceBadge'
-import { cn } from '../../core/utils/cn'
-import { formatPercent, formatTokenDisplay } from '../../core/utils/formatters'
+import { formatPercent } from '../../core/utils/formatters'
+import { CandidateBar, type BarTone } from '../scores/CandidateBar'
+import type { RollFrame } from './rollTimeline'
 import type { SamplingRow } from './samplingRows'
 
 export const provenance: Provenance = 'real'
 
-const FULL_WIDTH_PERCENT = 100
-const MIN_BAR_PERCENT = 0.5
-
 interface SamplingChartProps {
   rows: SamplingRow[]
+  frame: RollFrame
 }
 
-function width(probability: number, max: number): string {
-  return `${Math.max(MIN_BAR_PERCENT, (probability / max) * FULL_WIDTH_PERCENT)}%`
+function toneOf(row: SamplingRow, frame: RollFrame): BarTone {
+  if (row.keptProbability === null) return 'cut'
+  return frame.landed && frame.highlight === row.candidate.token ? 'picked' : 'probability'
 }
 
-export function SamplingChart({ rows }: SamplingChartProps) {
+export function SamplingChart({ rows, frame }: SamplingChartProps) {
   const max = Math.max(...rows.map((row) => row.keptProbability ?? row.candidate.probability))
   return (
-    <ol aria-label="Candidates after the settings" className="m-0 list-none p-0">
-      {rows.map(({ candidate, keptProbability }) => {
-        const kept = keptProbability !== null
-        const label = formatTokenDisplay(candidate.token)
+    <ol aria-label="Candidates after the settings" className="m-0 grid list-none grid-flow-col grid-rows-[repeat(10,auto)] gap-x-6 gap-y-0 p-0">
+      {rows.map((row, index) => {
+        const lit = frame.highlight === row.candidate.token
         return (
           <li
-            key={candidate.token}
-            className="grid min-h-9 grid-cols-[6.5rem_minmax(0,1fr)_4.5rem] items-center gap-3 sm:grid-cols-[9rem_minmax(0,1fr)_5rem]"
+            key={row.candidate.token}
+            className="rounded-md px-1 transition-colors"
+            style={{ background: lit ? CONCEPT_COLORS.pick.tint : undefined, boxShadow: lit ? `0 0 0 2px ${CONCEPT_COLORS.pick.solid}` : undefined }}
           >
-            <span title={label} className={cn('truncate text-base font-semibold', kept ? 'text-ink' : 'text-ink-3 line-through')}>
-              {label}
-            </span>
-            <span className="block h-4">
-              <span
-                className={cn('block h-full', kept ? 'bg-accent' : 'border border-dashed border-rule-strong')}
-                style={{ width: width(keptProbability ?? candidate.probability, max) }}
-              />
-            </span>
-            <span className={cn('text-right text-base tabular-nums', kept ? 'text-ink' : 'text-ink-3')}>
-              {kept ? formatPercent(keptProbability) : 'cut'}
-            </span>
+            <CandidateBar
+              token={row.candidate.token}
+              probability={row.keptProbability ?? row.candidate.probability}
+              max={max}
+              tone={toneOf(row, frame)}
+              value={row.keptProbability === null ? 'cut' : formatPercent(row.keptProbability)}
+              order={index}
+            />
           </li>
         )
       })}

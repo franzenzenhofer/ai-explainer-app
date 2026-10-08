@@ -102,7 +102,6 @@ test('layers: the stepper walks the blocks; a prompt without numbers offers the 
 
 test('scores and sampling: the real top 20 with the tail, then five picks (live model)', async ({ page }) => {
   await open(page, '/scores')
-  await page.getByRole('button', { name: 'Ask the model' }).click()
   await expect(page.getByRole('button', { name: /all other tokens/i })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
   await expect(page.getByRole('list', { name: 'Probability of each next token' }).getByRole('listitem')).toHaveCount(21)
   await page.waitForTimeout(1600)
