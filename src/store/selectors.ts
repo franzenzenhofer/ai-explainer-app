@@ -1,11 +1,9 @@
-// Pure selectors that derive tokens, embeddings, attention and predictions from the store state.
+// Pure selectors that derive tokens and attention from the store state.
 // Each derivation is memoized on its inputs so React gets a stable reference between renders.
 
 import { tokenize } from '../model/tokenizer'
 import { generateAttentionWeights } from '../model/attention'
-import { illustrativeDistribution } from '../model/distribution'
-import { applySampling } from '../model/sampling'
-import type { AttentionWeight, PredictionCandidate, Token } from '../core/types'
+import type { AttentionWeight, Token } from '../core/types'
 import type { AppStoreState } from './appStore'
 
 function memoizeLast<Args extends unknown[], Result>(compute: (...args: Args) => Result) {
@@ -24,11 +22,6 @@ function memoizeLast<Args extends unknown[], Result>(compute: (...args: Args) =>
 
 const tokenizeMemo = memoizeLast(tokenize)
 const attentionMemo = memoizeLast(generateAttentionWeights)
-const distributionMemo = memoizeLast(illustrativeDistribution)
-const samplingMemo = memoizeLast((candidates: PredictionCandidate[], temperature: number, topK: number, topP: number) =>
-  applySampling(candidates, { temperature, topK, topP }),
-)
-const generatedMemo = memoizeLast((continuation: Token[], count: number) => continuation.slice(0, count))
 
 export const selectTokens = (state: AppStoreState): Token[] => tokenizeMemo(state.inputText)
 
@@ -41,17 +34,3 @@ export const selectPredictionPosition = (state: AppStoreState): number => {
   const selected = state.selectedTokenIndex
   return selected !== null && selected <= last ? selected : last
 }
-
-// The raw illustrative distribution, before any sampling setting.
-export const selectDistribution = (state: AppStoreState): PredictionCandidate[] =>
-  distributionMemo(selectTokens(state), selectPredictionPosition(state))
-
-// The distribution after the last token, with temperature, top-k and top-p applied.
-export const selectPredictions = (state: AppStoreState): PredictionCandidate[] => {
-  const tokens = selectTokens(state)
-  const raw = distributionMemo(tokens, tokens.length - 1)
-  return samplingMemo(raw, state.temperature, state.topK, state.topP)
-}
-
-export const selectGeneratedTokens = (state: AppStoreState): Token[] =>
-  generatedMemo(state.continuation, state.revealedCount)

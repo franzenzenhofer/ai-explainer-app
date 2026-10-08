@@ -1,7 +1,7 @@
 // Text for every chapter's "Go deeper" drawer. Numbers follow the plan's numbers policy:
 // GPT-2 small for the demo model, GPT-3 175B for scale, closed models undisclosed.
 
-import { GPT2_EXPORT, LARGE_MODEL_SPECS, MODEL_SPECS, TOKENIZER_SPECS } from '../types'
+import { GPT2_EXPORT, LARGE_MODEL_SPECS, LOOP_MODEL, MODEL_SPECS, TOKENIZER_SPECS } from '../types'
 import type { ChapterId, DrawerSection } from './types'
 
 const VOCABULARY = TOKENIZER_SPECS.vocabulary.toLocaleString('en-US')
@@ -20,8 +20,15 @@ export const DRAWERS: Record<ChapterId, DrawerSection[]> = {
     {
       heading: 'What one press does here',
       paragraphs: [
-        'The first press asks a real language model to continue the text. It answers with the whole continuation in one call, so every later press shows you the next piece of that answer. Inside the model, each of those pieces was a separate run of the machine.',
-        'The model behind this demo does not report its probabilities, so the candidate list stays empty here. The Scores and Sampling chapters show what such a list looks like.',
+        `The first press sends your text to ${LOOP_MODEL.name}, a real open language model (${LOOP_MODEL.id}). It answers with its next ${LOOP_MODEL.stepsPerCall} picks at once and, for every pick, the ${LOOP_MODEL.candidatesPerStep} tokens it found most likely with their real probabilities. Later presses show the next step of that answer; inside the model, each step was a separate run of the machine.`,
+        'The model always takes its top token here (temperature 0), so the same text gives the same picks. If you tap another candidate, your token replaces the pick and the next press asks the model about the new text.',
+      ],
+    },
+    {
+      heading: 'What is hidden and what is not',
+      paragraphs: [
+        `Special tokens that look like <|...|>, for example the end-of-turn marker, are hidden from the candidate lists. If one is the model's own pick, the loop stops there and says so. The probability that goes to such markers and to everything else outside the list is shown as "all other tokens". ${LOOP_MODEL.name} has its own token list, so some candidates are pieces of words.`,
+        'The demo allows a limited number of live calls per visit and the server limits requests per minute. When a limit is reached, or the model provider does not return probabilities, the page says so and shows no numbers.',
       ],
     },
   ],
@@ -125,7 +132,7 @@ export const DRAWERS: Record<ChapterId, DrawerSection[]> = {
     {
       heading: 'The unembedding',
       paragraphs: [
-        `The final list of numbers at the last position is compared with one stored list per token in the vocabulary. That gives one raw score, called a logit, for each of the ${VOCABULARY} tokens.`,
+        `The final list of numbers at the last position is compared with one stored list per token in the vocabulary. That gives one raw score, called a logit, for every token. The tokenizer in the Tokens chapter has ${VOCABULARY}; ${LOOP_MODEL.name} has a vocabulary of its own.`,
       ],
     },
     {
@@ -133,6 +140,12 @@ export const DRAWERS: Record<ChapterId, DrawerSection[]> = {
       paragraphs: [
         'Softmax turns the raw scores into probabilities: every one becomes positive and together they add up to 1. A higher score always means a higher probability.',
         'Every token gets a probability, even absurd ones. Most of them are tiny, but together the long tail is not nothing.',
+      ],
+    },
+    {
+      heading: 'Where the bars come from',
+      paragraphs: [
+        `They are real: ${LOOP_MODEL.name} (${LOOP_MODEL.id}) reports the log-probabilities of its ${LOOP_MODEL.candidatesPerStep} most likely tokens for each step, and the page converts them to probabilities. The last bar is 1 minus their sum. Special tokens that look like <|...|> are not listed, so their share counts in the last bar. Press Ask the model once per text; the answer is kept for the visit.`,
       ],
     },
   ],
@@ -147,6 +160,12 @@ export const DRAWERS: Record<ChapterId, DrawerSection[]> = {
       heading: 'Settings of the picker, not of the model',
       paragraphs: [
         'Temperature, top-k and top-p change how the token is picked from the list. They do not change the model or what it knows. Temperature 0 is not a truth mode: it always takes the top token, right or wrong.',
+      ],
+    },
+    {
+      heading: 'What runs where',
+      paragraphs: [
+        `The ${LOOP_MODEL.candidatesPerStep} probabilities come from ${LOOP_MODEL.name}. The settings and the rolls run in your browser on those numbers only: the real picker of a service works on its whole vocabulary, here the tiny tail outside the list is left out and the rest is rescaled to add up to 1.`,
       ],
     },
   ],

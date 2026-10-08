@@ -1,10 +1,10 @@
-// SamplingChart - the most likely candidates of the illustrative list, kept or cut by the settings.
+// SamplingChart - the model's real candidates, kept or cut by the settings.
 import type { Provenance } from '../../core/components/ProvenanceBadge'
 import { cn } from '../../core/utils/cn'
 import { formatPercent, formatTokenDisplay } from '../../core/utils/formatters'
 import type { SamplingRow } from './samplingRows'
 
-export const provenance: Provenance = 'simulated'
+export const provenance: Provenance = 'real'
 
 const FULL_WIDTH_PERCENT = 100
 const MIN_BAR_PERCENT = 0.5

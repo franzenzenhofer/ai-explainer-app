@@ -2,7 +2,7 @@
 import type { ReactNode } from 'react'
 import { useDebug } from '../hooks/useDebug'
 import { useAppStore } from '../../store/appStore'
-import { selectPredictions, selectTokens } from '../../store/selectors'
+import { selectTokens } from '../../store/selectors'
 
 function Row({ label, value }: { label: string; value: ReactNode }) {
   return (
@@ -30,8 +30,8 @@ export function DebugOverlay() {
         <Row label="lens" value={state.selectedLens} />
         <Row label="block" value={state.selectedBlock} />
         <Row label="temperature / top-k / top-p" value={`${state.temperature} / ${state.topK} / ${state.topP}`} />
-        <Row label="predictions" value={selectPredictions(state).length} />
-        <Row label="continuation" value={`${state.revealedCount} of ${state.continuation.length}`} />
+        <Row label="appended pieces" value={state.appended.length} />
+        <Row label="known steps" value={Object.keys(state.loopSteps).length} />
         <Row label="calls used" value={state.apiCallsUsed} />
       </dl>
     </aside>

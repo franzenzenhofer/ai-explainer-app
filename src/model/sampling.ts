@@ -1,8 +1,7 @@
-// Sampling math: temperature, top-k, top-p and the weighted roll. This part is exact; only the
-// distribution it is applied to in the demo is illustrative (see distribution.ts).
+// Sampling math: temperature, top-k, top-p and the weighted roll. It runs here in the browser on the
+// real top candidates the model reported; temperature, top-k and top-p renormalize whatever list they get.
 
-import type { PredictionCandidate, Token } from '../core/types'
-import { illustrativeDistribution } from './distribution'
+import type { PredictionCandidate } from '../core/types'
 
 const LOG_EPSILON = 1e-10
 
@@ -55,15 +54,6 @@ export function applySampling(candidates: PredictionCandidate[], settings: Sampl
   const reshaped = applyTemperature(candidates.map((c) => c.probability), settings.temperature)
   const tempered = candidates.map((c, i) => ({ ...c, probability: reshaped[i] }))
   return byProbability(applyTopP(applyTopK(tempered, settings.topK), settings.topP))
-}
-
-// The raw, illustrative distribution after the token at contextUpToIndex, with the sampling settings applied.
-export function generatePredictions(
-  tokens: Token[],
-  settings: SamplingSettings,
-  contextUpToIndex: number = tokens.length - 1,
-): PredictionCandidate[] {
-  return applySampling(illustrativeDistribution(tokens, contextUpToIndex), settings)
 }
 
 // One weighted roll. random() must return a number in [0, 1).

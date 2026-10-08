@@ -3,10 +3,7 @@ import { tokenize } from '../model/tokenizer'
 import { DEFAULT_INPUT_TEXT, useAppStore } from './appStore'
 import {
   selectAttentionWeights,
-  selectDistribution,
-  selectGeneratedTokens,
   selectPredictionPosition,
-  selectPredictions,
   selectTokens,
 } from './selectors'
 
@@ -28,21 +25,11 @@ describe('derived selectors', () => {
 
   it('returns the same array reference while the input is unchanged', () => {
     expect(selectTokens(state())).toBe(selectTokens(state()))
-    expect(selectPredictions(state())).toBe(selectPredictions(state()))
-    expect(selectDistribution(state())).toBe(selectDistribution(state()))
   })
 
-  it('derives attention and predictions without any chapter being opened', () => {
+  it('derives attention without any chapter being opened', () => {
     const tokenCount = selectTokens(state()).length
     expect(selectAttentionWeights(state())).toHaveLength(tokenCount * tokenCount)
-    expect(selectPredictions(state()).length).toBeGreaterThan(0)
-  })
-
-  it('recomputes predictions when temperature changes', () => {
-    const before = selectPredictions(state())
-    state().setTemperature(0)
-    expect(selectPredictions(state())).not.toBe(before)
-    expect(selectPredictions(state())[0].probability).toBe(1)
   })
 
   it('predicts from the selected token, else from the last token', () => {
@@ -52,26 +39,36 @@ describe('derived selectors', () => {
     expect(selectPredictionPosition(state())).toBe(2)
   })
 
-  it('clears the selection and the generated text when the prompt changes', () => {
+  it('clears the selection and the appended text when the prompt changes', () => {
     state().setSelectedTokenIndex(1)
-    state().finishFetch(tokenize(' and then'))
-    state().revealNext()
-    expect(selectGeneratedTokens(state())).toHaveLength(1)
+    state().appendPiece(' and then')
+    expect(state().appended).toEqual([' and then'])
     state().setInputText('Something else')
     expect(state().selectedTokenIndex).toBeNull()
-    expect(selectGeneratedTokens(state())).toHaveLength(0)
+    expect(state().appended).toEqual([])
   })
 })
 
 describe('generation state', () => {
   beforeEach(() => state().setInputText(DEFAULT_INPUT_TEXT))
 
-  it('reveals the fetched continuation one token at a time and never past its end', () => {
+  it('stores every fetched step under the text the model read, and keeps them when the prompt changes', () => {
     state().startFetch()
-    state().finishFetch(tokenize(' It ran'))
-    const total = state().continuation.length
-    for (let i = 0; i < total + 2; i++) state().revealNext()
-    expect(selectGeneratedTokens(state())).toHaveLength(total)
+    state().storeSteps([
+      { context: 'A', step: { candidates: [{ token: ' b', probability: 0.5 }], tailProbability: 0.5, pick: ' b' } },
+      { context: 'A b', step: { candidates: [{ token: ' c', probability: 0.4 }], tailProbability: 0.6, pick: ' c' } },
+    ])
+    expect(state().fetchStatus).toBe('idle')
+    expect(Object.keys(state().loopSteps)).toEqual(expect.arrayContaining(['A', 'A b']))
+    state().setInputText('Something else')
+    expect(state().loopSteps['A b'].pick).toBe(' c')
+  })
+
+  it('replaces only the last appended piece when the reader picks another candidate', () => {
+    state().appendPiece(' one')
+    state().appendPiece(' two')
+    state().replaceLastPiece(' three')
+    expect(state().appended).toEqual([' one', ' three'])
   })
 
   it('counts calls against the visit budget', () => {
@@ -79,6 +76,13 @@ describe('generation state', () => {
     state().startFetch()
     expect(state().apiCallsUsed).toBe(before + 1)
     expect(state().fetchStatus).toBe('fetching')
+  })
+
+  it('forgets an error when the reader moves to another chapter', () => {
+    state().failFetch('rate limited')
+    state().setChapterId('scores')
+    expect(state().fetchStatus).toBe('idle')
+    expect(state().fetchError).toBeNull()
   })
 })
 

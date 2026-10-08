@@ -6,6 +6,7 @@ describe('formatTokenDisplay', () => {
     expect(formatTokenDisplay(' dog')).toBe('·dog')
     expect(formatTokenDisplay('dog  ')).toBe('dog··')
     expect(formatTokenDisplay('\n')).toBe('↵')
+    expect(formatTokenDisplay('\u00a0')).toBe('⍽')
   })
 })
 

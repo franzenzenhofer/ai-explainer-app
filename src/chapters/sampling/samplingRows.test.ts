@@ -1,11 +1,13 @@
 import { describe, expect, it } from 'vitest'
-import { tokenize } from '../../model/tokenizer'
-import { illustrativeDistribution } from '../../model/distribution'
+import type { PredictionCandidate } from '../../core/types'
 import { applySampling } from '../../model/sampling'
 import { samplingRows } from './samplingRows'
 
-const tokens = tokenize('The dog barked because it was hungry.')
-const raw = illustrativeDistribution(tokens, tokens.length - 1)
+// The shape of a real step: 20 candidates, most likely first, summing to a little under 1.
+const raw: PredictionCandidate[] = Array.from({ length: 20 }, (_, index) => ({
+  token: ` token${index}`,
+  probability: 0.6 * 0.7 ** index * 0.3 + (index === 0 ? 0.3 : 0),
+}))
 
 describe('samplingRows', () => {
   it('keeps exactly k rows with top-k and marks the rest as cut', () => {

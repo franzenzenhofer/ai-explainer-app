@@ -1,24 +1,25 @@
-// Chapter 1: the token machine, live. Press, a real model continues the text, one token joins the end.
+// Chapter 1: the token machine, live. Press, a real model picks the next token and it joins the text.
 import { useAppStore } from '../../store/appStore'
+import { LOOP_MODEL } from '../../core/types'
 import { Button, ChapterLayout, VisualFrame, type Provenance } from '../../core/components'
 import { getChapter } from '../../core/chapters'
 import { ChapterLink } from '../../core/navigation/ChapterLink'
 import { GeneratedText } from '../loop/GeneratedText'
 import { GenerationStatus } from '../loop/GenerationStatus'
-import { generationPhase, useGeneration } from '../loop/useGeneration'
+import { NextCandidates } from '../loop/NextCandidates'
+import { generationPhase, pickNext, resetLoop } from '../loop/useGeneration'
 import { LoopDiagram } from './LoopDiagram'
 
 export const provenance: Provenance = 'real'
 
 function HomeControls() {
-  const { pickNext, reset } = useGeneration()
-  const phase = useAppStore(generationPhase)
+    const phase = useAppStore(generationPhase)
   return (
     <div className="mt-6 flex flex-wrap gap-2" data-primary-control>
       <Button
         variant="primary"
         onClick={() => void pickNext()}
-        disabled={phase === 'fetching' || phase === 'limit'}
+        disabled={phase === 'fetching' || phase === 'limit' || phase === 'ended'}
         className="max-sm:w-full"
       >
         Pick the next token
@@ -30,7 +31,7 @@ function HomeControls() {
         Edit text
       </ChapterLink>
       {phase !== 'empty' && (
-        <Button onClick={reset} className="max-sm:flex-1">Start over</Button>
+        <Button onClick={resetLoop} className="max-sm:flex-1">Start over</Button>
       )}
     </div>
   )
@@ -42,19 +43,10 @@ export function HomeChapter() {
       <VisualFrame
         title="Text so far"
         provenance={provenance}
-        caption="Real model output: one call returns the whole continuation, each press shows its next token."
+        caption={`Real: ${LOOP_MODEL.name} picks each token and reports the probabilities of its top ${LOOP_MODEL.candidatesPerStep} candidates. One call returns up to ${LOOP_MODEL.stepsPerCall} steps, so most presses need no new call.`}
       >
         <GeneratedText />
-        <div className="mt-6 border-t border-rule pt-4">
-          <h3 className="m-0 text-base font-semibold">What could come next</h3>
-          <p className="m-0 mt-1 text-base text-ink-2">
-            Candidates are not available for this model: it does not report its probabilities.{' '}
-            <ChapterLink chapter={getChapter('scores')} className="text-ink underline underline-offset-4">
-              See what such a list looks like
-            </ChapterLink>
-            .
-          </p>
-        </div>
+        <NextCandidates interactive />
         <div className="mt-4">
           <GenerationStatus />
         </div>

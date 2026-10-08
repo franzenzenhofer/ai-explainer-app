@@ -1,15 +1,12 @@
 import { describe, expect, it } from 'vitest'
 import type { PredictionCandidate } from '../core/types'
-import { applyTemperature, applyTopK, applyTopP, generatePredictions, sampleMany, sampleToken } from './sampling'
-import { tokenize } from './tokenizer'
+import { applySampling, applyTemperature, applyTopK, applyTopP, sampleMany, sampleToken } from './sampling'
 
 const BASE_PROBABILITIES = [0.4, 0.25, 0.15, 0.1, 0.05, 0.03, 0.02]
 
 const candidatesFrom = (probabilities: number[]): PredictionCandidate[] =>
   probabilities.map((probability, index) => ({
     token: `t${index}`,
-    tokenId: index,
-    colorIndex: index,
     probability,
   }))
 
@@ -57,8 +54,8 @@ describe('applyTopP', () => {
   })
 })
 
-describe('generatePredictions', () => {
-  const tokens = tokenize('The cat sat on the')
+describe('applySampling', () => {
+  const candidates = candidatesFrom(BASE_PROBABILITIES)
 
   it.each([
     { temperature: 0.5, topK: 50, topP: 1 },
@@ -66,19 +63,18 @@ describe('generatePredictions', () => {
     { temperature: 1, topK: 50, topP: 0.9 },
     { temperature: 1.5, topK: 5, topP: 0.8 },
   ])('sums to 1 for %j', (settings) => {
-    const predictions = generatePredictions(tokens, settings)
-    expect(predictions.length).toBeGreaterThan(0)
-    expect(sum(probabilitiesOf(predictions))).toBeCloseTo(1, 10)
+    const result = applySampling(candidates, settings)
+    expect(result.length).toBeGreaterThan(0)
+    expect(sum(probabilitiesOf(result))).toBeCloseTo(1, 10)
   })
 
   it('returns exactly one certain candidate at temperature 0', () => {
-    const predictions = generatePredictions(tokens, { temperature: 0, topK: 50, topP: 1 })
-    expect(predictions[0].probability).toBe(1)
+    expect(applySampling(candidates, { temperature: 0, topK: 50, topP: 0.9 })).toEqual([{ ...candidates[0], probability: 1 }])
   })
 
-  it('lets top-k act: the illustrative list is longer than 60 entries', () => {
-    expect(generatePredictions(tokens, { temperature: 1, topK: 1000, topP: 1 }).length).toBeGreaterThanOrEqual(60)
-    expect(generatePredictions(tokens, { temperature: 1, topK: 40, topP: 1 })).toHaveLength(40)
+  it('renormalizes a list that sums to less than 1, as the top 20 of a real model do', () => {
+    const topOnly = candidatesFrom([0.4, 0.2, 0.1])
+    expect(sum(probabilitiesOf(applySampling(topOnly, { temperature: 1, topK: 20, topP: 1 })))).toBeCloseTo(1, 10)
   })
 })
 

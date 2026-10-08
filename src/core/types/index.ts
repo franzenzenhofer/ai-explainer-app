@@ -13,10 +13,9 @@ export interface AttentionWeight {
   weight: number
 }
 
+// One candidate for the next token, with a real probability from the live model.
 export interface PredictionCandidate {
   token: string
-  tokenId: number
-  colorIndex: number  // For consistent colors - same token = same color everywhere
   probability: number
 }
 
@@ -78,4 +77,14 @@ export const GPT2_EXPORT = {
   tokenFile: 'gpt2-small-embeddings.json',
   vectorFile: 'gpt2-small-embeddings.int8.bin',
   activationFile: 'demo-activations.json',
+} as const
+
+// The live model behind the token machine, Scores, Sampling and Loop (worker mode "loop", ticket P4-1).
+// It is the only model in the app that reports real probabilities; it has its own token list, not o200k_base.
+export const LOOP_MODEL = {
+  id: 'meta-llama/llama-3.1-8b-instruct',
+  name: 'Llama 3.1 8B',
+  // Steps one call returns, and candidates per step (the worker accepts up to 30 and 20).
+  stepsPerCall: 20,
+  candidatesPerStep: 20,
 } as const

@@ -1,12 +1,10 @@
-// Gemini API Service - Real AI generation via secure Cloudflare Worker
-// API key is stored securely server-side, never exposed to frontend
+// Question and answer via the secure Cloudflare Worker (the Reality chapter). The API key stays
+// server-side. The worker's loop mode, with real probabilities, is in loopApi.ts.
 
 import { tokenize } from '../model/tokenizer'
 import type { Token } from '../core/types'
 
 const API_ENDPOINT = 'https://ai-explainer-api.franz-enzenhofer7308.workers.dev'
-
-export type GenerationMode = 'continuation' | 'qa'
 
 export interface GeminiResponse {
   text: string
@@ -26,27 +24,16 @@ function detectLanguage(text: string): 'de' | 'en' | 'mixed' {
   return 'en'
 }
 
-// Generate text continuation using secure API
-// Then tokenize with REAL tiktoken tokenizer
-export async function generateWithGemini(
-  prompt: string,
-  maxTokens: number = 30,
-  mode: GenerationMode = 'continuation'
-): Promise<GeminiResponse> {
+// Ask the worker to answer a question, then tokenize the answer with the REAL tiktoken tokenizer.
+export async function generateWithGemini(prompt: string, maxTokens: number): Promise<GeminiResponse> {
   try {
-    // Detect language to keep output language aligned with user input
+    // Detect language to keep the answer language aligned with the question
     const lang = detectLanguage(prompt)
-    const continuationPrompt = lang === 'de'
-      ? 'Continue this German text naturally in German:'
-      : lang === 'mixed'
-        ? 'Continue this mixed German/English text, maintaining the same language mix:'
-        : 'Continue this text naturally:'
-    const qaPrompt = lang === 'de'
+    const systemPrompt = lang === 'de'
       ? 'Answer this question directly in German. Keep it concise and factual. If uncertain, say so.'
       : lang === 'mixed'
         ? 'Answer this question while maintaining the same German/English language mix. Be concise and factual. If uncertain, say so.'
         : 'Answer this question directly in English. Keep it concise and factual. If uncertain, say so.'
-    const systemPrompt = mode === 'qa' ? qaPrompt : continuationPrompt
 
     const response = await fetch(API_ENDPOINT, {
       method: 'POST',
@@ -56,7 +43,7 @@ export async function generateWithGemini(
       body: JSON.stringify({
         prompt,
         maxTokens,
-        mode,
+        mode: 'qa',
         systemPrompt,
       }),
     })
@@ -81,23 +68,11 @@ export async function generateWithGemini(
       }
     }
 
-    // For continuations, ensure the generated text has a leading space
-    // if the prompt doesn't end with whitespace and the response doesn't start with it.
-    // Without this, "oder?" + "Und" renders as "oder?Und" with no space.
-    let generatedText = data.text
-    if (mode === 'continuation' && generatedText.length > 0) {
-      const promptEndsWithSpace = /\s$/.test(prompt)
-      const responseStartsWithSpace = /^\s/.test(generatedText)
-      if (!promptEndsWithSpace && !responseStartsWithSpace) {
-        generatedText = ' ' + generatedText
-      }
-    }
-
     // Use REAL tiktoken tokenizer - returns full Token objects with real tokenIds
-    const realTokens = tokenize(generatedText)
+    const realTokens = tokenize(data.text)
 
     return {
-      text: generatedText,
+      text: data.text,
       tokens: realTokens,  // Full Token[] with real tokenIds from tiktoken
     }
   } catch (error) {

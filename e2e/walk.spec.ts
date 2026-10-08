@@ -148,28 +148,45 @@ test.describe('navigation', () => {
 test.describe('chapter interactions', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
-  test('home: three presses of Pick the next token append three tokens in under 15 s (live model)', async ({ page }) => {
+  test('home: three presses append three tokens in under 15 s, and a non-top candidate replaces the pick (live model)', async ({ page }) => {
     const errors = trackConsoleErrors(page)
     await open(page, '/')
     const pick = page.getByRole('button', { name: 'Pick the next token' })
+    const status = page.getByRole('status')
     const started = Date.now()
     for (let press = 1; press <= 3; press++) {
       await pick.click()
-      await expect(page.getByRole('status').filter({ hasText: `token ${press} of` })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
+      await expect(status.filter({ hasText: `(token ${press})` })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
     }
     expect(Date.now() - started).toBeLessThan(15_000)
+    const candidates = page.getByRole('list', { name: 'Candidates for the token just added' }).getByRole('button')
+    await expect(candidates.first()).toHaveAttribute('aria-pressed', 'true')
+    expect(await candidates.count()).toBe(10)
+    await candidates.nth(1).click()
+    await expect(candidates.nth(1)).toHaveAttribute('aria-pressed', 'true')
+    await expect(candidates.first()).toHaveAttribute('aria-pressed', 'false')
+    await expect(status.filter({ hasText: 'Your choice' })).toBeVisible()
+    await pick.click()
+    await expect(status.filter({ hasText: '(token 4)' })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
+    if (STRICT_LAYOUT) await checkLayout(page, 'home with candidates at desktop')
     expect(errors).toEqual([])
   })
 
-  test('scores: the tail bar plus the top 20 is the whole list', async ({ page }) => {
+  test('scores: the real top 20 and the tail bar (live model)', async ({ page }) => {
     await open(page, '/scores')
-    await expect(page.getByRole('button', { name: /the other 199,978 tokens/i })).toBeVisible()
+    await page.getByRole('button', { name: 'Ask the model' }).click()
+    await expect(page.getByRole('button', { name: /all other tokens/i })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
+    await expect(page.getByRole('list', { name: 'Probability of each next token' }).getByRole('listitem')).toHaveCount(21)
+    if (STRICT_LAYOUT) await checkLayout(page, 'scores with the list at desktop')
   })
 
-  test('sampling: pick again shows five picks', async ({ page }) => {
+  test('sampling: pick again shows five picks (live model)', async ({ page }) => {
     await open(page, '/sampling')
-    await page.locator('[data-primary-control] button').first().click()
+    await page.getByRole('button', { name: 'Ask the model' }).click()
+    await expect(page.getByRole('button', { name: /^Pick 5 times/ })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
+    await page.getByRole('button', { name: /^Pick 5 times/ }).click()
     await expect(page.locator('[data-picks] li')).toHaveCount(5)
+    if (STRICT_LAYOUT) await checkLayout(page, 'sampling with the list at desktop')
   })
 
   test('attention: arcs only point left', async ({ page }) => {
@@ -194,6 +211,25 @@ test.describe('chapter interactions', () => {
     expect(after).toHaveLength(before.length)
     for (const [index, html] of after.entries()) expect(html, `column ${index}`).not.toBe(before[index])
     await expect(page.locator('[data-visual] svg path')).toHaveCount(0)
+  })
+
+  test('numbers: real GPT-2 numbers, a grey token outside the demo set', async ({ page }) => {
+    await open(page, '/numbers')
+    await expect(page.getByText('all 768 numbers')).toBeVisible()
+    await expect(page.getByRole('list', { name: 'Most similar tokens' }).getByRole('listitem')).toHaveCount(8)
+    await page.getByRole('button', { name: /^Token 1:/ }).click()
+    await expect(page.getByText(/not in demo set/).first()).toBeVisible()
+  })
+
+  test('layers: a prompt without real numbers offers the four samples, never invented ones', async ({ page }) => {
+    await open(page, '/tokens')
+    await page.getByRole('button', { name: 'Edit text' }).click()
+    await page.getByLabel('Your text').fill('Something that was never exported.')
+    await page.getByRole('button', { name: 'Done editing' }).click()
+    await open(page, '/layers')
+    await expect(page.getByRole('button', { name: '2 + 2 =' })).toBeVisible()
+    await page.getByRole('button', { name: 'The capital of France is' }).click()
+    await expect(page.getByText(/GPT-2 small reads "The capital of France is"/)).toBeVisible()
   })
 
   test('layers: the stepper walks the blocks', async ({ page }) => {

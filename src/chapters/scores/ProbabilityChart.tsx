@@ -1,11 +1,11 @@
-// ProbabilityChart - the top 20 tokens of the illustrative list plus one bar for all remaining tokens.
+// ProbabilityChart - the model's real top 20 tokens plus one bar for all remaining tokens.
 // Each row is a button; the chosen row carries the chapter accent.
 import type { PredictionCandidate } from '../../core/types'
 import type { Provenance } from '../../core/components/ProvenanceBadge'
 import { cn } from '../../core/utils/cn'
 import { formatPercent, formatTokenDisplay } from '../../core/utils/formatters'
 
-export const provenance: Provenance = 'simulated'
+export const provenance: Provenance = 'real'
 
 const FULL_WIDTH_PERCENT = 100
 const MIN_BAR_PERCENT = 0.5

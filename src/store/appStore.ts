@@ -5,8 +5,8 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import type { ChapterId } from '../core/chapters/types'
 import type { LensId } from '../model/attention'
-import type { Token } from '../core/types'
 import { MODEL_SPECS } from '../core/types'
+import type { ContextStep, LoopStep } from '../model/loopSteps'
 
 // One short sentence (9 tokens) with a pronoun ("it") and a single noun it refers to ("dog").
 export const DEFAULT_INPUT_TEXT = 'The dog barked because it was hungry.'
@@ -15,7 +15,7 @@ export type AttentionView = 'arcs' | 'grid'
 export type FeedForwardView = 'alone' | 'withAttention'
 export type FetchStatus = 'idle' | 'fetching' | 'error'
 
-// Most calls to the live model one visit may make from the token machine (plan section 7, risk 3).
+// Most calls to the live model one visit may make (plan section 7, risk 3). One call returns up to 20 steps.
 export const VISIT_CALL_BUDGET = 12
 export const MIN_SPEED = 0.25
 export const MAX_SPEED = 3
@@ -50,17 +50,21 @@ export interface AppStoreState {
   topP: number
   setTopP: (p: number) => void
 
-  continuation: Token[]
-  revealedCount: number
+  // Every real step fetched so far, keyed by the text the model read. Survives a change of prompt: the
+  // model is deterministic (temperature 0), so a known text never needs a second call.
+  loopSteps: Record<string, LoopStep>
+  // The pieces added to the prompt by the loop, in order: the model's picks or the reader's own choices.
+  appended: string[]
   fetchStatus: FetchStatus
   fetchError: string | null
   apiCallsUsed: number
   isPlaying: boolean
   generationSpeed: number
   startFetch: () => void
-  finishFetch: (tokens: Token[]) => void
+  storeSteps: (entries: ContextStep[]) => void
   failFetch: (message: string) => void
-  revealNext: () => void
+  appendPiece: (piece: string) => void
+  replaceLastPiece: (piece: string) => void
   setIsPlaying: (playing: boolean) => void
   setGenerationSpeed: (speed: number) => void
   resetGeneration: () => void
@@ -73,8 +77,7 @@ export interface AppStoreState {
 }
 
 const generationInitial = {
-  continuation: [] as Token[],
-  revealedCount: 0,
+  appended: [] as string[],
   fetchStatus: 'idle' as FetchStatus,
   fetchError: null as string | null,
   isPlaying: false,
@@ -99,7 +102,7 @@ export const useAppStore = create<AppStoreState>()(
   persist(
     (set) => ({
       chapterId: null,
-      setChapterId: (chapterId) => set({ chapterId }),
+      setChapterId: (chapterId) => set((s) => ({ chapterId, ...(s.fetchStatus === 'error' ? { fetchStatus: 'idle' as FetchStatus, fetchError: null } : {}) })),
       openDrawers: {},
       toggleDrawer: (id) => set((s) => ({ openDrawers: { ...s.openDrawers, [id]: !s.openDrawers[id] } })),
       closeDrawer: (id) => set((s) => ({ openDrawers: { ...s.openDrawers, [id]: false } })),
@@ -130,10 +133,16 @@ export const useAppStore = create<AppStoreState>()(
       ...generationInitial,
       apiCallsUsed: 0,
       generationSpeed: 1,
+      loopSteps: {},
       startFetch: () => set((s) => ({ fetchStatus: 'fetching', fetchError: null, apiCallsUsed: s.apiCallsUsed + 1 })),
-      finishFetch: (tokens) => set((s) => ({ fetchStatus: 'idle', continuation: [...s.continuation, ...tokens] })),
+      storeSteps: (entries) =>
+        set((s) => ({
+          fetchStatus: 'idle',
+          loopSteps: { ...s.loopSteps, ...Object.fromEntries(entries.map((entry) => [entry.context, entry.step])) },
+        })),
       failFetch: (fetchError) => set({ fetchStatus: 'error', fetchError, isPlaying: false }),
-      revealNext: () => set((s) => ({ revealedCount: Math.min(s.continuation.length, s.revealedCount + 1) })),
+      appendPiece: (piece) => set((s) => ({ appended: [...s.appended, piece] })),
+      replaceLastPiece: (piece) => set((s) => ({ appended: [...s.appended.slice(0, -1), piece] })),
       setIsPlaying: (isPlaying) => set({ isPlaying }),
       setGenerationSpeed: (generationSpeed) => set({ generationSpeed }),
       resetGeneration: () => set(generationInitial),
@@ -144,7 +153,7 @@ export const useAppStore = create<AppStoreState>()(
       resetAll: () => set({ ...settingsInitial, ...generationInitial, openDrawers: {} }),
     }),
     {
-      name: 'ai-explainer-storage-v4', // v4: chapters replace steps; top-k default fits the illustrative list
+      name: 'ai-explainer-storage-v4',
       // The page renders on the server with the defaults; App rehydrates after mount so hydration matches.
       skipHydration: true,
       partialize: (state) => ({

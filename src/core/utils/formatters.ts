@@ -1,10 +1,10 @@
 // Text formatting for tokens and numbers.
 
-// Leading and trailing spaces become a visible middle dot; newline and tab get a symbol.
+// Leading and trailing spaces become a visible middle dot; newline, tab and the no-break space get a symbol.
 export function formatTokenDisplay(token: string): string {
   if (token === '\n') return '↵'
   if (token === '\t') return '⇥'
-  return token.replace(/\n/g, '↵').replace(/^ +| +$/g, (spaces) => '·'.repeat(spaces.length))
+  return token.replace(/\u00a0/g, '⍽').replace(/\n/g, '↵').replace(/^ +| +$/g, (spaces) => '·'.repeat(spaces.length))
 }
 
 // Inside running text spaces stay spaces; only newline and tab get a symbol.

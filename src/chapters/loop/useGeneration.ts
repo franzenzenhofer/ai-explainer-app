@@ -1,52 +1,39 @@
-// The token machine's live loop, shared by Home and Loop. One call to the real model returns a
-// continuation; every pick reveals its next token. The page never pretends a pick is a new call.
+// The token machine's live loop, shared by Home and Loop. Each press appends the model's own pick for
+// the text so far. One call returns up to 20 real steps, so most presses need no new call; a candidate
+// the reader chooses instead makes a new text, which is asked about on the next press.
 
-import { useCallback } from 'react'
-import { useAppStore, VISIT_CALL_BUDGET, type AppStoreState } from '../../store/appStore'
-import { generateWithGemini } from '../../services/gemini'
+import { useAppStore, type AppStoreState } from '../../store/appStore'
+import { askModel, stepFor } from './askModel'
 
-// Most tokens one continuation may have (the worker's maxTokens).
-export const MAX_CONTINUATION_TOKENS = 30
+// Most pieces the loop may append in this demo.
+export const MAX_APPENDED = 30
 
-export type GenerationPhase = 'empty' | 'fetching' | 'showing' | 'limit' | 'error'
+export type GenerationPhase = 'empty' | 'fetching' | 'showing' | 'ended' | 'limit' | 'error'
 
-export function generationPhase(state: Pick<AppStoreState, 'fetchStatus' | 'revealedCount' | 'continuation'>): GenerationPhase {
+type PhaseState = Pick<AppStoreState, 'fetchStatus' | 'appended' | 'loopSteps' | 'inputText'>
+
+// The text the model reads next: the prompt plus everything appended so far.
+export const loopContext = (state: Pick<AppStoreState, 'inputText' | 'appended'>): string => state.inputText + state.appended.join('')
+
+export function generationPhase(state: PhaseState): GenerationPhase {
   if (state.fetchStatus === 'fetching') return 'fetching'
   if (state.fetchStatus === 'error') return 'error'
-  if (state.revealedCount === 0) return 'empty'
-  const exhausted = state.revealedCount >= state.continuation.length
-  return exhausted ? 'limit' : 'showing'
+  if (state.loopSteps[loopContext(state)]?.pick === null) return 'ended'
+  if (state.appended.length >= MAX_APPENDED) return 'limit'
+  return state.appended.length === 0 ? 'empty' : 'showing'
 }
 
-async function fetchContinuation() {
-  const store = useAppStore.getState()
-  if (store.apiCallsUsed >= VISIT_CALL_BUDGET) {
-    store.failFetch(`this visit has used its ${VISIT_CALL_BUDGET} calls to the live model. Reload the page to start again.`)
-    return
-  }
-  const prompt = store.inputText
-  store.startFetch()
-  const result = await generateWithGemini(prompt, MAX_CONTINUATION_TOKENS, 'continuation')
+// Appends the model's pick for the text so far, asking the model first when that text is new.
+export async function pickNext(): Promise<void> {
+  const before = useAppStore.getState()
+  const phase = generationPhase(before)
+  if (phase === 'fetching' || phase === 'limit' || phase === 'ended') return
+  const context = loopContext(before)
+  if (!stepFor(context)) await askModel(context)
   const after = useAppStore.getState()
-  if (after.inputText !== prompt) return
-  if (result.error) return after.failFetch(result.error)
-  if (result.tokens.length === 0) return after.failFetch('the model returned no continuation. Press again to retry.')
-  after.finishFetch(result.tokens)
-  after.revealNext()
+  if (loopContext(after) !== context) return
+  const pick = after.loopSteps[context]?.pick
+  if (pick) after.appendPiece(pick)
 }
 
-export function useGeneration() {
-  const pickNext = useCallback(async () => {
-    const store = useAppStore.getState()
-    const phase = generationPhase(store)
-    if (phase === 'fetching' || phase === 'limit') return
-    if (store.revealedCount < store.continuation.length) {
-      store.revealNext()
-      return
-    }
-    await fetchContinuation()
-  }, [])
-
-  const reset = useCallback(() => useAppStore.getState().resetGeneration(), [])
-  return { pickNext, reset }
-}
+export const resetLoop = (): void => useAppStore.getState().resetGeneration()

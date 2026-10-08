@@ -29,7 +29,7 @@ export function useAskModel() {
     requestRef.current += 1
     const request = requestRef.current
     setState({ ...IDLE, status: 'asking' })
-    const result = await generateWithGemini(question, ANSWER_TOKEN_LIMIT, 'qa')
+    const result = await generateWithGemini(question, ANSWER_TOKEN_LIMIT)
     if (request !== requestRef.current) return
     if (result.error) {
       setState({ ...IDLE, status: 'failed', error: result.error })

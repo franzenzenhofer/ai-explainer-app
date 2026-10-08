@@ -1,6 +1,6 @@
 // Single source of truth for the ten chapters: route, name, claim, accent, drawer, sources.
 
-import { LARGE_MODEL_SPECS, MODEL_SPECS, TOKENIZER_SPECS } from '../types'
+import { LARGE_MODEL_SPECS, MODEL_SPECS } from '../types'
 import { DRAWERS } from './drawers'
 import { CHAPTER_IDS, type Chapter, type ChapterId } from './types'
 
@@ -84,8 +84,8 @@ export const CHAPTERS: readonly Chapter[] = [
     id: 'scores',
     route: '/scores',
     name: 'One score for every token',
-    claim: `The last vector is scored against all ${VOCABULARY_ROUNDED} tokens; softmax makes the scores probabilities.`,
-    lookFor: `Look at the last bar: the other ${(TOKENIZER_SPECS.vocabulary - 20).toLocaleString('en-US')} tokens together.`,
+    claim: 'The last vector is scored against every token in the vocabulary; softmax makes the scores probabilities.',
+    lookFor: 'Look at the last bar: all remaining tokens of the vocabulary together.',
     accent: '#be123c',
     promptPlacement: 'topBar',
     drawerTitle: 'Go deeper: logits and softmax',
