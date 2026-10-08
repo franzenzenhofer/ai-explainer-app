@@ -1,48 +1,22 @@
-// Debug mode hook for development
+// Debug mode: Ctrl/Cmd + Shift + D toggles the debug overlay.
 
-import { useCallback, useEffect } from 'react'
+import { useEffect } from 'react'
 import { useAppStore } from '../../store/appStore'
 
 export function useDebug() {
   const debugMode = useAppStore((s) => s.debugMode)
   const toggleDebugMode = useAppStore((s) => s.toggleDebugMode)
 
-  // Keyboard shortcut: Ctrl/Cmd + Shift + D to toggle debug mode
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'D') {
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key.toLowerCase() === 'd') {
         e.preventDefault()
         toggleDebugMode()
       }
     }
-
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [toggleDebugMode])
 
-  // Conditional logging
-  const log = useCallback((message: string, data?: unknown) => {
-    if (debugMode || import.meta.env.DEV) {
-      console.log(`[AI-Explainer] ${message}`, data ?? '')
-    }
-  }, [debugMode])
-
-  const warn = useCallback((message: string, data?: unknown) => {
-    if (debugMode || import.meta.env.DEV) {
-      console.warn(`[AI-Explainer] ${message}`, data ?? '')
-    }
-  }, [debugMode])
-
-  const error = useCallback((message: string, data?: unknown) => {
-    // Always log errors
-    console.error(`[AI-Explainer] ${message}`, data ?? '')
-  }, [])
-
-  return {
-    debugMode,
-    toggleDebugMode,
-    log,
-    warn,
-    error,
-  }
+  return { debugMode, toggleDebugMode }
 }

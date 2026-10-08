@@ -3,7 +3,7 @@
 
 import { beforeAll, describe, expect, it } from 'vitest'
 import { generateWithGemini, type GeminiResponse } from './gemini'
-import { tokenize } from '../steps/02-tokenization/tokenizer'
+import { tokenize } from '../model/tokenizer'
 
 const CONTINUATION_PROMPT = 'The capital of France is'
 const QA_PROMPT = 'What is the capital of France?'

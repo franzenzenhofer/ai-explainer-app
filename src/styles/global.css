@@ -1,86 +1,104 @@
 @import "tailwindcss";
 
-/* LIGHT THEME - CSS Custom Properties */
+/* Light theme only. Black type on white, one accent per chapter for highlight states. */
 :root {
-  /* Background colors */
-  --bg-primary: #ffffff;
-  --bg-secondary: #f8fafc;
-  --bg-tertiary: #f1f5f9;
-
-  /* Text colors */
-  --text-primary: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-
-  /* Border colors */
-  --border-light: #e2e8f0;
-  --border-medium: #cbd5e1;
-
-  /* Step colors - vibrant but not too saturated */
-  --step-input: hsl(220, 90%, 50%);
-  --step-tokenization: hsl(25, 95%, 48%);
-  --step-embeddings: hsl(270, 85%, 55%);
-  --step-attention: hsl(150, 80%, 38%);
-  --step-prediction: hsl(45, 95%, 45%);
-  --step-generation: hsl(180, 75%, 40%);
-  --step-understanding: hsl(350, 85%, 50%);
-
-  /* Token colors - bright and distinct */
-  --token-1: hsl(220, 85%, 55%);
-  --token-2: hsl(25, 90%, 50%);
-  --token-3: hsl(150, 75%, 38%);
-  --token-4: hsl(280, 80%, 55%);
-  --token-5: hsl(350, 85%, 52%);
-  --token-6: hsl(45, 90%, 48%);
-  --token-7: hsl(180, 70%, 42%);
-  --token-8: hsl(320, 75%, 52%);
-  --token-9: hsl(90, 65%, 42%);
-  --token-10: hsl(200, 80%, 48%);
+  --paper: #ffffff;
+  --ink: #0b0b0c;
+  --ink-2: #3f3f46;
+  --ink-3: #52525b;
+  --rule: #e4e4e7;
+  --rule-strong: #a1a1aa;
+  --wash: #f4f4f5;
+  --accent: #1d4ed8;
+  --real: #166534;
+  --simulated: #92400e;
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+  --font-serif: "Iowan Old Style", Charter, "Palatino Linotype", Palatino, Georgia, serif;
 }
 
-/* Smooth animations */
+@theme inline {
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-2: var(--ink-2);
+  --color-ink-3: var(--ink-3);
+  --color-rule: var(--rule);
+  --color-rule-strong: var(--rule-strong);
+  --color-wash: var(--wash);
+  --color-accent: var(--accent);
+  --color-real: var(--real);
+  --color-simulated: var(--simulated);
+  --font-sans: var(--font-sans);
+  --font-serif: var(--font-serif);
+}
+
+html {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--paper);
+  font-size: 1.125rem;
+  line-height: 1.55;
+}
+
 @media (prefers-reduced-motion: no-preference) {
   html {
     scroll-behavior: smooth;
   }
 }
 
-/* Focus styles */
 :focus-visible {
-  outline: 2px solid var(--step-input);
+  outline: 3px solid var(--accent);
   outline-offset: 2px;
 }
 
-/* Selection */
 ::selection {
-  background: hsl(220, 90%, 50%, 0.2);
+  background: color-mix(in srgb, var(--accent) 22%, white);
 }
 
-/* Custom scrollbar for light theme */
-::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+/* The tint behind a highlighted element. */
+.tint-accent {
+  background: color-mix(in srgb, var(--accent) 12%, white);
 }
 
-::-webkit-scrollbar-track {
-  background: #f1f5f9;
+/* Range inputs: a black track and a square thumb, 44px tall hit area. */
+input[type="range"] {
+  appearance: none;
+  width: 100%;
+  height: 44px;
+  background: transparent;
+  cursor: pointer;
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
-  border-radius: 4px;
+input[type="range"]::-webkit-slider-runnable-track {
+  height: 4px;
+  background: var(--ink);
 }
 
-::-webkit-scrollbar-thumb:hover {
-  background: #94a3b8;
+input[type="range"]::-webkit-slider-thumb {
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  margin-top: -9px;
+  background: var(--paper);
+  border: 3px solid var(--accent);
+  border-radius: 3px;
 }
 
-/* Hide scrollbars when needed */
-.scrollbar-hide::-webkit-scrollbar {
-  display: none;
+input[type="range"]::-moz-range-track {
+  height: 4px;
+  background: var(--ink);
 }
 
-.scrollbar-hide {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+input[type="range"]::-moz-range-thumb {
+  width: 16px;
+  height: 16px;
+  background: var(--paper);
+  border: 3px solid var(--accent);
+  border-radius: 3px;
 }

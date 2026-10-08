@@ -1,4 +1,4 @@
-// ProvenanceBadge - tells the reader whether a visualization shows real data or a simulation
+// ProvenanceBadge - tells the reader whether a visual shows real data or a simulation.
 
 export type Provenance = 'real' | 'simulated'
 
@@ -13,8 +13,8 @@ const BADGE_TITLE: Record<Provenance, string> = {
 }
 
 const BADGE_STYLE: Record<Provenance, string> = {
-  real: 'border-emerald-300 bg-emerald-50 text-emerald-900',
-  simulated: 'border-amber-300 bg-amber-50 text-amber-900',
+  real: 'border-real text-real',
+  simulated: 'border-simulated text-simulated',
 }
 
 interface ProvenanceBadgeProps {
@@ -25,7 +25,8 @@ export function ProvenanceBadge({ provenance }: ProvenanceBadgeProps) {
   return (
     <span
       title={BADGE_TITLE[provenance]}
-      className={`pointer-events-auto absolute right-2 top-2 z-20 rounded-full border px-2.5 py-0.5 text-base font-semibold ${BADGE_STYLE[provenance]}`}
+      data-provenance={provenance}
+      className={`inline-flex shrink-0 items-center rounded-[2px] border-2 px-2 text-base font-semibold leading-7 ${BADGE_STYLE[provenance]}`}
     >
       {BADGE_TEXT[provenance]}
     </span>

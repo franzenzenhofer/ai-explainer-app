@@ -1,0 +1,21 @@
+---
+// One static page per chapter, so a deep link and a reload work on Cloudflare Pages.
+import Layout from '../layouts/Layout.astro'
+import { App } from '../components/App'
+import { CHAPTERS, chapterSlug, type Chapter } from '../core/chapters'
+
+export function getStaticPaths() {
+  return CHAPTERS.map((chapter) => ({ params: { chapter: chapterSlug(chapter) }, props: { chapter } }))
+}
+
+interface Props {
+  chapter: Chapter
+}
+
+const { chapter } = Astro.props
+const title = chapter.route === '/' ? 'AI Explorer - how a language model works' : `${chapter.name} - AI Explorer`
+---
+
+<Layout title={title} description={chapter.claim}>
+  <App initialChapter={chapter.id} client:load />
+</Layout>

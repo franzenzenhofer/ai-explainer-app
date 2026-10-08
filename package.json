@@ -9,7 +9,7 @@
     "typecheck": "astro check",
     "lint": "eslint .",
     "test": "vitest run",
-    "test:e2e": "playwright test",
+    "test:e2e": "STRICT_LAYOUT=1 playwright test",
     "deploy": "npm run build && wrangler pages deploy ./dist --project-name=ai-explainer",
     "astro": "astro"
   },

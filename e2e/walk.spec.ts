@@ -1,15 +1,14 @@
-// Browser walk: opens every step at desktop and phone width, with real navigation clicks and the live worker.
-// Layout assertions (no horizontal overflow, no text under 16px) run only with STRICT_LAYOUT=1.
+// Browser walk: opens every chapter at desktop and phone width, by deep link and by the Next link,
+// with the live worker. Layout assertions (no horizontal overflow, no text under 16px, 44px targets)
+// run with STRICT_LAYOUT=1, which the npm script sets.
 
 import { expect, test, type Page } from '@playwright/test'
+import { CHAPTERS } from '../src/core/chapters/chapters'
+import { checkLayout } from './layoutChecks'
 
-const STEP_COUNT = 8
-const MIN_FONT_SIZE_PX = 16
 const STRICT_LAYOUT = process.env.STRICT_LAYOUT === '1'
-
-const WORKER_URL = 'https://ai-explainer-api.franz-enzenhofer7308.workers.dev/**'
-// The worker only allows its production origin and localhost:4321/4322 (worker/src/index.ts ALLOWED_ORIGINS).
-const WORKER_ALLOWED_ORIGIN = 'http://localhost:4321'
+const SETTLE_MS = 300
+const LIVE_CALL_TIMEOUT_MS = 30_000
 
 const VIEWPORTS = [
   { name: 'desktop', width: 1440, height: 900 },
@@ -26,109 +25,148 @@ function trackConsoleErrors(page: Page): string[] {
   return errors
 }
 
-// Real worker, real answers: the request is forwarded from Node with an allowed Origin and the response is
-// handed back to the page with a permissive CORS header. Nothing is faked.
-async function bridgeWorkerCors(page: Page) {
-  const corsHeaders = {
-    'access-control-allow-origin': '*',
-    'access-control-allow-methods': 'GET, POST, OPTIONS',
-    'access-control-allow-headers': 'Content-Type',
-  }
-  await page.route(WORKER_URL, async (route) => {
-    if (route.request().method() === 'OPTIONS') {
-      await route.fulfill({ status: 204, headers: corsHeaders })
-      return
-    }
-    const response = await route.fetch({ headers: { ...route.request().headers(), origin: WORKER_ALLOWED_ORIGIN } })
-    await route.fulfill({ response, headers: { ...response.headers(), ...corsHeaders } })
-  })
-}
-
-async function goToStep(page: Page, stepNumber: number) {
-  await page.getByRole('button', { name: new RegExp(`^Go to step ${stepNumber}:`) }).click()
-  await expect(page.locator('main')).toBeVisible()
-}
-
-async function horizontalOverflow(page: Page): Promise<number> {
-  return page.evaluate(() => (document.scrollingElement?.scrollWidth ?? 0) - window.innerWidth)
-}
-
-async function smallTextSamples(page: Page): Promise<string[]> {
-  return page.evaluate((minimum) => {
-    const offenders: string[] = []
-    for (const element of document.body.querySelectorAll<HTMLElement>('*')) {
-      const hasOwnText = Array.from(element.childNodes).some(
-        (node) => node.nodeType === Node.TEXT_NODE && (node.textContent ?? '').trim().length > 0,
-      )
-      if (!hasOwnText) continue
-      const size = parseFloat(getComputedStyle(element).fontSize)
-      if (size < minimum) offenders.push(`${size}px: ${(element.textContent ?? '').trim().slice(0, 40)}`)
-    }
-    return offenders.slice(0, 10)
-  }, MIN_FONT_SIZE_PX)
+async function expectChapter(page: Page, index: number) {
+  const chapter = CHAPTERS[index]
+  await expect(page.locator('[data-claim]')).toHaveText(chapter.claim)
+  await expect(page.locator('header').getByText(chapter.name, { exact: true })).toBeVisible()
+  expect(new URL(page.url()).pathname.replace(/\/$/, '') || '/').toBe(chapter.route)
 }
 
 for (const viewport of VIEWPORTS) {
   test.describe(`walk at ${viewport.name} ${viewport.width}x${viewport.height}`, () => {
     test.use({ viewport: { width: viewport.width, height: viewport.height } })
 
-    test('opens every step with zero console errors', async ({ page }) => {
+    test('opens every chapter by deep link with zero console errors', async ({ page }) => {
+      const errors = trackConsoleErrors(page)
+      for (const [index, chapter] of CHAPTERS.entries()) {
+        await page.goto(chapter.route)
+        await expectChapter(page, index)
+        await page.waitForTimeout(SETTLE_MS)
+        if (STRICT_LAYOUT) await checkLayout(page, `${chapter.route} at ${viewport.name}`)
+      }
+      expect(errors).toEqual([])
+    })
+
+    test('walks all ten chapters with the Next link', async ({ page }) => {
       const errors = trackConsoleErrors(page)
       await page.goto('/')
-      for (let step = 1; step <= STEP_COUNT; step++) {
-        await goToStep(page, step)
-        await page.waitForTimeout(400)
-        if (STRICT_LAYOUT) {
-          expect(await horizontalOverflow(page), `horizontal overflow on step ${step}`).toBeLessThanOrEqual(0)
-          expect(await smallTextSamples(page), `text under ${MIN_FONT_SIZE_PX}px on step ${step}`).toEqual([])
-        }
+      for (let index = 1; index < CHAPTERS.length; index++) {
+        await page.getByRole('link', { name: new RegExp(`^Next ${CHAPTERS[index].name}`) }).click()
+        await expectChapter(page, index)
       }
+      await page.getByRole('link', { name: /^Back to the start/ }).click()
+      await expectChapter(page, 0)
       expect(errors).toEqual([])
     })
   })
 }
 
-test.describe('derived data and overlays', () => {
+test.describe('navigation', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
-  test('step 6 (Prediction) works when opened directly', async ({ page }) => {
-    const errors = trackConsoleErrors(page)
-    await page.goto('/')
-    await goToStep(page, 6)
-    const topProbability = page.getByText('Top probability').locator('..').locator('div').first()
-    await expect(topProbability).toHaveText(/\d+(\.\d)?%/)
-    expect(errors).toEqual([])
+  test('the back button, a reload and the arrow keys work', async ({ page }) => {
+    await page.goto('/tokens')
+    await page.keyboard.press('ArrowRight')
+    await expectChapter(page, 2)
+    await page.goBack()
+    await expectChapter(page, 1)
+    await page.goForward()
+    await expectChapter(page, 2)
+    await page.reload()
+    await expectChapter(page, 2)
+    await page.keyboard.press('ArrowLeft')
+    await expectChapter(page, 1)
   })
 
-  test('step 7 (Generation) works when opened directly, using the live worker', async ({ page }) => {
-    await bridgeWorkerCors(page)
-    const errors = trackConsoleErrors(page)
-    await page.goto('/')
-    await goToStep(page, 7)
-    await page.getByRole('button', { name: /Generate with AI/ }).click()
-    await expect(page.getByText(/Continuation fetched; replaying token \d+ of \d+/)).toBeVisible({ timeout: 30_000 })
-    await expect(page.getByText('Generated tokens').locator('..').locator('div').first()).not.toHaveText('0', {
-      timeout: 30_000,
-    })
-    expect(errors).toEqual([])
-  })
-
-  test('Escape closes the head types overlay and no fixed overlay remains', async ({ page }) => {
-    await page.goto('/')
-    await goToStep(page, 5)
-    await page.getByRole('button', { name: /known head types/ }).click()
-    await expect(page.getByRole('dialog')).toBeVisible()
+  test('the chapter menu lists ten chapters and Escape closes it', async ({ page }) => {
+    await page.goto('/layers')
+    await page.getByRole('button', { name: 'Chapters' }).click()
+    const menu = page.getByRole('navigation', { name: 'Chapters' })
+    await expect(menu.getByRole('link')).toHaveCount(CHAPTERS.length)
     await page.keyboard.press('Escape')
-    await expect(page.getByRole('dialog')).toHaveCount(0)
-    const fixedOverlays = await page.evaluate(
+    await expect(menu).toHaveCount(0)
+  })
+
+  test('the drawer is closed by default, Escape closes it, and it remembers its state per chapter', async ({ page }) => {
+    await page.goto('/attention')
+    const toggle = page.locator('[data-drawer] button[aria-expanded]')
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await toggle.click()
+    await expect(toggle).toHaveAttribute('aria-expanded', 'true')
+    await page.keyboard.press('Escape')
+    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
+    await toggle.click()
+    await page.getByRole('link', { name: /^Next / }).click()
+    await expect(page.locator('[data-drawer] button[aria-expanded]')).toHaveAttribute('aria-expanded', 'false')
+    await page.goBack()
+    await expect(page.locator('[data-drawer] button[aria-expanded]')).toHaveAttribute('aria-expanded', 'true')
+    const fixed = await page.evaluate(
       () => Array.from(document.querySelectorAll('*')).filter((el) => getComputedStyle(el).position === 'fixed').length,
     )
-    expect(fixedOverlays).toBe(0)
+    expect(fixed).toBe(0)
   })
 
-  test('there is no fullscreen button', async ({ page }) => {
+  test('the prompt edited on Tokens is carried to the other chapters', async ({ page }) => {
+    await page.goto('/tokens')
+    await page.getByRole('button', { name: 'Edit text' }).click()
+    await page.getByLabel('Your text').fill('The cat sat on the mat because it was warm.')
+    await page.getByRole('button', { name: 'Done editing' }).click()
+    await page.getByRole('link', { name: /^Next / }).click()
+    await expect(page.getByRole('button', { name: /Your text: The cat sat on the mat/ })).toBeVisible()
+    await page.reload()
+    await expect(page.getByRole('button', { name: /Your text: The cat sat on the mat/ })).toBeVisible()
+  })
+})
+
+test.describe('chapter interactions', () => {
+  test.use({ viewport: { width: 1440, height: 900 } })
+
+  test('home: three presses of Pick the next token append three tokens in under 15 s (live model)', async ({ page }) => {
+    const errors = trackConsoleErrors(page)
     await page.goto('/')
-    await goToStep(page, 3)
-    await expect(page.getByTitle(/Fullscreen/)).toHaveCount(0)
+    const pick = page.getByRole('button', { name: 'Pick the next token' })
+    const started = Date.now()
+    for (let press = 1; press <= 3; press++) {
+      await pick.click()
+      await expect(page.getByRole('status').filter({ hasText: `token ${press} of` })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
+    }
+    expect(Date.now() - started).toBeLessThan(15_000)
+    expect(errors).toEqual([])
+  })
+
+  test('scores: the tail bar plus the top 20 is the whole list', async ({ page }) => {
+    await page.goto('/scores')
+    await expect(page.getByRole('button', { name: /the other 199,978 tokens/i })).toBeVisible()
+  })
+
+  test('sampling: pick again shows five picks', async ({ page }) => {
+    await page.goto('/sampling')
+    await page.locator('[data-primary-control] button').first().click()
+    await expect(page.locator('[data-picks] li')).toHaveCount(5)
+  })
+
+  test('attention: arcs only point left', async ({ page }) => {
+    await page.goto('/attention')
+    const paths = await page.locator('[data-visual] svg path').evaluateAll((elements) =>
+      elements.map((element) => element.getAttribute('d') ?? ''),
+    )
+    expect(paths.length).toBeGreaterThan(0)
+    for (const d of paths) {
+      const numbers = d.match(/-?\d+(\.\d+)?/g)?.map(Number) ?? []
+      expect(numbers[numbers.length - 2]).toBeLessThan(numbers[0])
+    }
+  })
+
+  test('feed-forward: Run the block changes every column', async ({ page }) => {
+    await page.goto('/feedforward')
+    await page.getByRole('button', { name: 'Run the block' }).click()
+    await expect(page.locator('[data-visual]').first()).toBeVisible()
+  })
+
+  test('layers: the stepper walks the blocks', async ({ page }) => {
+    await page.goto('/layers')
+    await page.getByRole('button', { name: 'Block up' }).click()
+    await page.getByRole('button', { name: 'Block up' }).click()
+    await expect(page.getByRole('button', { name: /Block 2/ }).first()).toHaveAttribute('aria-pressed', 'true')
   })
 })

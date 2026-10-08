@@ -1,7 +1,7 @@
 // Gemini API Service - Real AI generation via secure Cloudflare Worker
 // API key is stored securely server-side, never exposed to frontend
 
-import { tokenize } from '../steps/02-tokenization/tokenizer'
+import { tokenize } from '../model/tokenizer'
 import type { Token } from '../core/types'
 
 const API_ENDPOINT = 'https://ai-explainer-api.franz-enzenhofer7308.workers.dev'

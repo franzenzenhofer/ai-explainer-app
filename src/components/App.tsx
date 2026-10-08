@@ -1,47 +1,59 @@
-// Main App Component - Orchestrates all steps
-import { useStep } from '../core/hooks/useStep'
-import { StepNavigation } from '../core/components'
+// The app shell: picks the chapter from the URL (first render) or the store (after client-side
+// navigation), keeps the browser history in step and restores the saved prompt after mount.
+import { useEffect, type ComponentType } from 'react'
+import { useAppStore } from '../store/appStore'
+import { getChapter, type ChapterId } from '../core/chapters'
+import { useArrowKeyNavigation, useHistorySync } from '../core/navigation/navigation'
+import { DebugOverlay } from '../core/components/DebugOverlay'
+import { HomeChapter } from '../chapters/home/HomeChapter'
+import { TokensChapter } from '../chapters/tokens/TokensChapter'
+import { NumbersChapter } from '../chapters/numbers/NumbersChapter'
+import { AttentionChapter } from '../chapters/attention/AttentionChapter'
+import { FeedForwardChapter } from '../chapters/feedforward/FeedForwardChapter'
+import { LayersChapter } from '../chapters/layers/LayersChapter'
+import { ScoresChapter } from '../chapters/scores/ScoresChapter'
+import { SamplingChapter } from '../chapters/sampling/SamplingChapter'
+import { LoopChapter } from '../chapters/loop/LoopChapter'
+import { RealityChapter } from '../chapters/reality/RealityChapter'
 
-// Step components
-import { IntroStep } from '../steps/00-intro/IntroStep'
-import { InputStep } from '../steps/01-input/InputStep'
-import { TokenizationStep } from '../steps/02-tokenization/TokenizationStep'
-import { EmbeddingsStep } from '../steps/03-embeddings/EmbeddingsStep'
-import { AttentionStep } from '../steps/04-attention/AttentionStep'
-import { PredictionStep } from '../steps/05-prediction/PredictionStep'
-import { GenerationStep } from '../steps/06-generation/GenerationStep'
-import { UnderstandingStep } from '../steps/07-understanding/UnderstandingStep'
+export const CHAPTER_COMPONENTS: Record<ChapterId, ComponentType> = {
+  home: HomeChapter,
+  tokens: TokensChapter,
+  numbers: NumbersChapter,
+  attention: AttentionChapter,
+  feedforward: FeedForwardChapter,
+  layers: LayersChapter,
+  scores: ScoresChapter,
+  sampling: SamplingChapter,
+  loop: LoopChapter,
+  reality: RealityChapter,
+}
 
-const STEP_COMPONENTS = [
-  IntroStep,
-  InputStep,
-  TokenizationStep,
-  EmbeddingsStep,
-  AttentionStep,
-  PredictionStep,
-  GenerationStep,
-  UnderstandingStep,
-] as const
+const SITE_NAME = 'AI Explorer'
 
-export function App() {
-  const { currentStep, stepConfig, totalSteps } = useStep()
+interface AppProps {
+  initialChapter: ChapterId
+}
 
-  const StepComponent = STEP_COMPONENTS[currentStep]
+export function App({ initialChapter }: AppProps) {
+  const current = useAppStore((s) => s.chapterId) ?? initialChapter
+  useHistorySync()
+  useArrowKeyNavigation(current)
 
+  useEffect(() => {
+    void useAppStore.persist.rehydrate()
+  }, [])
+
+  useEffect(() => {
+    const chapter = getChapter(current)
+    document.title = chapter.route === '/' ? `${SITE_NAME} - how a language model works` : `${chapter.name} - ${SITE_NAME}`
+  }, [current])
+
+  const Chapter = CHAPTER_COMPONENTS[current]
   return (
-    <div className="flex h-screen flex-col gap-1.5 p-2">
-      {/* Main Content Area */}
-      <main className="flex-1 overflow-hidden">
-        <StepComponent
-          key={currentStep}
-          stepNumber={currentStep + 1}
-          totalSteps={totalSteps}
-          stepConfig={stepConfig}
-        />
-      </main>
-
-      {/* Bottom Navigation */}
-      <StepNavigation />
-    </div>
+    <>
+      <Chapter key={current} />
+      <DebugOverlay />
+    </>
   )
 }
