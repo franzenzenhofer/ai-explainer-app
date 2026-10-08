@@ -40,7 +40,7 @@ function Body({ table, tokens, active, outside }: BodyProps) {
   return (
     <div key={token.text} className="flex min-h-0 flex-1 flex-col gap-2">
       {entry ? <VectorHeader table={table} token={token} entry={entry} /> : <NotInSet token={token} tokenCount={table.file.tokenCount} />}
-      <div className={entry ? 'grid min-h-0 flex-1 grid-cols-[16rem_17.5rem_minmax(0,1fr)] gap-3' : 'flex min-h-0 flex-1 flex-col'}>
+      <div className={entry ? 'flow-stack grid min-h-0 flex-1 grid-cols-[16rem_17.5rem_minmax(0,1fr)] gap-3' : 'flex min-h-0 flex-1 flex-col'}>
         {entry && <VectorDetails table={table} entry={entry} />}
         <TokenMap table={table} tokens={tokens} selectedIndex={active} outside={outside} />
       </div>

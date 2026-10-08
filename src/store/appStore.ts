@@ -1,4 +1,4 @@
-// Global state (Zustand). The prompt and the sampling settings persist in localStorage; everything
+// Global state (Zustand). The prompt, the sampling settings and the real model steps persist in localStorage; everything
 // else lives for one visit. Derived data (tokens, attention, predictions) lives in selectors.ts.
 
 import { create } from 'zustand'
@@ -150,7 +150,10 @@ export const useAppStore = create<AppStoreState>()(
       name: 'ai-explainer-storage-v4',
       // The page renders on the server with the defaults; App rehydrates after mount so hydration matches.
       skipHydration: true,
+      // The real steps are kept too, so a reload or a deep link shows the model's answer for a known text
+      // again without a new live call (the worker allows few calls per minute and has a monthly cap).
       partialize: (state) => ({
+        loopSteps: state.loopSteps,
         inputText: state.inputText,
         temperature: state.temperature,
         topK: state.topK,

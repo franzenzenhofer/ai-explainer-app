@@ -3,6 +3,7 @@
 // slide never opens empty. After a failure it waits for a press and says what went wrong.
 import { useEffect, type ReactNode } from 'react'
 import { useAppStore, VISIT_CALL_BUDGET } from '../../store/appStore'
+import { useHydrated } from '../../store/useHydrated'
 import { LOOP_MODEL } from '../../core/types'
 import { Button } from '../../core/components/Button'
 import type { LoopStep } from '../../model/loopSteps'
@@ -20,7 +21,8 @@ export function LiveListGate({ context, children }: LiveListGateProps) {
   const error = useAppStore((s) => s.fetchError)
   const used = useAppStore((s) => s.apiCallsUsed)
   const empty = context.trim() === ''
-  const shouldAsk = !step && !empty && status === 'idle'
+  const hydrated = useHydrated()
+  const shouldAsk = hydrated && !step && !empty && status === 'idle'
   useEffect(() => {
     if (shouldAsk) void askModel(context)
   }, [shouldAsk, context])

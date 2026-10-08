@@ -58,6 +58,7 @@ test.describe('presentation controls at 1440x900', () => {
     await page.keyboard.press('f')
     await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(true)
     await expect(page.getByRole('button', { name: 'Exit full screen' })).toBeVisible()
+    await page.waitForTimeout(SETTLE_MS)
     if (STRICT_LAYOUT) await checkSlide(page, '/attention in full screen')
     await page.keyboard.press('f')
     await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(false)

@@ -30,7 +30,7 @@ export function TemperaturePresets() {
   const temperature = useAppStore((s) => s.temperature)
   const setTemperature = useAppStore((s) => s.setTemperature)
   return (
-    <div className="flex shrink-0 items-center gap-2">
+    <div className="flex min-w-0 flex-wrap items-center gap-2">
       <span className="text-base font-semibold text-ink-2">Temperature:</span>
       <ControlPresets label="Temperature presets" presets={TEMPERATURE_PRESETS} currentValue={temperature} onChange={setTemperature} />
     </div>

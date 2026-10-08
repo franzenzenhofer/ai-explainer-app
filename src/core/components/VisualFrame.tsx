@@ -24,7 +24,7 @@ export function VisualFrame({ title, provenance, caption, actions, children }: V
     >
       <div className="mb-2 flex min-h-11 flex-wrap items-center justify-between gap-x-3 gap-y-1">
         <h2 className="m-0 text-lg font-bold" style={{ color: 'var(--concept-strong)' }}>{title}</h2>
-        <div className="flex items-center gap-2">
+        <div className="flex flex-wrap items-center gap-2">
           {actions}
           {caption && (
             <button

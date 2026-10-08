@@ -44,8 +44,10 @@ export async function clippedBoxes(page: Page): Promise<string[]> {
         const rect = element.getBoundingClientRect()
         if (!rect.width || !rect.height || element.closest('.sr-only') || insideScroller(element, region)) continue
         const style = getComputedStyle(element)
-        const clips = /hidden|clip/.test(style.overflowX + style.overflowY)
-        const overfull = clips && (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
+        // Clipped only along an axis that hides its overflow; a scrolling axis is fine.
+        const hidesY = /hidden|clip/.test(style.overflowY) && element.scrollHeight > element.clientHeight + 1
+        const hidesX = /hidden|clip/.test(style.overflowX) && element.scrollWidth > element.clientWidth + 1
+        const overfull = hidesY || hidesX
         const outside = rect.bottom > box.bottom + 1 || rect.right > box.right + 1 || rect.left < box.left - 1
         if (outside || overfull) offenders.push(`${element.tagName} "${(element.textContent ?? '').trim().slice(0, 30)}"`)
       }

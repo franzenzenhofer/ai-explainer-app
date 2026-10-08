@@ -3,14 +3,17 @@
 // the first press. Only on opening: later new texts are asked about on the next press, as before.
 import { useEffect } from 'react'
 import { useAppStore } from '../../store/appStore'
+import { useHydrated } from '../../store/useHydrated'
 import { askModel } from './askModel'
 import { loopContext } from './useGeneration'
 
 export function usePrefetchStep() {
+  const hydrated = useHydrated()
   useEffect(() => {
+    if (!hydrated) return
     const state = useAppStore.getState()
     const context = loopContext(state)
     if (state.fetchStatus !== 'idle' || state.loopSteps[context] || context.trim() === '') return
     void askModel(context)
-  }, [])
+  }, [hydrated])
 }

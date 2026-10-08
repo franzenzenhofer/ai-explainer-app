@@ -28,7 +28,7 @@ function Picker({ step }: { step: LoopStep }) {
   const { roll, current, rolling, start } = useRoll(kept)
   return (
     <div className="flex flex-col gap-2">
-      <div className="flex items-center justify-between gap-3">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <p className="m-0 text-base text-ink" aria-live="polite">
           <span className="font-bold" style={{ color: 'var(--concept-strong)' }}>{kept.length} of {raw.length} kept</span> by the settings.
         </p>

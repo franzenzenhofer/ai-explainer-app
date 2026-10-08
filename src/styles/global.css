@@ -153,6 +153,9 @@ html[data-mode="flow"] .slide-overlay {
   html[data-mode="flow"] .intro-row {
     grid-template-columns: minmax(0, 1fr);
   }
+  html[data-mode="flow"] .flow-stack {
+    grid-template-columns: minmax(0, 1fr);
+  }
   html[data-mode="flow"] .intro-row > li {
     order: var(--o);
   }

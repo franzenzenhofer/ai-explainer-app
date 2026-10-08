@@ -52,7 +52,7 @@ function Curves({ from, step }: { from: number; step: LoopStep }) {
 export function ScoresNetwork({ context, step }: ScoresNetworkProps) {
   const shown = context.slice(-CONTEXT_SHOWN)
   return (
-    <div className="grid min-w-0 flex-1 grid-cols-[12rem_minmax(0,1fr)_11rem] items-center" role="img" aria-label="Lines from the chosen position to the most likely next tokens; thicker means more likely">
+    <div className="flow-stack grid min-w-0 flex-1 grid-cols-[12rem_minmax(0,1fr)_11rem] items-center" role="img" aria-label="Lines from the chosen position to the most likely next tokens; thicker means more likely">
       <div className="flex h-[280px] flex-col items-end justify-around">
         {shown.map((token, index) => (
           <TokenChip key={`${token.id}-${token.tokenId}`} text={token.text} tokenId={token.tokenId} order={index} selected={index === shown.length - 1} />

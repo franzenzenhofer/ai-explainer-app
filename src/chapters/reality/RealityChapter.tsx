@@ -33,7 +33,7 @@ export function RealityChapter() {
 
   return (
     <SlideLayout id="reality" drawerExtra={<RealitySummary />}>
-      <div className="grid min-h-0 flex-1 grid-cols-[17rem_minmax(0,1fr)] gap-3">
+      <div className="flow-stack grid min-h-0 flex-1 grid-cols-[17rem_minmax(0,1fr)] gap-3">
         <div className="flex min-h-0 flex-col gap-3 rounded-2xl border-2 bg-paper/80 p-3" style={{ borderColor: 'var(--concept-soft)' }}>
           <div data-primary-control className="flex flex-col gap-1">
             <h2 className="m-0 text-base font-bold" style={{ color: 'var(--concept-strong)' }}>Run an experiment</h2>
