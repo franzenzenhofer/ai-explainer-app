@@ -26,7 +26,7 @@ function AnswerTokens({ tokens }: { tokens: Token[] }) {
       <p className="m-0 text-base font-bold" style={{ color: 'var(--concept-strong)' }}>
         The same reply as {tokens.length} tokens ({TOKENIZER_SPECS.name}, the tokenizer of the Tokens slide):
       </p>
-      <div data-scroll-ok className="mt-1 flex max-h-[5.75rem] flex-wrap gap-1 overflow-y-auto pr-1">
+      <div data-scroll-ok className="mt-1 flex max-h-[9rem] flex-wrap gap-1 overflow-y-auto pr-1">
         {tokens.map((token, index) => (
           <TokenChip key={`${index}-${token.tokenId}`} text={token.text} tokenId={token.tokenId} order={index} />
         ))}
@@ -82,7 +82,7 @@ export function LiveAnswer({ question, experiment, ask, judgement }: LiveAnswerP
   return (
     <VisualFrame title="Live answer" provenance={provenance} caption="A real language model answers each run, so the same question can get a different reply next time.">
       {question ? (
-        <div className="flex flex-col gap-2" aria-live="polite">
+        <div data-scroll-ok className="flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto pr-1" aria-live="polite">
           <p className="m-0 text-base text-ink-2">
             <span className="font-bold text-ink">Question: </span>
             {question}

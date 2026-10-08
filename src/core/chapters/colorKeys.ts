@@ -41,8 +41,8 @@ export const COLOR_KEYS: Record<ChapterId, ColorKeyEntry[]> = {
   ],
   scores: [
     CHIPS,
-    { color: 'scores', mark: 'bar', label: 'Rose bars: probability of each next token.' },
-    { color: 'text', mark: 'grey', label: 'Grey bar: all other tokens together.' },
+    { color: 'scores', mark: 'bar', label: 'Rose bars: chance of each next token.' },
+    { color: 'scores', mark: 'grey', label: 'Pale row: all other tokens.' },
   ],
   sampling: [
     { color: 'scores', mark: 'bar', label: 'Rose bars: probabilities after the settings.' },

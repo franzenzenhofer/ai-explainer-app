@@ -58,6 +58,7 @@ export function VerdictPanel({ experiment, choice, verdict, checkedAutomatically
       {verdict && (
         <motion.p
           key={verdict}
+          ref={(node) => node?.scrollIntoView({ block: 'nearest', behavior: 'smooth' })}
           role="status"
           initial={{ opacity: 0, y: 6 }}
           animate={{ opacity: 1, y: 0 }}
