@@ -52,6 +52,7 @@ export function LayerStack({ selectedBlock }: { selectedBlock: number }) {
         {blocks.map((block) => <Slab key={block} block={block} selectedBlock={selectedBlock} />)}
       </ol>
       <motion.span
+        initial={false}
         className="absolute right-0 flex items-center gap-1 rounded-full px-2 text-base font-bold text-paper shadow-md"
         style={{ height: SLAB_PX, background: CONCEPT_COLORS.numbers.solid }}
         animate={{ top: HEADING_PX + fromTop * (SLAB_PX + SLAB_GAP_PX) }}

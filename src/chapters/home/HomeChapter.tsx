@@ -35,7 +35,7 @@ function HomeControls() {
       >
         Edit text
       </ChapterLink>
-      {phase !== 'empty' && <Button onClick={resetMachine}>Start over</Button>}
+      <Button onClick={resetMachine} disabled={phase === 'empty' || phase === 'fetching'}>Start over</Button>
     </div>
   )
 }

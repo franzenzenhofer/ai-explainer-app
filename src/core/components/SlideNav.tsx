@@ -1,6 +1,7 @@
 // The bottom bar of every slide: Back, a clickable dot per slide with the counter, Next.
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { motion } from 'motion/react'
+import { useFirstPaint } from '../hooks/useFirstPaint'
 import { useAppStore } from '../../store/appStore'
 import { CONCEPT_COLORS } from '../colors'
 import { CHAPTERS, chapterIndex, neighbourChapter, type ChapterId } from '../chapters'
@@ -44,8 +45,9 @@ export function SlideNav({ current }: { current: ChapterId }) {
   const next = neighbourChapter(current, 1)
   const resetAll = useAppStore((s) => s.resetAll)
   const position = chapterIndex(current) + 1
+  const firstPaint = useFirstPaint()
   return (
-    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="slide-nav flex items-center justify-between gap-3">
+    <motion.div initial={firstPaint ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="slide-nav flex items-center justify-between gap-3">
       <div className="flex min-w-48 items-center gap-2">
         {previous && (
           <ChapterLink chapter={previous} className={cn(NAV_BUTTON, 'border-ink/15 bg-paper text-ink hover:border-ink/40')}>

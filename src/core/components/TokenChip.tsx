@@ -50,7 +50,8 @@ export function TokenChip({ text, tokenId, selected, muted, size = 'md', order =
     muted && 'border-dashed',
     className,
   )
-  const motionProps = { initial: { opacity: 0, y: 8, scale: 0.92 }, animate: { opacity: 1, y: 0, scale: 1 }, transition: { delay: chipDelay(order), duration: 0.28 } }
+  // A fade only: chips never move on their own after they first show.
+  const motionProps = { initial: { opacity: 0 }, animate: { opacity: 1 }, transition: { delay: chipDelay(order), duration: 0.28 } }
   if (!onClick) return <motion.span {...motionProps} className={classes} style={style} aria-label={label}>{body}</motion.span>
   const buttonProps: ButtonHTMLAttributes<HTMLButtonElement> = { type: 'button', 'aria-pressed': selected ?? false, 'aria-label': label, onClick }
   return (

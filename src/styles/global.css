@@ -75,6 +75,11 @@ html[data-mode="stage"] .stage-canvas {
   box-shadow: 0 0 0 1px rgb(15 23 42 / 0.06), 0 10px 40px rgb(15 23 42 / 0.08);
 }
 
+html[data-restore]:not([data-ready]) .slide-main,
+html[data-restore]:not([data-ready]) .slide-prompt {
+  visibility: hidden;
+}
+
 .slide-main {
   flex: 1;
   min-height: 0;

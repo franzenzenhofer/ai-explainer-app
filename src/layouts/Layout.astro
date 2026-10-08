@@ -1,5 +1,6 @@
 ---
 import '../styles/global.css'
+import { DEFAULT_INPUT_TEXT, STORAGE_KEY } from '../store/appStore'
 
 interface Props {
   title: string
@@ -19,6 +20,17 @@ const { title, description } = Astro.props
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <script is:inline define:vars={{ defaultText: DEFAULT_INPUT_TEXT, storageKey: STORAGE_KEY }}>
+      // A returning reader with their own saved prompt: the server HTML shows the default text, so the
+      // slide body stays hidden until React has restored the saved one (html[data-ready]). No swap is seen.
+      try {
+        var saved = JSON.parse(localStorage.getItem(storageKey) || 'null')
+        var text = saved && saved.state && saved.state.inputText
+        if (typeof text === 'string' && text !== defaultText) document.documentElement.dataset.restore = 'true'
+      } catch (error) {
+        console.warn('Saved prompt unreadable', error)
+      }
+    </script>
     <script is:inline>
       // Presentation mode when the window holds the 1280x720 stage at 100% or more; flow mode otherwise.
       ;(function () {

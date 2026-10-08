@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 import { useAppStore, MAX_SPEED, MIN_SPEED } from '../../store/appStore'
 import { LOOP_MODEL } from '../../core/types'
 import { Button, ControlSlider, SlideLayout, VisualFrame, type Provenance } from '../../core/components'
-import { CandidateBars } from './CandidateBars'
+import { CandidateBars, CandidateBarsSkeleton } from './CandidateBars'
 import { FlightLayer } from './FlightLayer'
 import { GeneratedText } from './GeneratedText'
 import { GenerationStatus } from './GenerationStatus'
@@ -52,8 +52,8 @@ function LatestCandidates() {
   const view = useRunView()
   return (
     <div className="min-w-0">
-      <h3 className="m-0 mb-1 text-base font-bold" style={{ color: 'var(--concept-strong)' }}>{view?.kind === 'next' ? 'What the model predicts next' : 'Latest step: top candidates'}</h3>
-      {view ? <CandidateBars view={view} /> : <p className="m-0 text-base text-ink-2">Asking the model: the candidates of each step appear here as rose bars.</p>}
+      <h3 className="m-0 mb-1 text-base font-bold" style={{ color: 'var(--concept-strong)' }}>{view === null ? `${LOOP_MODEL.name} is thinking...` : view.kind === 'next' ? 'What the model predicts next' : 'Latest step: top candidates'}</h3>
+      {view ? <CandidateBars view={view} /> : <CandidateBarsSkeleton />}
     </div>
   )
 }

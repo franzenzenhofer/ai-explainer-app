@@ -5,6 +5,7 @@ import { MotionConfig } from 'motion/react'
 import { useAppStore } from '../store/appStore'
 import { getChapter, type ChapterId } from '../core/chapters'
 import { useHistorySync, usePresentationKeys } from '../core/navigation/navigation'
+import { markAppMounted } from '../core/hooks/useFirstPaint'
 import { DebugOverlay } from '../core/components/DebugOverlay'
 import { IntroChapter } from '../chapters/intro/IntroChapter'
 import { HomeChapter } from '../chapters/home/HomeChapter'
@@ -45,8 +46,13 @@ export function App({ initialChapter }: AppProps) {
 
   useEffect(() => {
     void useAppStore.persist.rehydrate()
-    // Tells the browser walk that React has hydrated and the controls respond.
-    document.documentElement.dataset.ready = 'true'
+    markAppMounted()
+    // One frame later the restored prompt has rendered: the slide body shows (see Layout.astro), and the
+    // browser walk knows that React has hydrated and the controls respond.
+    const frame = requestAnimationFrame(() => {
+      document.documentElement.dataset.ready = 'true'
+    })
+    return () => cancelAnimationFrame(frame)
   }, [])
 
   useEffect(() => {

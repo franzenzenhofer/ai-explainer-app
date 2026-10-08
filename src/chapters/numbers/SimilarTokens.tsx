@@ -17,8 +17,8 @@ export function SimilarTokens({ entry }: { entry: Gpt2Token }) {
           return (
             <motion.li
               key={neighbour.id}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: 0.4 + index * STAGGER_S }}
               className="flex min-w-0 items-center justify-between gap-1 rounded-md border-2 px-1 text-base leading-7"
               style={{ background: color.fill, borderColor: color.border, color: color.text }}

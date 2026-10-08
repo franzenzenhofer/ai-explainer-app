@@ -1,6 +1,7 @@
 // The chassis of every slide: pipeline bar, claim as title, the visual on the left two thirds, the
 // explanation and colour key on the right third, the bottom navigation, and the overlays.
 import { motion } from 'motion/react'
+import { useFirstPaint } from '../hooks/useFirstPaint'
 import { useState, type ReactNode } from 'react'
 import { getChapter, themeOf, type ChapterId } from '../chapters'
 import { ChapterLink } from '../navigation/ChapterLink'
@@ -37,14 +38,18 @@ export function SlideTop({ id }: { id: ChapterId }) {
   )
 }
 
+// On the first paint the slide renders in place (no entrance), so nothing jumps after hydration.
+const NO_ENTRANCE = { initial: false } as const
+
 export function SlideLayout({ id, children, drawerExtra }: SlideLayoutProps) {
   const chapter = getChapter(id)
+  const firstPaint = useFirstPaint()
   const [overlay, setOverlay] = useState<OverlayKind | null>(null)
   const close = () => setOverlay(null)
   return (
     <SlideStage theme={themeOf(chapter)} slideId={id}>
       <SlideTop id={id} />
-      <motion.div {...ENTER_TITLE} className="slide-title flex items-start justify-between gap-6">
+      <motion.div {...ENTER_TITLE} {...(firstPaint && NO_ENTRANCE)} className="slide-title flex items-start justify-between gap-6">
         <div className="min-w-0">
           <h1 data-claim tabIndex={-1} className="m-0 text-[1.75rem] font-extrabold leading-tight tracking-tight text-ink outline-none">
             {chapter.claim}
@@ -57,9 +62,9 @@ export function SlideLayout({ id, children, drawerExtra }: SlideLayoutProps) {
           </div>
         )}
       </motion.div>
-      <motion.div {...ENTER_MAIN} className="slide-main">
+      <motion.div {...ENTER_MAIN} {...(firstPaint && NO_ENTRANCE)} className="slide-main">
         <div className="slide-visual" data-fit>{children}</div>
-        <motion.aside {...ENTER_SIDE} className="slide-side" data-fit aria-label="Explanation">
+        <motion.aside {...ENTER_SIDE} {...(firstPaint && NO_ENTRANCE)} className="slide-side" data-fit aria-label="Explanation">
           <SidePanel chapter={chapter} onOpen={setOverlay} />
         </motion.aside>
       </motion.div>

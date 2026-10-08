@@ -53,8 +53,8 @@ function StageCard({ stage, index }: { stage: PipelineStage; index: number }) {
   const direction = directionOf(index)
   return (
     <motion.li
-      initial={{ opacity: 0, y: 14 }}
-      animate={{ opacity: 1, y: 0 }}
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
       transition={{ delay: index * CARD_DELAY_S, duration: 0.35 }}
       className="relative"
       style={{ '--o': index } as CSSProperties}

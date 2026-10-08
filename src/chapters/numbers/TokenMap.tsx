@@ -89,8 +89,8 @@ function MapBody({ table, tokens, selectedIndex, outside }: TokenMapProps) {
         <motion.span
           key={neighbour.id}
           aria-hidden="true"
-          initial={{ scale: 0 }}
-          animate={{ scale: 1 }}
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
           className="absolute -ml-2 -mt-2 h-4 w-4 rounded-full border-[3px] bg-paper"
           style={{ left: `${neighbour.place.left}%`, top: `${neighbour.place.top}%`, borderColor: 'var(--concept)' }}
         />

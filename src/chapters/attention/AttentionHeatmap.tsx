@@ -62,8 +62,8 @@ export function AttentionHeatmap({ tokens, weights, query, drawKey }: AttentionH
           {matrix.map((row, rowIndex) => (
             <motion.tr
               key={`${drawKey}-${rowIndex}`}
-              initial={{ opacity: 0, x: -8 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
               transition={{ delay: rowIndex * ROW_STAGGER_S }}
               className={cn(rowIndex === query && 'outline outline-[3px] outline-[var(--concept)]')}
             >

@@ -11,6 +11,9 @@ import type { ContextStep, LoopStep } from '../model/loopSteps'
 // One short sentence (9 tokens) with a pronoun ("it") and a single noun it refers to ("dog").
 export const DEFAULT_INPUT_TEXT = 'The dog barked because it was hungry.'
 
+// The localStorage key of the saved prompt and settings (also read by the inline script in Layout.astro).
+export const STORAGE_KEY = 'ai-explainer-storage-v4'
+
 export type AttentionView = 'arcs' | 'grid'
 export type FeedForwardView = 'alone' | 'withAttention'
 export type FetchStatus = 'idle' | 'fetching' | 'error'
@@ -147,7 +150,7 @@ export const useAppStore = create<AppStoreState>()(
       resetAll: () => set({ ...settingsInitial, ...generationInitial }),
     }),
     {
-      name: 'ai-explainer-storage-v4',
+      name: STORAGE_KEY,
       // The page renders on the server with the defaults; App rehydrates after mount so hydration matches.
       skipHydration: true,
       // The real steps are kept too, so a reload or a deep link shows the model's answer for a known text

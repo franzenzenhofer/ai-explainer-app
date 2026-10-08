@@ -15,8 +15,8 @@ export function StepStrip({ drawKey }: { drawKey: string }) {
       {STEPS.map((step, index) => (
         <motion.li
           key={`${drawKey}-${step.name}`}
-          initial={{ opacity: 0.35, scale: 0.97 }}
-          animate={{ opacity: 1, scale: 1 }}
+          initial={{ opacity: 0.35 }}
+          animate={{ opacity: 1 }}
           transition={{ delay: index * STEP_DELAY_S, duration: 0.3 }}
           className="flex items-center gap-2 rounded-xl border-2 border-[var(--concept-soft)] bg-[var(--concept-tint)] px-2 py-0.5 text-base leading-tight"
         >

@@ -19,8 +19,8 @@ export function ValuesGrid({ values, scale }: ValuesGridProps) {
         return (
           <motion.li
             key={index}
-            initial={{ opacity: 0, y: 6 }}
-            animate={{ opacity: 1, y: 0 }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
             transition={{ delay: 0.25 + index * STAGGER_S }}
             className="flex flex-col items-center rounded-lg border-2 px-1 pb-0.5"
             style={{ borderColor: 'var(--concept-soft)', background: 'var(--concept-tint)' }}
@@ -32,6 +32,7 @@ export function ValuesGrid({ values, scale }: ValuesGridProps) {
             <span className="relative mt-0.5 block h-1.5 w-full rounded-full bg-paper">
               <span className="absolute inset-y-0 left-1/2 w-px" style={{ background: 'var(--concept-soft)' }} />
               <motion.span
+                data-grow
                 className="absolute inset-y-0 rounded-full"
                 style={{ background: 'var(--concept)', left: value >= 0 ? `${HALF}%` : undefined, right: value < 0 ? `${HALF}%` : undefined }}
                 initial={{ width: 0 }}
