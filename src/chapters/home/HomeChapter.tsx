@@ -1,58 +1,75 @@
-// Chapter 1: the token machine, live. Press, a real model picks the next token and it joins the text.
+// Slide 1: the token machine, live. Press: a real model picks the next token, the stages light up in
+// their colours, the candidates grow as rose bars, the pick is framed amber and flies to the end.
+import { useEffect, useRef } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { LOOP_MODEL } from '../../core/types'
 import { Button, SlideLayout, VisualFrame, type Provenance } from '../../core/components'
 import { getChapter } from '../../core/chapters'
 import { ChapterLink } from '../../core/navigation/ChapterLink'
+import { CandidateColumns } from '../loop/CandidateColumns'
+import { FlightLayer } from '../loop/FlightLayer'
 import { GeneratedText } from '../loop/GeneratedText'
 import { GenerationStatus } from '../loop/GenerationStatus'
-import { NextCandidates } from '../loop/NextCandidates'
-import { generationPhase, pickNext, resetLoop } from '../loop/useGeneration'
-import { LoopDiagram } from './LoopDiagram'
+import { PhaseStrip } from '../loop/PhaseStrip'
+import { cancelRun, resetMachine, runPick, useRunStore } from '../loop/runStore'
+import { useRunView } from '../loop/useRunView'
+import { usePrefetchStep } from '../loop/usePrefetchStep'
+import { generationPhase } from '../loop/useGeneration'
 
 export const provenance: Provenance = 'real'
 
+const CAPTION = `Real: ${LOOP_MODEL.name} picks each token and reports the probabilities of its top ${LOOP_MODEL.candidatesPerStep} candidates. One call returns up to ${LOOP_MODEL.stepsPerCall} steps, so most presses need no new call. The lit stages are a depiction: the model ran them on its server.`
+
 function HomeControls() {
-    const phase = useAppStore(generationPhase)
+  const phase = useAppStore(generationPhase)
+  const running = useRunStore((s) => s.stage !== null)
   return (
-    <div className="mt-6 flex flex-wrap gap-2" data-primary-control>
-      <Button
-        variant="primary"
-        onClick={() => void pickNext()}
-        disabled={phase === 'fetching' || phase === 'limit' || phase === 'ended'}
-        className="max-sm:w-full"
-      >
+    <div className="flex flex-wrap items-center gap-2" data-primary-control>
+      <Button variant="primary" onClick={() => void runPick()} disabled={running || phase === 'fetching' || phase === 'limit' || phase === 'ended'}>
         Pick the next token
       </Button>
       <ChapterLink
         chapter={getChapter('tokens')}
-        className="inline-flex min-h-11 items-center justify-center rounded-[3px] border-2 border-ink px-5 text-base font-semibold text-ink no-underline hover:bg-wash max-sm:flex-1"
+        className="inline-flex min-h-11 items-center justify-center rounded-lg border-2 border-ink/20 bg-paper px-4 text-base font-semibold text-ink no-underline hover:border-ink/50"
       >
         Edit text
       </ChapterLink>
-      {phase !== 'empty' && (
-        <Button onClick={resetLoop} className="max-sm:flex-1">Start over</Button>
-      )}
+      {phase !== 'empty' && <Button onClick={resetMachine}>Start over</Button>}
     </div>
   )
 }
 
+function Candidates() {
+  const view = useRunView()
+  const replaceLastPiece = useAppStore((s) => s.replaceLastPiece)
+  if (!view) {
+    return (
+      <p className="m-0 rounded-xl border-2 border-dashed p-3 text-base text-ink-2" style={{ borderColor: 'var(--concept-soft)' }}>
+        Asking {LOOP_MODEL.name} what comes next: its candidates grow here as rose bars, and on each press its pick flies to the end of the text.
+      </p>
+    )
+  }
+  return <CandidateColumns view={view} onChoose={view.kind === 'added' ? replaceLastPiece : null} />
+}
+
 export function HomeChapter() {
+  const root = useRef<HTMLDivElement>(null)
+  useEffect(() => cancelRun, [])
+  usePrefetchStep()
   return (
     <SlideLayout id="home">
-      <VisualFrame
-        title="Text so far"
-        provenance={provenance}
-        caption={`Real: ${LOOP_MODEL.name} picks each token and reports the probabilities of its top ${LOOP_MODEL.candidatesPerStep} candidates. One call returns up to ${LOOP_MODEL.stepsPerCall} steps, so most presses need no new call.`}
-      >
-        <GeneratedText />
-        <NextCandidates interactive />
-        <div className="mt-4">
-          <GenerationStatus />
+      <VisualFrame title="The token machine, live" provenance={provenance} caption={CAPTION}>
+        <div ref={root} className="relative flex min-h-0 flex-1 flex-col gap-1.5">
+          <PhaseStrip />
+          <GeneratedText className="min-h-[5rem] flex-1" />
+          <Candidates />
+          <div className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1">
+            <HomeControls />
+            <GenerationStatus className="m-0 min-w-0 flex-1 text-base text-ink" />
+          </div>
+          <FlightLayer rootRef={root} />
         </div>
       </VisualFrame>
-      <HomeControls />
-      <LoopDiagram />
     </SlideLayout>
   )
 }

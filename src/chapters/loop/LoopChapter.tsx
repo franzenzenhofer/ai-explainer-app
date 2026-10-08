@@ -1,70 +1,88 @@
-// Chapter 9: append and repeat. The live loop with Play, Step, speed and Reset.
+// Slide 9: append and repeat. The old generation phase animation, extended: every run lights the
+// stages in their colours, the pick flies to the end of the text, with Play, Step, Reset and Speed.
+import { useEffect, useRef } from 'react'
 import { useAppStore, MAX_SPEED, MIN_SPEED } from '../../store/appStore'
 import { LOOP_MODEL } from '../../core/types'
-import { Button, SlideLayout, ControlSlider, VisualFrame, type Provenance } from '../../core/components'
+import { Button, ControlSlider, SlideLayout, VisualFrame, type Provenance } from '../../core/components'
+import { CandidateBars } from './CandidateBars'
+import { FlightLayer } from './FlightLayer'
 import { GeneratedText } from './GeneratedText'
 import { GenerationStatus } from './GenerationStatus'
-import { NextCandidates } from './NextCandidates'
+import { LoopStats } from './LoopStats'
+import { PhaseStrip } from './PhaseStrip'
 import { TokenStream } from './TokenStream'
-import { generationPhase, pickNext, resetLoop } from './useGeneration'
+import { cancelRun, resetMachine, runPick, useRunStore } from './runStore'
+import { generationPhase } from './useGeneration'
 import { usePlayback } from './usePlayback'
+import { useRunView } from './useRunView'
+import { usePrefetchStep } from './usePrefetchStep'
 
 export const provenance: Provenance = 'real'
 
 const SPEED_STEP = 0.25
+const CAPTION = `Real: ${LOOP_MODEL.name} output in its own tokens, with its real probabilities. The lit stages are a depiction of one run; the model ran them on its server.`
 
 function LoopControls() {
-    usePlayback(pickNext)
+  usePlayback()
   const isPlaying = useAppStore((s) => s.isPlaying)
   const setIsPlaying = useAppStore((s) => s.setIsPlaying)
   const speed = useAppStore((s) => s.generationSpeed)
   const setSpeed = useAppStore((s) => s.setGenerationSpeed)
   const phase = useAppStore(generationPhase)
-  const busy = phase === 'fetching'
+  const running = useRunStore((s) => s.stage !== null)
   const done = phase === 'limit' || phase === 'ended'
+  const stepBlocked = isPlaying || running || phase === 'fetching' || done
   return (
-    <div className="mt-6 grid gap-6 md:grid-cols-[auto_minmax(14rem,20rem)] md:items-end md:justify-between">
-      <div className="flex flex-wrap gap-2" data-primary-control>
-        <Button variant="primary" onClick={() => setIsPlaying(!isPlaying)} disabled={done} className="max-sm:w-full">
+    <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2" data-primary-control>
+      <div className="flex gap-2">
+        <Button variant="primary" onClick={() => setIsPlaying(!isPlaying)} disabled={done} className="min-w-24">
           {isPlaying ? 'Pause' : 'Play'}
         </Button>
-        <Button onClick={() => void pickNext()} disabled={isPlaying || busy || done} className="max-sm:flex-1">
-          Step
-        </Button>
-        <Button onClick={resetLoop} className="max-sm:flex-1">Reset</Button>
+        <Button onClick={() => void runPick()} disabled={stepBlocked}>Step</Button>
+        <Button onClick={resetMachine}>Reset</Button>
       </div>
-      <ControlSlider
-        label="Speed"
-        value={speed}
-        onChange={setSpeed}
-        min={MIN_SPEED}
-        max={MAX_SPEED}
-        step={SPEED_STEP}
-        formatValue={(value) => `${value}x`}
-      />
+      <div className="w-72 max-w-full">
+        <ControlSlider label="Speed" value={speed} onChange={setSpeed} min={MIN_SPEED} max={MAX_SPEED} step={SPEED_STEP} formatValue={(value) => `${value}x`} />
+      </div>
+    </div>
+  )
+}
+
+function LatestCandidates() {
+  const view = useRunView()
+  return (
+    <div className="min-w-0">
+      <h3 className="m-0 mb-1 text-base font-bold" style={{ color: 'var(--concept-strong)' }}>{view?.kind === 'next' ? 'What the model predicts next' : 'Latest step: top candidates'}</h3>
+      {view ? <CandidateBars view={view} /> : <p className="m-0 text-base text-ink-2">Asking the model: the candidates of each step appear here as rose bars.</p>}
     </div>
   )
 }
 
 export function LoopChapter() {
-  const appendedCount = useAppStore((s) => s.appended.length)
-  const isPlaying = useAppStore((s) => s.isPlaying)
+  const root = useRef<HTMLDivElement>(null)
+  useEffect(() => cancelRun, [])
+  usePrefetchStep()
   return (
     <SlideLayout id="loop">
-      <VisualFrame
-        title="The text grows one token at a time"
-        provenance={provenance}
-        caption={`Real: ${LOOP_MODEL.name} output in its own tokens. ${appendedCount} appended so far: the next run reads the prompt plus all of them.`}
-      >
-        <GeneratedText />
-        <div className="mt-6">
-          <GenerationStatus />
+      <VisualFrame title="The text grows one token at a time" provenance={provenance} caption={CAPTION}>
+        <div ref={root} className="relative flex min-h-0 flex-1 flex-col gap-2">
+          <LoopControls />
+          <PhaseStrip />
+          <GenerationStatus className="m-0 min-h-6 text-base font-medium text-ink" />
+          <GeneratedText className="min-h-20 flex-1" />
+          <div className="grid grid-cols-2 gap-4 max-md:grid-cols-1">
+            <div className="flex min-w-0 flex-col gap-2">
+              <h3 className="m-0 text-base font-bold" style={{ color: 'var(--concept-strong)' }}>Token stream</h3>
+              <div className="max-h-20 overflow-y-auto">
+                <TokenStream />
+              </div>
+              <LoopStats />
+            </div>
+            <LatestCandidates />
+          </div>
+          <FlightLayer rootRef={root} />
         </div>
-        <h3 className="m-0 mb-2 mt-6 text-base font-semibold">Appended tokens</h3>
-        <TokenStream />
-        <NextCandidates interactive={!isPlaying} />
       </VisualFrame>
-      <LoopControls />
     </SlideLayout>
   )
 }

@@ -23,17 +23,29 @@ export function generationPhase(state: PhaseState): GenerationPhase {
   return state.appended.length === 0 ? 'empty' : 'showing'
 }
 
-// Appends the model's pick for the text so far, asking the model first when that text is new.
-export async function pickNext(): Promise<void> {
+export interface NextPick {
+  context: string
+  pick: string
+}
+
+// The model's pick for the text so far, asking the model first when that text is new. Null when the
+// loop cannot go on (busy, at the limit, ended, failed) or the text changed while the call ran.
+export async function prepareNext(): Promise<NextPick | null> {
   const before = useAppStore.getState()
   const phase = generationPhase(before)
-  if (phase === 'fetching' || phase === 'limit' || phase === 'ended') return
+  if (phase === 'fetching' || phase === 'limit' || phase === 'ended') return null
   const context = loopContext(before)
   if (!stepFor(context)) await askModel(context)
   const after = useAppStore.getState()
-  if (loopContext(after) !== context) return
+  if (loopContext(after) !== context) return null
   const pick = after.loopSteps[context]?.pick
-  if (pick) after.appendPiece(pick)
+  return pick ? { context, pick } : null
+}
+
+// Appends the model's pick for the text so far at once (no animation).
+export async function pickNext(): Promise<void> {
+  const next = await prepareNext()
+  if (next) useAppStore.getState().appendPiece(next.pick)
 }
 
 export const resetLoop = (): void => useAppStore.getState().resetGeneration()

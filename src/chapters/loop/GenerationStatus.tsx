@@ -1,10 +1,12 @@
-// One honest status line for the live loop: it only says "asking" while a call is in flight, and it
-// says whether the last piece was the model's pick or the reader's choice.
+// One honest status line for the live loop: it says "asking" only while a call is in flight, names the
+// stage while a run plays, and says whether the last piece was the model's pick or the reader's choice.
 import { useAppStore } from '../../store/appStore'
 import { LOOP_MODEL } from '../../core/types'
 import { formatPercent, formatTokenDisplay } from '../../core/utils/formatters'
 import { generationPhase, MAX_APPENDED, type GenerationPhase } from './useGeneration'
 import { useShownStep, type ShownStep } from './useShownStep'
+import { useRunStore } from './runStore'
+import { STAGE_SENTENCES } from './PhaseStrip'
 
 function lastPieceSentence(shown: ShownStep | null, count: number): string {
   if (!shown) return ''
@@ -15,8 +17,13 @@ function lastPieceSentence(shown: ShownStep | null, count: number): string {
   return `${label} Your choice; the model's own pick was "${formatTokenDisplay(shown.step.pick ?? '')}".${chance}`
 }
 
-export function GenerationStatus() {
+interface GenerationStatusProps {
+  className?: string
+}
+
+export function GenerationStatus({ className }: GenerationStatusProps) {
   const phase = useAppStore(generationPhase)
+  const stage = useRunStore((s) => s.stage)
   const fetchError = useAppStore((s) => s.fetchError)
   const count = useAppStore((s) => s.appended.length)
   const shown = useShownStep()
@@ -30,8 +37,8 @@ export function GenerationStatus() {
     error: fetchError ?? 'The call failed.',
   }
   return (
-    <p role="status" className="m-0 min-h-14 text-lg text-ink">
-      {message[phase]}
+    <p role="status" className={className ?? 'm-0 text-base text-ink'}>
+      {stage ? STAGE_SENTENCES[stage] : message[phase]}
     </p>
   )
 }

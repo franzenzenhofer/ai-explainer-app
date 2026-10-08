@@ -1,17 +1,20 @@
-// Play mode for the Loop chapter: picks the next token on a timer until the model stops or the demo limit is reached.
+// Play mode for the Loop slide: starts the next animated run a short pause after the last one ended,
+// until the model stops, the demo limit is reached or a call fails. The pause shrinks with speed.
 import { useEffect } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { generationPhase } from './useGeneration'
+import { runPick, useRunStore } from './runStore'
 
-// Time between two picks at 1x speed.
-const BASE_INTERVAL_MS = 900
+// Pause between two runs at 1x speed.
+const PAUSE_MS = 450
 
-export function usePlayback(pickNext: () => Promise<void>) {
+export function usePlayback() {
   const isPlaying = useAppStore((s) => s.isPlaying)
   const speed = useAppStore((s) => s.generationSpeed)
   const appendedCount = useAppStore((s) => s.appended.length)
   const phase = useAppStore(generationPhase)
   const setIsPlaying = useAppStore((s) => s.setIsPlaying)
+  const running = useRunStore((s) => s.stage !== null)
 
   useEffect(() => {
     if (!isPlaying) return
@@ -19,8 +22,8 @@ export function usePlayback(pickNext: () => Promise<void>) {
       setIsPlaying(false)
       return
     }
-    if (phase === 'fetching') return
-    const timer = window.setTimeout(() => void pickNext(), BASE_INTERVAL_MS / speed)
+    if (phase === 'fetching' || running) return
+    const timer = window.setTimeout(() => void runPick(), PAUSE_MS / speed)
     return () => window.clearTimeout(timer)
-  }, [isPlaying, phase, appendedCount, speed, pickNext, setIsPlaying])
+  }, [isPlaying, phase, appendedCount, speed, running, setIsPlaying])
 }
