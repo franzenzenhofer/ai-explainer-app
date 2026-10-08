@@ -1,26 +1,20 @@
 // Step 3: Embeddings - Tokens become numbers
-import { useEffect } from 'react'
 import { motion } from 'motion/react'
 import { AlertCircle } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
+import { useTokens, useEmbeddings } from '../../core/hooks/useDerived'
 import { StepLayout, TokenList } from '../../core/components'
 import { MODEL_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
-import { createEmbeddings, getNearestNeighbors } from './embeddings'
+import { getNearestNeighbors } from './embeddings'
 import { SemanticSpace } from './SemanticSpace'
 import { VectorDisplay } from './VectorDisplay'
 
 export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
-  const tokens = useAppStore((s) => s.tokens)
-  const embeddings = useAppStore((s) => s.embeddings)
-  const setEmbeddings = useAppStore((s) => s.setEmbeddings)
+  const tokens = useTokens()
+  const embeddings = useEmbeddings()
   const selectedTokenForEmbedding = useAppStore((s) => s.selectedTokenForEmbedding)
   const setSelectedTokenForEmbedding = useAppStore((s) => s.setSelectedTokenForEmbedding)
-
-  useEffect(() => {
-    const newEmbeddings = createEmbeddings(tokens)
-    setEmbeddings(newEmbeddings)
-  }, [tokens, setEmbeddings])
 
   const selectedToken = selectedTokenForEmbedding !== null ? tokens[selectedTokenForEmbedding] : null
   const selectedEmbedding = selectedTokenForEmbedding !== null ? embeddings[selectedTokenForEmbedding] : null

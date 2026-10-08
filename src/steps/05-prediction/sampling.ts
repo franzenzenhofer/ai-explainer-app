@@ -15,9 +15,8 @@ function getTokenInfo(text: string): { tokenId: number; colorIndex: number } {
   }
 
   // Check cache first
-  if (tokenizedVocabCache.has(text)) {
-    return tokenizedVocabCache.get(text)!
-  }
+  const cached = tokenizedVocabCache.get(text)
+  if (cached) return cached
 
   // Tokenize to get REAL tokenId (use first token if multiple)
   const tokens = tokenize(text)

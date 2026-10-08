@@ -62,12 +62,12 @@ export async function generateWithGemini(
     })
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
+      const errorData = await response.json().catch(() => ({})) as { error?: string }
       console.error('API error:', errorData)
       return {
         text: '',
         tokens: [],
-        error: (errorData as any).error || `API error: ${response.status}`,
+        error: errorData.error || `API error: ${response.status}`,
       }
     }
 

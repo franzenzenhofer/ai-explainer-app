@@ -1,5 +1,4 @@
 // BPEVisualizer - Shows how Byte-Pair Encoding works
-import { useState } from 'react'
 import { motion } from 'motion/react'
 import { Play, RotateCcw } from 'lucide-react'
 import { useStepAnimation } from '../../core/hooks/useAnimation'
@@ -31,7 +30,7 @@ const BPE_STEPS = [
 ]
 
 export function BPEVisualizer() {
-  const { currentIndex, isRunning, isComplete, start, reset, stepForward } = useStepAnimation(
+  const { currentIndex, isComplete, start, reset, stepForward } = useStepAnimation(
     BPE_STEPS,
     800
   )

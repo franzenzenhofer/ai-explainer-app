@@ -1,5 +1,5 @@
 // TokenFlow - Visual flow showing token generation with probability lines
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useMemo, useRef, useState, useEffect, type CSSProperties } from 'react'
 import { motion } from 'motion/react'
 import type { Token } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
@@ -49,7 +49,7 @@ export function TokenFlow({ inputTokens, generatedTokens, accentColor }: TokenFl
       x: padding + i * spacing,
       y: centerY,
       // Simulate probability (higher for generated tokens)
-      probability: token.isGenerated ? 0.65 + Math.random() * 0.3 : 1.0,
+      probability: token.isGenerated ? 0.65 + (token.tokenId % 30) / 100 : 1.0,
     }))
   }, [allTokens, dimensions])
 
@@ -161,8 +161,8 @@ export function TokenFlow({ inputTokens, generatedTokens, accentColor }: TokenFl
                 ? getTokenColor(token.colorIndex)
                 : '#f1f5f9',
               color: token.isGenerated ? 'white' : '#475569',
-              ringColor: accentColor,
-            }}
+              '--tw-ring-color': accentColor,
+            } as CSSProperties}
           >
             {token.text.trim() || '␣'}
           </div>

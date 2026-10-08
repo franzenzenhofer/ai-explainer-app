@@ -91,8 +91,6 @@ export function getNearestNeighbors(
   tokenId: number,
   count = 5
 ): Array<{ word: string; similarity: number }> {
-  const baseEmbedding = generateEmbedding(tokenText, tokenId)
-
   // Simulated neighbors based on semantic categories
   const neighbors: Array<{ word: string; similarity: number }> = []
 

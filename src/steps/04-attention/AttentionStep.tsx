@@ -1,13 +1,13 @@
 // Step 4: Attention - Context understanding (viz-full layout)
-import { useEffect, useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { motion } from 'motion/react'
 import { AlertCircle, Grid3X3, Layers, Lock, Network } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
+import { useTokens, useAttentionWeights } from '../../core/hooks/useDerived'
 import { StepLayout, ControlSlider, TokenList } from '../../core/components'
 import { MODEL_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
 import {
-  generateAttentionWeights,
   getQueryAttention,
   ATTENTION_PATTERNS,
 } from './attention'
@@ -33,9 +33,8 @@ const ATTENTION_WORKFLOW = [
 ]
 
 export function AttentionStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
-  const tokens = useAppStore((s) => s.tokens)
-  const attentionWeights = useAppStore((s) => s.attentionWeights)
-  const setAttentionWeights = useAppStore((s) => s.setAttentionWeights)
+  const tokens = useTokens()
+  const currentWeights = useAttentionWeights()
   const selectedLayer = useAppStore((s) => s.selectedLayer)
   const setSelectedLayer = useAppStore((s) => s.setSelectedLayer)
   const selectedHead = useAppStore((s) => s.selectedHead)
@@ -44,13 +43,6 @@ export function AttentionStep({ stepNumber, totalSteps, stepConfig }: StepProps)
   const setSelectedQueryToken = useAppStore((s) => s.setSelectedQueryToken)
   const [viewMode, setViewMode] = useState<'heatmap' | 'network'>('heatmap')
   const [showHeadTypes, setShowHeadTypes] = useState(false)
-
-  useEffect(() => {
-    const weights = generateAttentionWeights(tokens, selectedLayer, selectedHead)
-    setAttentionWeights([weights])
-  }, [tokens, selectedLayer, selectedHead, setAttentionWeights])
-
-  const currentWeights = attentionWeights[0] || []
 
   const queryAttention = useMemo(() => {
     if (selectedQueryToken === null) return []

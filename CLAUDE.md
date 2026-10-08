@@ -5,10 +5,14 @@ Interactive 8-step explainer teaching non-technical adults how language models g
 ## Quick Reference
 
 ```bash
-npm run dev      # Start dev server (localhost:4321)
-npm run build    # Build static site to ./dist
-npm run deploy   # Build + deploy to Cloudflare Pages
-./deploy.sh      # Same as above (shell script)
+npm run dev        # Start dev server (localhost:4321)
+npm run typecheck  # astro check (gate 1)
+npm run lint       # eslint flat config, typescript-eslint strict + react-hooks (gate 2)
+npm run test       # vitest run, includes live calls to the deployed worker (gate 3)
+npm run build      # Build static site to ./dist (gate 4)
+npm run test:e2e   # Playwright walk (not part of npm run test); BASE_URL=<url> targets a deployed site, STRICT_LAYOUT=1 enables overflow and 16px checks
+npm run deploy     # Build + deploy to Cloudflare Pages (no gates)
+./deploy.sh        # All four gates, then deploy; refuses to deploy when any gate fails
 ```
 
 ## Live URLs

@@ -1,26 +1,21 @@
 // Step 2: Tokenization - Breaking text into tokens
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Scissors, AlertCircle } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
+import { useTokens } from '../../core/hooks/useDerived'
 import { StepLayout, TokenList, LabeledCounter } from '../../core/components'
 import { MODEL_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
-import { tokenize, getTokenStats } from './tokenizer'
+import { getTokenStats } from './tokenizer'
 import { BPEVisualizer } from './BPEVisualizer'
 
 export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
   const inputText = useAppStore((s) => s.inputText)
-  const tokens = useAppStore((s) => s.tokens)
-  const setTokens = useAppStore((s) => s.setTokens)
+  const tokens = useTokens()
 
   const [showBPE, setShowBPE] = useState(true)
   const [selectedTokenIdx, setSelectedTokenIdx] = useState<number | null>(null)
-
-  useEffect(() => {
-    const newTokens = tokenize(inputText)
-    setTokens(newTokens)
-  }, [inputText, setTokens])
 
   const stats = getTokenStats(inputText, tokens)
 

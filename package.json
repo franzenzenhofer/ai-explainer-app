@@ -6,6 +6,10 @@
     "dev": "astro dev",
     "build": "astro build",
     "preview": "astro preview",
+    "typecheck": "astro check",
+    "lint": "eslint .",
+    "test": "vitest run",
+    "test:e2e": "playwright test",
     "deploy": "npm run build && wrangler pages deploy ./dist --project-name=ai-explainer",
     "astro": "astro"
   },
@@ -15,7 +19,6 @@
     "@types/d3": "^7.4.3",
     "@types/react": "^19.2.10",
     "@types/react-dom": "^19.2.3",
-    "@visx/visx": "^3.12.0",
     "astro": "^5.17.1",
     "clsx": "^2.1.1",
     "d3": "^7.9.0",
@@ -27,5 +30,16 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18",
     "zustand": "^5.0.11"
+  },
+  "devDependencies": {
+    "@astrojs/check": "^0.9.10",
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "^1.64.0",
+    "eslint": "^10.12.0",
+    "eslint-plugin-react-hooks": "^7.1.1",
+    "globals": "^17.13.0",
+    "typescript": "~5.9",
+    "typescript-eslint": "^8.71.1",
+    "vitest": "^5.0.3"
   }
 }

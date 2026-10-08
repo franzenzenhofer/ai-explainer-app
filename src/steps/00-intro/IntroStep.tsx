@@ -5,7 +5,7 @@ import { useAppStore } from '../../store/appStore'
 import type { StepProps } from '../../core/types/step-props'
 import { TokenProbabilityGraphic } from './TokenProbabilityGraphic'
 
-export function IntroStep({ stepConfig }: StepProps) {
+export function IntroStep(_props: StepProps) {
   const nextStep = useAppStore((s) => s.nextStep)
 
   return (

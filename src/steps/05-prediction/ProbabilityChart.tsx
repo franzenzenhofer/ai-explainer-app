@@ -5,10 +5,9 @@ import { getTokenColor } from '../../core/utils/colors'
 
 interface ProbabilityChartProps {
   predictions: PredictionCandidate[]
-  accentColor: string
 }
 
-export function ProbabilityChart({ predictions, accentColor }: ProbabilityChartProps) {
+export function ProbabilityChart({ predictions }: ProbabilityChartProps) {
   if (predictions.length === 0) {
     return (
       <div className="flex h-full items-center justify-center rounded-xl border border-dashed border-slate-300 text-slate-400">

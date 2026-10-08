@@ -49,41 +49,6 @@ export type StepId =
   | 'generation'
   | 'understanding'
 
-export interface AppState {
-  // Current step
-  currentStep: number
-
-  // Input
-  inputText: string
-
-  // Tokenization
-  tokens: Token[]
-
-  // Embeddings
-  embeddings: EmbeddingVector[]
-  selectedTokenForEmbedding: number | null
-
-  // Attention
-  attentionWeights: AttentionWeight[][]
-  selectedLayer: number
-  selectedHead: number
-  selectedQueryToken: number | null
-
-  // Prediction
-  predictions: PredictionCandidate[]
-  temperature: number
-  topK: number
-  topP: number
-
-  // Generation
-  generatedTokens: Token[]
-  isGenerating: boolean
-  generationSpeed: number
-
-  // Debug
-  debugMode: boolean
-}
-
 // Model specifications (used throughout the app)
 export const MODEL_SPECS = {
   vocabulary: 200_000,

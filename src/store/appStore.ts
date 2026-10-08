@@ -2,9 +2,9 @@
 
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import type { Token, EmbeddingVector, AttentionWeight, PredictionCandidate } from '../core/types'
+import type { Token } from '../core/types'
 
-interface AppState {
+export interface AppStoreState {
   // Current step (0-6)
   currentStep: number
   setCurrentStep: (step: number) => void
@@ -15,19 +15,11 @@ interface AppState {
   inputText: string
   setInputText: (text: string) => void
 
-  // Tokenization results
-  tokens: Token[]
-  setTokens: (tokens: Token[]) => void
-
   // Embeddings
-  embeddings: EmbeddingVector[]
-  setEmbeddings: (embeddings: EmbeddingVector[]) => void
   selectedTokenForEmbedding: number | null
   setSelectedTokenForEmbedding: (idx: number | null) => void
 
   // Attention
-  attentionWeights: AttentionWeight[][]
-  setAttentionWeights: (weights: AttentionWeight[][]) => void
   selectedLayer: number
   setSelectedLayer: (layer: number) => void
   selectedHead: number
@@ -36,8 +28,6 @@ interface AppState {
   setSelectedQueryToken: (idx: number | null) => void
 
   // Prediction
-  predictions: PredictionCandidate[]
-  setPredictions: (predictions: PredictionCandidate[]) => void
   temperature: number
   setTemperature: (temp: number) => void
   topK: number
@@ -71,14 +61,10 @@ const DEFAULT_INPUT_TEXT = 'Künstliche Intelligenz (AI) revolutioniert unsere W
 const initialState = {
   currentStep: 0,
   inputText: DEFAULT_INPUT_TEXT,
-  tokens: [],
-  embeddings: [],
   selectedTokenForEmbedding: null,
-  attentionWeights: [],
   selectedLayer: 0,
   selectedHead: 0,
   selectedQueryToken: null,
-  predictions: [],
   temperature: 1.0,
   topK: 50,
   topP: 0.9,
@@ -88,7 +74,7 @@ const initialState = {
   debugMode: false,
 }
 
-export const useAppStore = create<AppState>()(
+export const useAppStore = create<AppStoreState>()(
   devtools(
     persist(
       (set) => ({
@@ -106,21 +92,15 @@ export const useAppStore = create<AppState>()(
         // Input
         setInputText: (inputText) => set({ inputText }),
 
-        // Tokenization
-        setTokens: (tokens) => set({ tokens }),
-
         // Embeddings
-        setEmbeddings: (embeddings) => set({ embeddings }),
         setSelectedTokenForEmbedding: (selectedTokenForEmbedding) => set({ selectedTokenForEmbedding }),
 
         // Attention
-        setAttentionWeights: (attentionWeights) => set({ attentionWeights }),
         setSelectedLayer: (selectedLayer) => set({ selectedLayer }),
         setSelectedHead: (selectedHead) => set({ selectedHead }),
         setSelectedQueryToken: (selectedQueryToken) => set({ selectedQueryToken }),
 
         // Prediction
-        setPredictions: (predictions) => set({ predictions }),
         setTemperature: (temperature) => set({ temperature }),
         setTopK: (topK) => set({ topK }),
         setTopP: (topP) => set({ topP }),

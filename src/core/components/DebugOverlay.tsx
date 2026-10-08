@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'motion/react'
 import { Bug, X } from 'lucide-react'
 import { useDebug } from '../hooks/useDebug'
 import { useAppStore } from '../../store/appStore'
+import { selectPredictions, selectTokens } from '../../store/selectors'
 import { cn } from '../utils/cn'
 
 export function DebugOverlay() {
@@ -44,7 +45,7 @@ export function DebugOverlay() {
 
             <StateSection title="Input">
               <StateItem label="inputText" value={state.inputText || '(empty)'} truncate />
-              <StateItem label="tokens" value={state.tokens.length} />
+              <StateItem label="tokens" value={selectTokens(state).length} />
             </StateSection>
 
             <StateSection title="Attention">
@@ -57,7 +58,7 @@ export function DebugOverlay() {
               <StateItem label="temperature" value={state.temperature.toFixed(2)} />
               <StateItem label="topK" value={state.topK} />
               <StateItem label="topP" value={state.topP.toFixed(2)} />
-              <StateItem label="predictions" value={state.predictions.length} />
+              <StateItem label="predictions" value={selectPredictions(state).length} />
             </StateSection>
 
             <StateSection title="Generation">

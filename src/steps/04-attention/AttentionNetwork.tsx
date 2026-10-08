@@ -1,6 +1,6 @@
 // AttentionNetwork - Interactive token attention visualization
 // Click any token to see its attention weights to ALL other tokens
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useMemo, useRef, useState, useEffect, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import type { Token, AttentionWeight } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
@@ -58,14 +58,6 @@ export function AttentionNetwork({
       })),
     }
   }, [tokens, dimensions])
-
-  // Get attention weights for selected token
-  const selectedWeights = useMemo(() => {
-    if (selectedQuery === null) return []
-    return weights
-      .filter((w) => w.queryIdx === selectedQuery)
-      .sort((a, b) => b.weight - a.weight)
-  }, [weights, selectedQuery])
 
   // Get weight for specific pair
   const getWeight = (fromIdx: number, toIdx: number) => {
@@ -147,7 +139,7 @@ export function AttentionNetwork({
           >
             <div
               className="rounded-xl px-4 py-3 text-lg font-bold text-white shadow-2xl ring-4 ring-offset-2 ring-offset-slate-900"
-              style={{ backgroundColor: accentColor, ringColor: accentColor }}
+              style={{ backgroundColor: accentColor, '--tw-ring-color': accentColor } as CSSProperties}
             >
               {selectedToken.text.trim() || '␣'}
             </div>
@@ -216,8 +208,8 @@ export function AttentionNetwork({
               style={{
                 backgroundColor: isSelected ? accentColor : isHovered ? color : `${color}cc`,
                 color: 'white',
-                ringColor: accentColor,
-              }}
+                '--tw-ring-color': accentColor,
+              } as CSSProperties}
               whileHover={{ scale: 1.1 }}
               animate={{ scale: isSelected ? 1.15 : 1 }}
             >

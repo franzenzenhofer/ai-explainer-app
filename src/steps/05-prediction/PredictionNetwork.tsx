@@ -1,6 +1,6 @@
 // PredictionNetwork - Shows context tokens with their ACTUAL colors and prediction probabilities
 // CLICK any context token to see predictions from that point!
-import { useMemo, useRef, useState, useEffect } from 'react'
+import { useMemo, useRef, useState, useEffect, type CSSProperties } from 'react'
 import { motion } from 'motion/react'
 import type { Token } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
@@ -104,7 +104,7 @@ export function PredictionNetwork({
       <svg className="pointer-events-none absolute inset-0" width={dimensions.width} height={dimensions.height}>
         {/* Gradient definitions for lines */}
         <defs>
-          {visiblePredictions.map((pred, i) => (
+          {visiblePredictions.map((_pred, i) => (
             <linearGradient key={`grad-${i}`} id={`line-grad-${i}`} x1="0%" y1="0%" x2="100%" y2="0%">
               <stop offset="0%" stopColor={getTokenColor(visibleTokens[activeTokenIdx]?.colorIndex || 0)} />
               <stop offset="100%" stopColor={accentColor} />
@@ -171,8 +171,8 @@ export function PredictionNetwork({
               style={{
                 backgroundColor: tokenColor,
                 color: 'white',
-                ringColor: accentColor,
-              }}
+                '--tw-ring-color': accentColor,
+              } as CSSProperties}
               whileHover={{ scale: 1.05 }}
               animate={{ scale: isSelected ? 1.1 : 1 }}
             >

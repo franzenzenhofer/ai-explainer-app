@@ -3,6 +3,7 @@ import { useEffect, useRef, useCallback, useState } from 'react'
 import { motion } from 'motion/react'
 import { Play, Pause, RotateCcw, Zap, Sparkles } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
+import { useTokens } from '../../core/hooks/useDerived'
 import { StepLayout, ControlSlider } from '../../core/components'
 import type { Token } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
@@ -47,7 +48,7 @@ const PHASE_STYLES: Record<NonNullable<Phase>, { label: string; dotClass: string
 }
 
 export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
-  const tokens = useAppStore((s) => s.tokens)
+  const tokens = useTokens()
   const generatedTokens = useAppStore((s) => s.generatedTokens)
   const addGeneratedToken = useAppStore((s) => s.addGeneratedToken)
   const clearGeneratedTokens = useAppStore((s) => s.clearGeneratedTokens)

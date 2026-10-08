@@ -1,12 +1,12 @@
 // Step 5: Prediction - Calculating probabilities
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { motion } from 'motion/react'
 import { AlertCircle, Thermometer, Filter, Percent, BarChart3, Network } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
+import { usePredictions, useTokens } from '../../core/hooks/useDerived'
 import { StepLayout, ControlSlider, ControlPresets } from '../../core/components'
 import { MODEL_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
-import { generatePredictions } from './sampling'
 import { ProbabilityChart } from './ProbabilityChart'
 import { PredictionNetwork } from './PredictionNetwork'
 
@@ -19,9 +19,8 @@ const TEMPERATURE_PRESETS = [
 ]
 
 export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
-  const tokens = useAppStore((s) => s.tokens)
-  const predictions = useAppStore((s) => s.predictions)
-  const setPredictions = useAppStore((s) => s.setPredictions)
+  const tokens = useTokens()
+  const predictions = usePredictions()
   const temperature = useAppStore((s) => s.temperature)
   const setTemperature = useAppStore((s) => s.setTemperature)
   const topK = useAppStore((s) => s.topK)
@@ -29,11 +28,6 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
   const topP = useAppStore((s) => s.topP)
   const setTopP = useAppStore((s) => s.setTopP)
   const [viewMode, setViewMode] = useState<'chart' | 'network'>('network')
-
-  useEffect(() => {
-    const newPredictions = generatePredictions(tokens, temperature, topK, topP)
-    setPredictions(newPredictions)
-  }, [tokens, temperature, topK, topP, setPredictions])
 
   const controls = (
     <div className="space-y-2">
@@ -182,7 +176,7 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
       {/* Visualization */}
       <div className="flex-1 min-h-[300px]">
         {viewMode === 'chart' ? (
-          <ProbabilityChart predictions={predictions.slice(0, 20)} accentColor={stepConfig.accentColor} />
+          <ProbabilityChart predictions={predictions.slice(0, 20)} />
         ) : (
           <PredictionNetwork inputTokens={tokens} accentColor={stepConfig.accentColor} />
         )}

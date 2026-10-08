@@ -1,6 +1,6 @@
 // Overlay listing known attention head types grouped by category
-import { motion } from 'motion/react'
-import { AnimatePresence } from 'motion/react'
+import { useEffect } from 'react'
+import { motion, AnimatePresence } from 'motion/react'
 import { X } from 'lucide-react'
 import { KNOWN_HEAD_TYPES } from './headTypes'
 
@@ -10,12 +10,24 @@ interface HeadTypesOverlayProps {
 }
 
 export function HeadTypesOverlay({ open, onClose }: HeadTypesOverlayProps) {
+  useEffect(() => {
+    if (!open) return
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    document.addEventListener('keydown', closeOnEscape)
+    return () => document.removeEventListener('keydown', closeOnEscape)
+  }, [open, onClose])
+
   const categories = Array.from(new Set(KNOWN_HEAD_TYPES.map((h) => h.category)))
 
   return (
     <AnimatePresence>
       {open && (
         <motion.div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Known attention head types"
           className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -38,6 +50,7 @@ export function HeadTypesOverlay({ open, onClose }: HeadTypesOverlayProps) {
               </div>
               <button
                 onClick={onClose}
+                aria-label="Close"
                 className="flex h-7 w-7 items-center justify-center rounded-lg text-indigo-500 hover:bg-indigo-100 hover:text-indigo-800 transition-colors"
               >
                 <X className="h-4 w-4" />
