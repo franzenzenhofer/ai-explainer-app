@@ -7,6 +7,7 @@ import { Button, SlideLayout, VisualFrame, type Provenance } from '../../core/co
 import { getChapter } from '../../core/chapters'
 import { ChapterLink } from '../../core/navigation/ChapterLink'
 import { CandidateColumns } from '../loop/CandidateColumns'
+import { CandidateSkeleton } from '../loop/CandidateSkeleton'
 import { FlightLayer } from '../loop/FlightLayer'
 import { GeneratedText } from '../loop/GeneratedText'
 import { GenerationStatus } from '../loop/GenerationStatus'
@@ -42,13 +43,8 @@ function HomeControls() {
 function Candidates() {
   const view = useRunView()
   const replaceLastPiece = useAppStore((s) => s.replaceLastPiece)
-  if (!view) {
-    return (
-      <p className="m-0 rounded-xl border-2 border-dashed p-3 text-base text-ink-2" style={{ borderColor: 'var(--concept-soft)' }}>
-        Asking {LOOP_MODEL.name} what comes next: its candidates grow here as rose bars, and on each press its pick flies to the end of the text.
-      </p>
-    )
-  }
+  const error = useAppStore((s) => (s.fetchStatus === 'error' ? s.fetchError : null))
+  if (!view) return <CandidateSkeleton error={error} />
   return <CandidateColumns view={view} onChoose={view.kind === 'added' ? replaceLastPiece : null} />
 }
 

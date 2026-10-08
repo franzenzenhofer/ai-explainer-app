@@ -19,7 +19,7 @@ export const provenance: Provenance = 'real'
 
 const HIGHLIGHT_COUNT = 4
 
-const CAPTION = `Real numbers from ${MODEL_SPECS.modelName}: all ${MODEL_SPECS.embeddingDim} numbers of the last position, ${MODEL_SPECS.layers} blocks (${LARGE_MODEL_SPECS.modelName}: ${LARGE_MODEL_SPECS.layers}). ${MODEL_SPECS.modelName} cuts text slightly differently from the tokenizer on the Tokens slide. Each block adds to the running vector; nothing is replaced. All blocks share one scale; the few largest numbers are cut at the edge.`
+const CAPTION = `Real numbers from ${MODEL_SPECS.modelName}: all ${MODEL_SPECS.embeddingDim} numbers of the last position, ${MODEL_SPECS.layers} blocks (${LARGE_MODEL_SPECS.modelName}: ${LARGE_MODEL_SPECS.layers}). ${MODEL_SPECS.modelName} cuts text slightly differently from the tokenizer on the Tokens slide. Each block adds to the running vector; nothing is replaced. Each view is scaled to its own numbers (compare sizes with the largest number printed under it); the few largest numbers are cut at the edge.`
 
 function stripTitle(block: number, tokenText: string): string {
   const where = `the last position ("${formatTokenDisplay(tokenText)}")`
@@ -56,8 +56,9 @@ function Stack({ sample }: { sample: Gpt2Prompt }) {
   const setSelectedBlock = useAppStore((s) => s.setSelectedBlock)
   const { playing, toggle } = usePlayBlocks(selectedBlock, setSelectedBlock, MODEL_SPECS.layers)
   const stream = useMemo(() => sample.residualStream.map((stage) => stage.vector), [sample])
-  const scale = useMemo(() => streamScale(stream), [stream])
-  const current = stream[selectedBlock] ?? []
+  const current = useMemo(() => stream[selectedBlock] ?? [], [stream, selectedBlock])
+  // Each view is scaled to its own numbers, so the shape is visible at block 0 too.
+  const scale = useMemo(() => streamScale([current]), [current])
   const highlight = useMemo(
     () => (selectedBlock === 0 || !stream[selectedBlock] ? new Set<number>() : mostChangedIndices(stream[selectedBlock - 1], stream[selectedBlock], HIGHLIGHT_COUNT)),
     [stream, selectedBlock],

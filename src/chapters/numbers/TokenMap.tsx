@@ -104,7 +104,7 @@ function MapBody({ table, tokens, selectedIndex, outside }: TokenMapProps) {
             style={{ left: `${place.left}%`, top: `${place.top}%`, color: color.text }}
           >
             <span aria-hidden="true" className="h-3 w-3 shrink-0 rounded-full" style={{ background: color.mark, boxShadow: isSelected ? '0 0 0 3px var(--concept)' : undefined }} />
-            <span className="rounded px-1" style={{ background: isSelected ? color.fill : 'rgb(255 255 255 / 0.8)' }}>{label}</span>
+            {isSelected && <span className="rounded px-1" style={{ background: color.fill }}>{label}</span>}
           </span>
         )
       })}
@@ -114,7 +114,7 @@ function MapBody({ table, tokens, selectedIndex, outside }: TokenMapProps) {
 
 export function mapCaption(table: Gpt2Table): string {
   const variance = table.file.pca.explainedVarianceRatio.reduce((sum, share) => sum + share, 0)
-  return `The map is computed once offline (PCA) from ${MODEL_SPECS.modelName}'s numbers for ${table.file.tokenCount.toLocaleString('en-US')} common words; the light violet squares are all of them. Its two axes keep only ${formatPercent(variance)} of the variation, so the violet rings (the 8 most similar tokens) are not always close. Tokens with no entry are not drawn.`
+  return `The map is computed once offline (PCA) from ${MODEL_SPECS.modelName}'s numbers for ${table.file.tokenCount.toLocaleString('en-US')} common words; the light violet squares are all of them. Its two axes keep only ${formatPercent(variance)} of the variation, so the violet rings (the 8 most similar tokens) are not always close. Only the chosen token is labelled; the other tokens of your text are the dots in their own colours. Tokens with no entry are not drawn.`
 }
 
 export function TokenMap({ table, tokens, selectedIndex, outside }: TokenMapProps) {

@@ -1,10 +1,10 @@
-// Pure helpers for the Layers chapter: a fixed scale for every block and the numbers that moved most.
+// Pure helpers for the Layers chapter: a robust scale for a set of vectors and the numbers that moved most.
 
 // Share of the numbers that fit inside the frame. Real residual streams have a few huge numbers
 // (GPT-2 small reaches 224 where most are below 10), so the scale ignores the top 1%.
 const SCALE_QUANTILE = 0.99
 
-// The absolute value below which 99% of all numbers in the stream lie, so every block is drawn on the same scale.
+// The absolute value below which 99% of the given numbers lie (one vector or a whole stream).
 export function streamScale(stream: number[][]): number {
   const sorted = stream.flat().map(Math.abs).sort((a, b) => a - b)
   if (sorted.length === 0) return 1
