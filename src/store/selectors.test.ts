@@ -1,5 +1,6 @@
 import { beforeEach, describe, expect, it } from 'vitest'
-import { useAppStore } from './appStore'
+import { tokenize } from '../steps/02-tokenization/tokenizer'
+import { DEFAULT_INPUT_TEXT, useAppStore } from './appStore'
 import {
   selectAttentionWeights,
   selectEmbeddings,
@@ -39,5 +40,15 @@ describe('derived selectors', () => {
     state().setTemperature(0)
     expect(selectPredictions(state())).not.toBe(before)
     expect(selectPredictions(state())[0].probability).toBe(1)
+  })
+})
+
+describe('default prompt', () => {
+  it('is one short sentence of 8 to 12 tokens with "it" after a single noun', () => {
+    const tokens = tokenize(DEFAULT_INPUT_TEXT)
+    expect(tokens.length).toBeGreaterThanOrEqual(8)
+    expect(tokens.length).toBeLessThanOrEqual(12)
+    expect(tokens.map((token) => token.text.trim())).toContain('it')
+    expect(tokens.map((token) => token.text.trim())).toContain('dog')
   })
 })

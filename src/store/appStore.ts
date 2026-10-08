@@ -55,8 +55,9 @@ export interface AppStoreState {
 
 const TOTAL_STEPS = 8
 
-// Default example text showcasing tokenization with long words, punctuation, German & English
-const DEFAULT_INPUT_TEXT = 'Künstliche Intelligenz (AI) revolutioniert unsere Weltanschauung! The Donaudampfschifffahrtsgesellschaftskapitän said: "Transformation, Innovation, Kommunikation - these extraordinary words demonstrate how tokenization works!" Außergewöhnlich, oder?'
+// One short sentence (9 tokens) with a pronoun ("it") and a single noun it refers to ("dog"),
+// so every later visual stays readable and attention has something real to show.
+export const DEFAULT_INPUT_TEXT = 'The dog barked because it was hungry.'
 
 const initialState = {
   currentStep: 0,
@@ -121,7 +122,7 @@ export const useAppStore = create<AppStoreState>()(
         reset: () => set(initialState),
       }),
       {
-        name: 'ai-explainer-storage-v2', // v2: invalidate old cached text with typos
+        name: 'ai-explainer-storage-v3', // v3: drop the old 55-token default prompt saved in browsers
         partialize: (state) => ({
           inputText: state.inputText,
           debugMode: state.debugMode,

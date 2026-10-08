@@ -1,6 +1,7 @@
 // SamplePrompts - Pre-defined example prompts
 import { motion } from 'motion/react'
 import { Sparkles } from 'lucide-react'
+import { DEFAULT_INPUT_TEXT } from '../../store/appStore'
 
 interface SamplePromptsProps {
   onSelect: (text: string) => void
@@ -8,10 +9,15 @@ interface SamplePromptsProps {
 
 const SAMPLE_PROMPTS = [
   {
-    label: '🎯 Tokenization Demo',
+    label: 'Short sentence',
+    text: DEFAULT_INPUT_TEXT,
+    lang: 'en',
+    highlight: true,
+  },
+  {
+    label: 'Long German words',
     text: 'Künstliche Intelligenz (AI) revolutioniert unsere Weltanschauung! The Donaudampfschifffahrtsgesellschaftskapitän said: "Transformation, Innovation, Kommunikation - these extraordinary words demonstrate how tokenization works!" Außergewöhnlich, oder?',
     lang: 'mixed',
-    highlight: true,
   },
   {
     label: 'German Compounds',
