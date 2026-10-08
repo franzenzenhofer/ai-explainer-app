@@ -1,7 +1,7 @@
 // The pipeline drawn large for the intro: the first five stages left to right, the last four right to
 // left underneath (a snake), and an arrow from Append back to Text. Cards fade in one after the other.
 import { motion } from 'motion/react'
-import { BarChart3, Cpu, Dices, Eye, Hash, Layers, Puzzle, Repeat, Type, type LucideIcon } from 'lucide-react'
+import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BarChart3, Cpu, Dices, Eye, Hash, Layers, Puzzle, Repeat, Type, type LucideIcon } from 'lucide-react'
 import { CONCEPT_COLORS, type StageId } from '../../core/colors'
 import { PIPELINE, getChapter, type PipelineStage } from '../../core/chapters'
 import { ChapterLink } from '../../core/navigation/ChapterLink'
@@ -21,11 +21,43 @@ const ICONS: Record<StageId, LucideIcon> = {
 const FIRST_ROW = 5
 const CARD_DELAY_S = 0.12
 
+type Direction = 'right' | 'down' | 'left' | 'up'
+
+const ARROWS: Record<Direction, { Icon: LucideIcon; place: string }> = {
+  right: { Icon: ArrowRight, place: 'right-[-1.4rem] top-1/2 -translate-y-1/2' },
+  left: { Icon: ArrowLeft, place: 'left-[-1.4rem] top-1/2 -translate-y-1/2' },
+  down: { Icon: ArrowDown, place: 'bottom-[-1.6rem] left-1/2 -translate-x-1/2' },
+  up: { Icon: ArrowUp, place: 'top-[-1.6rem] left-1/2 -translate-x-1/2' },
+}
+
+// Where the arrow out of each stage points: along the top row, down, back along the bottom row.
+function directionOf(index: number): Direction | null {
+  if (index < FIRST_ROW - 1) return 'right'
+  if (index === FIRST_ROW - 1) return 'down'
+  return 'left'
+}
+
+function FlowArrow({ direction, color }: { direction: Direction; color: string }) {
+  const { Icon, place } = ARROWS[direction]
+  return (
+    <span aria-hidden="true" className={`absolute z-10 flex h-7 w-7 items-center justify-center rounded-full text-white shadow ${place}`} style={{ background: color }}>
+      <Icon size={16} strokeWidth={3} />
+    </span>
+  )
+}
+
 function StageCard({ stage, index }: { stage: PipelineStage; index: number }) {
   const color = CONCEPT_COLORS[stage.id]
   const Icon = ICONS[stage.id]
+  const direction = directionOf(index)
   return (
-    <motion.li initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: index * CARD_DELAY_S, duration: 0.35 }}>
+    <motion.li
+      initial={{ opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay: index * CARD_DELAY_S, duration: 0.35 }}
+      className="relative"
+    >
+      {direction && <FlowArrow direction={direction} color={color.solid} />}
       <ChapterLink
         chapter={getChapter(stage.chapter)}
         className="flex h-full flex-col gap-1 rounded-2xl border-2 bg-paper p-3 no-underline shadow-sm transition-transform hover:-translate-y-0.5"
@@ -57,9 +89,10 @@ export function PipelineLoop() {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: PIPELINE.length * CARD_DELAY_S + 0.2 }}
-          className="flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed p-3 text-center"
+          className="relative flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed p-3 text-center"
           style={{ borderColor: loop.solid, color: loop.strong }}
         >
+          <FlowArrow direction="up" color={loop.solid} />
           <Repeat aria-hidden="true" size={28} />
           <span className="text-lg font-bold">And again</span>
           <span className="text-base text-ink">The longer text goes back to stage 1, once per new token.</span>

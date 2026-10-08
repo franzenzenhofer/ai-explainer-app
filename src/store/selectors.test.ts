@@ -86,17 +86,6 @@ describe('generation state', () => {
   })
 })
 
-describe('drawers', () => {
-  it('are closed by default and toggle per chapter', () => {
-    expect(state().openDrawers.tokens).toBeFalsy()
-    state().toggleDrawer('tokens')
-    expect(state().openDrawers.tokens).toBe(true)
-    expect(state().openDrawers.attention).toBeFalsy()
-    state().closeDrawer('tokens')
-    expect(state().openDrawers.tokens).toBe(false)
-  })
-})
-
 describe('default prompt', () => {
   it('is one short sentence of 8 to 12 tokens with "it" after a single noun', () => {
     const tokens = tokenize(DEFAULT_INPUT_TEXT)

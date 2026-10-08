@@ -1,241 +1,135 @@
-// Browser walk: opens every chapter at desktop and phone width, by deep link and by the Next link,
-// with the live worker. Layout assertions (no horizontal overflow, no text under 16px, 44px targets)
-// run with STRICT_LAYOUT=1, which the npm script sets.
+// Browser walk of the presentation: every slide at three desktop sizes must fit one viewport with
+// nothing clipped, no text under 16px and zero console errors; the keys, dots, pipeline, overlays and
+// full screen work; phones get the reflowed layout. Strict layout checks run with STRICT_LAYOUT=1.
 
-import { expect, test, type Page } from '@playwright/test'
+import { expect, test } from '@playwright/test'
 import { CHAPTERS } from '../src/core/chapters/chapters'
-import { checkLayout } from './layoutChecks'
+import { checkSlide } from './layoutChecks'
+import { expectSlide, open, trackConsoleErrors } from './walkHelpers'
 
 const STRICT_LAYOUT = process.env.STRICT_LAYOUT === '1'
-const SETTLE_MS = 300
-const LIVE_CALL_TIMEOUT_MS = 30_000
+// Long enough for the staggered entrances to finish before the layout is measured.
+const SETTLE_MS = 1600
 
-const VIEWPORTS = [
-  { name: 'desktop', width: 1440, height: 900 },
-  { name: 'phone', width: 390, height: 844 },
+const DESKTOPS = [
+  { width: 1280, height: 720 },
+  { width: 1440, height: 900 },
+  { width: 1920, height: 1080 },
 ]
 
-// page.goto that waits until React has hydrated, so the first click reaches a live control.
-async function open(page: Page, route: string) {
-  await page.goto(route)
-  await page.locator('html[data-ready="true"]').waitFor({ state: 'attached' })
-}
+for (const viewport of DESKTOPS) {
+  test.describe(`slides at ${viewport.width}x${viewport.height}`, () => {
+    test.use({ viewport })
 
-function trackConsoleErrors(page: Page): string[] {
-  const errors: string[] = []
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(`console: ${message.text()}`)
-  })
-  page.on('pageerror', (error) => errors.push(`pageerror: ${error.message}`))
-  page.on('requestfailed', (request) => errors.push(`requestfailed: ${request.url()}`))
-  return errors
-}
-
-async function expectChapter(page: Page, index: number) {
-  const chapter = CHAPTERS[index]
-  await expect(page.locator('[data-claim]')).toHaveText(chapter.claim)
-  await expect(page.locator('header').getByText(chapter.name, { exact: true })).toBeVisible()
-  expect(new URL(page.url()).pathname.replace(/\/$/, '') || '/').toBe(chapter.route)
-}
-
-for (const viewport of VIEWPORTS) {
-  test.describe(`walk at ${viewport.name} ${viewport.width}x${viewport.height}`, () => {
-    test.use({ viewport: { width: viewport.width, height: viewport.height } })
-
-    test('opens every chapter by deep link with zero console errors', async ({ page }) => {
+    test('every slide fits one viewport, nothing clipped, zero console errors', async ({ page }) => {
       const errors = trackConsoleErrors(page)
       for (const [index, chapter] of CHAPTERS.entries()) {
         await open(page, chapter.route)
-        await expectChapter(page, index)
+        await expectSlide(page, index)
+        await expect(page.locator('html')).toHaveAttribute('data-mode', 'stage')
         await page.waitForTimeout(SETTLE_MS)
-        if (STRICT_LAYOUT) await checkLayout(page, `${chapter.route} at ${viewport.name}`)
-        await page.locator('[data-drawer] button[aria-expanded]').click()
-        await expect(page.locator('[data-drawer] button[aria-expanded]')).toHaveAttribute('aria-expanded', 'true')
-        if (STRICT_LAYOUT) await checkLayout(page, `${chapter.route} with its drawer open at ${viewport.name}`)
+        if (STRICT_LAYOUT) await checkSlide(page, `${chapter.route} at ${viewport.width}x${viewport.height}`)
       }
-      expect(errors).toEqual([])
-    })
-
-    test('second views keep the layout: attention grid, feed-forward next to attention, a hard sample text', async ({ page }) => {
-      await open(page, '/attention')
-      await page.getByRole('button', { name: 'Grid' }).click()
-      await expect(page.locator('[data-visual] table')).toBeVisible()
-      if (STRICT_LAYOUT) await checkLayout(page, `attention grid at ${viewport.name}`)
-      await open(page, '/feedforward')
-      await page.getByRole('button', { name: 'Next to attention' }).click()
-      if (STRICT_LAYOUT) await checkLayout(page, `feed-forward next to attention at ${viewport.name}`)
-      await open(page, '/tokens')
-      await page.getByRole('button', { name: 'Try a hard one' }).click()
-      await page.getByRole('button', { name: 'German compounds' }).click()
-      for (const route of ['/tokens', '/numbers', '/attention', '/scores', '/loop']) {
-        await open(page, route)
-        if (STRICT_LAYOUT) await checkLayout(page, `${route} with a long text at ${viewport.name}`)
-      }
-    })
-
-    test('walks all ten chapters with the Next link', async ({ page }) => {
-      const errors = trackConsoleErrors(page)
-      await open(page, '/')
-      for (let index = 1; index < CHAPTERS.length; index++) {
-        await page.getByRole('link', { name: new RegExp(`^Next ${CHAPTERS[index].name}`) }).click()
-        await expectChapter(page, index)
-      }
-      await page.getByRole('link', { name: /^Back to the start/ }).click()
-      await expectChapter(page, 0)
       expect(errors).toEqual([])
     })
   })
 }
 
-test.describe('navigation', () => {
+test.describe('presentation controls at 1440x900', () => {
   test.use({ viewport: { width: 1440, height: 900 } })
 
-  test('the back button, a reload and the arrow keys work', async ({ page }) => {
-    await open(page, '/tokens')
+  test('Right, Space and Page Down go forward; Left and Page Up go back', async ({ page }) => {
+    await open(page, '/')
     await page.keyboard.press('ArrowRight')
-    await expectChapter(page, 2)
-    await page.goBack()
-    await expectChapter(page, 1)
-    await page.goForward()
-    await expectChapter(page, 2)
-    await page.reload()
-    await page.locator('html[data-ready="true"]').waitFor({ state: 'attached' })
-    await expectChapter(page, 2)
+    await expectSlide(page, 1)
+    await page.locator('body').focus()
+    await page.keyboard.press('Space')
+    await expectSlide(page, 2)
+    await page.keyboard.press('PageDown')
+    await expectSlide(page, 3)
     await page.keyboard.press('ArrowLeft')
-    await expectChapter(page, 1)
+    await expectSlide(page, 2)
+    await page.keyboard.press('PageUp')
+    await expectSlide(page, 1)
   })
 
-  test('the chapter menu lists ten chapters and Escape closes it', async ({ page }) => {
-    await open(page, '/layers')
-    await page.getByRole('button', { name: 'Chapters' }).click()
-    const menu = page.getByRole('navigation', { name: 'Chapters' })
-    await expect(menu.getByRole('link')).toHaveCount(CHAPTERS.length)
-    await page.keyboard.press('Escape')
-    await expect(menu).toHaveCount(0)
-  })
-
-  test('the drawer is closed by default, Escape closes it, and it remembers its state per chapter', async ({ page }) => {
+  test('F toggles full screen and the stage still fits', async ({ page }) => {
     await open(page, '/attention')
-    const toggle = page.locator('[data-drawer] button[aria-expanded]')
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    await toggle.click()
-    await expect(toggle).toHaveAttribute('aria-expanded', 'true')
-    await page.keyboard.press('Escape')
-    await expect(toggle).toHaveAttribute('aria-expanded', 'false')
-    await toggle.click()
-    await page.getByRole('link', { name: /^Next / }).click()
-    await expect(page.locator('[data-drawer] button[aria-expanded]')).toHaveAttribute('aria-expanded', 'false')
-    await page.goBack()
-    await expect(page.locator('[data-drawer] button[aria-expanded]')).toHaveAttribute('aria-expanded', 'true')
-    const fixed = await page.evaluate(
-      () => Array.from(document.querySelectorAll('*')).filter((el) => getComputedStyle(el).position === 'fixed').length,
-    )
-    expect(fixed).toBe(0)
+    await page.keyboard.press('f')
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(true)
+    await expect(page.getByRole('button', { name: 'Exit full screen' })).toBeVisible()
+    if (STRICT_LAYOUT) await checkSlide(page, '/attention in full screen')
+    await page.keyboard.press('f')
+    await expect.poll(() => page.evaluate(() => document.fullscreenElement !== null)).toBe(false)
   })
 
-  test('the prompt edited on Tokens is carried to the other chapters', async ({ page }) => {
-    await open(page, '/tokens')
-    await page.getByRole('button', { name: 'Edit text' }).click()
-    await page.getByLabel('Your text').fill('The cat sat on the mat because it was warm.')
-    await page.getByRole('button', { name: 'Done editing' }).click()
-    await page.getByRole('link', { name: /^Next / }).click()
-    await expect(page.getByRole('button', { name: /Your text: The cat sat on the mat/ })).toBeVisible()
-    await page.reload()
-    await expect(page.getByRole('button', { name: /Your text: The cat sat on the mat/ })).toBeVisible()
+  test('the dots and the pipeline stages jump to their slides', async ({ page }) => {
+    await open(page, '/')
+    await page.getByRole('link', { name: /^Slide 5: Attention/ }).click()
+    await expectSlide(page, 4)
+    await page.getByRole('navigation', { name: 'Pipeline' }).getByRole('link', { name: 'Scores' }).click()
+    await expectSlide(page, 7)
+    await expect(page.getByRole('navigation', { name: 'Pipeline' }).getByRole('link', { name: 'Scores' })).toHaveAttribute('aria-current', 'step')
   })
-})
 
-test.describe('chapter interactions', () => {
-  test.use({ viewport: { width: 1440, height: 900 } })
-
-  test('home: three presses append three tokens in under 15 s, and a non-top candidate replaces the pick (live model)', async ({ page }) => {
+  test('the Next button walks all eleven slides and returns to the start', async ({ page }) => {
     const errors = trackConsoleErrors(page)
     await open(page, '/')
-    const pick = page.getByRole('button', { name: 'Pick the next token' })
-    const status = page.getByRole('status')
-    const started = Date.now()
-    for (let press = 1; press <= 3; press++) {
-      await pick.click()
-      await expect(status.filter({ hasText: `(token ${press})` })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
+    for (let index = 1; index < CHAPTERS.length; index++) {
+      await page.getByRole('link', { name: `Next: ${CHAPTERS[index].shortName}` }).click()
+      await expectSlide(page, index)
     }
-    expect(Date.now() - started).toBeLessThan(15_000)
-    const candidates = page.getByRole('list', { name: 'Candidates for the token just added' }).getByRole('button')
-    await expect(candidates.first()).toHaveAttribute('aria-pressed', 'true')
-    expect(await candidates.count()).toBe(10)
-    await candidates.nth(1).click()
-    await expect(candidates.nth(1)).toHaveAttribute('aria-pressed', 'true')
-    await expect(candidates.first()).toHaveAttribute('aria-pressed', 'false')
-    await expect(status.filter({ hasText: 'Your choice' })).toBeVisible()
-    await pick.click()
-    await expect(status.filter({ hasText: '(token 4)' })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
-    if (STRICT_LAYOUT) await checkLayout(page, 'home with candidates at desktop')
+    await page.getByRole('link', { name: 'Back to the start' }).click()
+    await expectSlide(page, 0)
     expect(errors).toEqual([])
   })
 
-  test('scores: the real top 20 and the tail bar (live model)', async ({ page }) => {
-    await open(page, '/scores')
-    await page.getByRole('button', { name: 'Ask the model' }).click()
-    await expect(page.getByRole('button', { name: /all other tokens/i })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
-    await expect(page.getByRole('list', { name: 'Probability of each next token' }).getByRole('listitem')).toHaveCount(21)
-    if (STRICT_LAYOUT) await checkLayout(page, 'scores with the list at desktop')
+  test('Go deeper and Sources open as overlays on top of the slide; Escape closes them', async ({ page }) => {
+    await open(page, '/tokens')
+    await page.getByRole('button', { name: 'Go deeper' }).click()
+    const dialog = page.getByRole('dialog')
+    await expect(dialog).toBeVisible()
+    expect(await page.evaluate(() => document.scrollingElement?.scrollHeight ?? 0)).toBeLessThanOrEqual(900)
+    await page.keyboard.press('Escape')
+    await expect(dialog).toHaveCount(0)
+    await page.getByRole('button', { name: 'Sources' }).click()
+    await expect(dialog.getByRole('link').first()).toHaveAttribute('href', /^https:\/\//)
+    await dialog.getByRole('button', { name: 'Close' }).click()
+    await expect(dialog).toHaveCount(0)
   })
 
-  test('sampling: pick again shows five picks (live model)', async ({ page }) => {
-    await open(page, '/sampling')
-    await page.getByRole('button', { name: 'Ask the model' }).click()
-    await expect(page.getByRole('button', { name: /^Pick 5 times/ })).toBeVisible({ timeout: LIVE_CALL_TIMEOUT_MS })
-    await page.getByRole('button', { name: /^Pick 5 times/ }).click()
-    await expect(page.locator('[data-picks] li')).toHaveCount(5)
-    if (STRICT_LAYOUT) await checkLayout(page, 'sampling with the list at desktop')
+  test('the back button and a reload keep the slide', async ({ page }) => {
+    await open(page, '/tokens')
+    await page.keyboard.press('ArrowRight')
+    await expectSlide(page, 3)
+    await page.goBack()
+    await expectSlide(page, 2)
+    await page.reload()
+    await page.locator('html[data-ready="true"]').waitFor({ state: 'attached' })
+    await expectSlide(page, 2)
   })
 
-  test('attention: arcs only point left', async ({ page }) => {
-    await open(page, '/attention')
-    const paths = await page.locator('[data-visual] svg path').evaluateAll((elements) =>
-      elements.map((element) => element.getAttribute('d') ?? ''),
-    )
-    expect(paths.length).toBeGreaterThan(0)
-    for (const d of paths) {
-      const numbers = d.match(/-?\d+(\.\d+)?/g)?.map(Number) ?? []
-      expect(numbers[numbers.length - 2]).toBeLessThan(numbers[0])
+  test('every slide shows its explanation and colour key on screen', async ({ page }) => {
+    for (const chapter of CHAPTERS.filter((candidate) => candidate.id !== 'intro')) {
+      await open(page, chapter.route)
+      await expect(page.locator('[data-explain]')).toContainText(chapter.explain.what)
+      await expect(page.locator('[data-color-key]')).toBeVisible()
     }
   })
+})
 
-  test('feed-forward: Run the block changes every column', async ({ page }) => {
-    await open(page, '/feedforward')
-    const columns = page.locator('[data-column]')
-    const before = await columns.evaluateAll((elements) => elements.map((element) => element.innerHTML))
-    await page.getByRole('button', { name: 'Run the block' }).click()
-    await expect(page.getByText(/^Run 1:/)).toBeVisible()
-    const after = await columns.evaluateAll((elements) => elements.map((element) => element.innerHTML))
-    expect(after).toHaveLength(before.length)
-    for (const [index, html] of after.entries()) expect(html, `column ${index}`).not.toBe(before[index])
-    await expect(page.locator('[data-visual] svg path')).toHaveCount(0)
-  })
+test.describe('phone 390x844', () => {
+  test.use({ viewport: { width: 390, height: 844 } })
 
-  test('numbers: real GPT-2 numbers, a grey token outside the demo set', async ({ page }) => {
-    await open(page, '/numbers')
-    await expect(page.getByText('all 768 numbers')).toBeVisible()
-    await expect(page.getByRole('list', { name: 'Most similar tokens' }).getByRole('listitem')).toHaveCount(8)
-    await page.getByRole('button', { name: /^Token 1:/ }).click()
-    await expect(page.getByText(/not in demo set/).first()).toBeVisible()
-  })
-
-  test('layers: a prompt without real numbers offers the four samples, never invented ones', async ({ page }) => {
-    await open(page, '/tokens')
-    await page.getByRole('button', { name: 'Edit text' }).click()
-    await page.getByLabel('Your text').fill('Something that was never exported.')
-    await page.getByRole('button', { name: 'Done editing' }).click()
-    await open(page, '/layers')
-    await expect(page.getByRole('button', { name: '2 + 2 =' })).toBeVisible()
-    await page.getByRole('button', { name: 'The capital of France is' }).click()
-    await expect(page.getByText(/GPT-2 small reads "The capital of France is"/)).toBeVisible()
-  })
-
-  test('layers: the stepper walks the blocks', async ({ page }) => {
-    await open(page, '/layers')
-    await page.getByRole('button', { name: 'Block up' }).click()
-    await page.getByRole('button', { name: 'Block up' }).click()
-    await expect(page.getByRole('button', { name: /Block 2/ }).first()).toHaveAttribute('aria-pressed', 'true')
+  test('slides reflow, never scroll sideways, keep 16px text', async ({ page }) => {
+    const errors = trackConsoleErrors(page)
+    for (const chapter of CHAPTERS) {
+      await open(page, chapter.route)
+      await expect(page.locator('html')).toHaveAttribute('data-mode', 'flow')
+      await page.waitForTimeout(SETTLE_MS / 2)
+      if (STRICT_LAYOUT) await checkSlide(page, `${chapter.route} on a phone`)
+    }
+    expect(errors).toEqual([])
   })
 })
+

@@ -34,8 +34,8 @@ export const EXPLANATIONS: Record<ChapterId, Explanation> = {
   },
   feedforward: {
     what: 'After attention, each position is processed on its own by the same small network.',
-    how: 'The column of numbers is multiplied by one matrix, negatives are clipped to zero, a second matrix follows, and the result is added back to the column.',
-    why: 'Attention moves information between positions; the feed-forward step works on what each position now holds. Research links it to stored facts.',
+    how: 'Its column of numbers is multiplied by a matrix, negatives become zero, a second matrix follows, and the result is added back.',
+    why: 'Attention moves information between positions; this step works on what each position now holds. Research links it to stored facts.',
   },
   layers: {
     what: `Attention plus feed-forward is one block. ${DEMO} stacks ${MODEL_SPECS.layers} blocks, ${LARGE_MODEL_SPECS.modelName} stacks ${LARGE_MODEL_SPECS.layers}.`,

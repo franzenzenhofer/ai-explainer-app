@@ -8,6 +8,7 @@ import { SlideNav } from '../../core/components/SlideNav'
 import { SlideStage } from '../../core/components/SlideStage'
 import { SlideTop } from '../../core/components/SlideLayout'
 import { ChapterLink } from '../../core/navigation/ChapterLink'
+import { ChipLegend } from './ChipLegend'
 import { PipelineLoop } from './PipelineLoop'
 
 export function IntroChapter() {
@@ -25,6 +26,7 @@ export function IntroChapter() {
       </div>
       <div className="slide-main intro-main" data-fit>
         <PipelineLoop />
+        <ChipLegend />
       </div>
       <motion.div
         initial={{ opacity: 0, y: 10 }}

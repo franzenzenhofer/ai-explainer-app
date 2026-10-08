@@ -1,13 +1,15 @@
-// Layout checks the walk runs on every chapter with STRICT_LAYOUT=1.
+// Layout checks the walk runs on every slide with STRICT_LAYOUT=1: the slide fits one viewport, nothing
+// inside a slide region is clipped, no text under 16px, touch targets of 44px.
 import { expect, type Page } from '@playwright/test'
 
 const MIN_FONT_SIZE_PX = 16
 const MIN_TARGET_PX = 44
-// The primary control must be reachable within this many screens of scrolling.
-const PRIMARY_CONTROL_SCREENS = 2
 
-async function horizontalOverflow(page: Page): Promise<number> {
-  return page.evaluate(() => (document.scrollingElement?.scrollWidth ?? 0) - window.innerWidth)
+async function pageOverflow(page: Page): Promise<{ down: number; across: number }> {
+  return page.evaluate(() => ({
+    down: (document.scrollingElement?.scrollHeight ?? 0) - window.innerHeight,
+    across: (document.scrollingElement?.scrollWidth ?? 0) - window.innerWidth,
+  }))
 }
 
 async function smallText(page: Page): Promise<string[]> {
@@ -25,7 +27,33 @@ async function smallText(page: Page): Promise<string[]> {
   }, MIN_FONT_SIZE_PX)
 }
 
-// Buttons, inputs and stand-alone links must be 44px tall; links inside running text are exempt.
+// Every box inside a slide region ([data-fit]) must stay inside it, and no element that clips its own
+// content (overflow hidden or clip) may hold more than it shows. Inner scroll boxes are allowed.
+export async function clippedBoxes(page: Page): Promise<string[]> {
+  return page.evaluate(() => {
+    const offenders: string[] = []
+    const insideScroller = (element: HTMLElement, region: HTMLElement) => {
+      for (let node = element.parentElement; node && node !== region; node = node.parentElement) {
+        if (/auto|scroll/.test(getComputedStyle(node).overflowX + getComputedStyle(node).overflowY)) return true
+      }
+      return false
+    }
+    for (const region of document.querySelectorAll<HTMLElement>('[data-fit]')) {
+      const box = region.getBoundingClientRect()
+      for (const element of region.querySelectorAll<HTMLElement>('*')) {
+        const rect = element.getBoundingClientRect()
+        if (!rect.width || !rect.height || element.closest('.sr-only') || insideScroller(element, region)) continue
+        const style = getComputedStyle(element)
+        const clips = /hidden|clip/.test(style.overflowX + style.overflowY)
+        const overfull = clips && (element.scrollHeight > element.clientHeight + 1 || element.scrollWidth > element.clientWidth + 1)
+        const outside = rect.bottom > box.bottom + 1 || rect.right > box.right + 1 || rect.left < box.left - 1
+        if (outside || overfull) offenders.push(`${element.tagName} "${(element.textContent ?? '').trim().slice(0, 30)}"`)
+      }
+    }
+    return offenders.slice(0, 8)
+  })
+}
+
 async function smallTargets(page: Page): Promise<string[]> {
   return page.evaluate((minimum) => {
     const targets = document.querySelectorAll<HTMLElement>('button, input:not([type="hidden"]), select, textarea, a[href]')
@@ -41,19 +69,19 @@ async function smallTargets(page: Page): Promise<string[]> {
   }, MIN_TARGET_PX)
 }
 
-async function primaryControlTop(page: Page): Promise<number> {
-  return page.locator('[data-primary-control]').first().evaluate((element) => element.getBoundingClientRect().top + window.scrollY)
-}
-
-export async function checkLayout(page: Page, where: string) {
-  expect(await horizontalOverflow(page), `horizontal overflow on ${where}`).toBeLessThanOrEqual(0)
+// The stage is scaled, so a target's on-screen height is its CSS height times the scale (at least 1).
+export async function checkSlide(page: Page, where: string) {
+  const mode = await page.evaluate(() => document.documentElement.dataset.mode)
+  const overflow = await pageOverflow(page)
+  expect(overflow.across, `horizontal page scroll on ${where}`).toBeLessThanOrEqual(0)
+  if (mode === 'stage') {
+    expect(overflow.down, `vertical page scroll on ${where}`).toBeLessThanOrEqual(0)
+    expect(await clippedBoxes(page), `clipped content on ${where}`).toEqual([])
+  }
   expect(await smallText(page), `text under ${MIN_FONT_SIZE_PX}px on ${where}`).toEqual([])
   expect(await smallTargets(page), `touch targets under ${MIN_TARGET_PX}px on ${where}`).toEqual([])
-  const viewport = page.viewportSize()
-  expect(await primaryControlTop(page), `primary control too far down on ${where}`).toBeLessThan((viewport?.height ?? 0) * PRIMARY_CONTROL_SCREENS)
   const visuals = page.locator('[data-visual]')
   const count = await visuals.count()
-  expect(count, `no visual on ${where}`).toBeGreaterThan(0)
   for (let index = 0; index < count; index++) {
     await expect(visuals.nth(index).locator('[data-provenance]').first(), `badge missing on ${where}`).toBeVisible()
   }

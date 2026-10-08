@@ -21,8 +21,8 @@ const PANEL_BUTTON = 'inline-flex min-h-11 flex-1 items-center justify-center ga
 
 export function SidePanel({ chapter, onOpen }: SidePanelProps) {
   return (
-    <div className="flex h-full flex-col gap-3">
-      <div className="flex flex-col gap-2" data-explain>
+    <div className="flex h-full flex-col gap-2.5">
+      <div className="flex flex-col gap-1.5" data-explain>
         {ROWS.map((row) => (
           <p key={row.key} className="m-0 text-base leading-snug text-ink">
             <span className="mr-1.5 inline-block rounded px-1.5 font-bold text-white" style={{ background: 'var(--concept-strong)' }}>
@@ -32,7 +32,7 @@ export function SidePanel({ chapter, onOpen }: SidePanelProps) {
           </p>
         ))}
       </div>
-      <div className="rounded-xl border-2 bg-paper p-3" style={{ borderColor: 'var(--concept-soft)' }}>
+      <div className="rounded-xl border-2 bg-paper px-3 py-2" style={{ borderColor: 'var(--concept-soft)' }}>
         <ColorKey entries={chapter.colorKey} />
       </div>
       <div className="mt-auto flex gap-2">

@@ -3,8 +3,8 @@
 
 import type { ChapterId, ColorKeyEntry } from './types'
 
-const CHIPS: ColorKeyEntry = { color: 'identity', mark: 'chips', label: 'Coloured chips: tokens. Each token keeps its colour on every slide.' }
-const IDS: ColorKeyEntry = { color: 'identity', mark: 'id', label: 'The number after # is the token\'s ID in the fixed list.' }
+const CHIPS: ColorKeyEntry = { color: 'identity', mark: 'chips', label: 'Coloured chips: tokens, same colour on every slide.' }
+const IDS: ColorKeyEntry = { color: 'identity', mark: 'id', label: '#ID: the token\'s number in the fixed list.' }
 
 export const COLOR_KEYS: Record<ChapterId, ColorKeyEntry[]> = {
   intro: [CHIPS],
@@ -21,23 +21,23 @@ export const COLOR_KEYS: Record<ChapterId, ColorKeyEntry[]> = {
   ],
   numbers: [
     CHIPS,
-    { color: 'numbers', mark: 'bar', label: 'Violet bars: the token\'s numbers. Up is positive, down negative.' },
+    { color: 'numbers', mark: 'bar', label: 'Violet bars: the numbers, up positive, down negative.' },
     { color: 'numbers', mark: 'dot', label: 'Violet rings: the most similar tokens.' },
   ],
   attention: [
     CHIPS,
-    { color: 'attention', mark: 'arc', label: 'Orange arcs: attention. Thicker means more weight.' },
+    { color: 'attention', mark: 'arc', label: 'Orange arcs: attention, thicker = more weight.' },
     { color: 'attention', mark: 'cell', label: 'Darker orange cell: more weight.' },
   ],
   feedforward: [
     { color: 'numbers', mark: 'bar', label: 'Violet bars: the numbers of each position.' },
-    { color: 'feedforward', mark: 'bar', label: 'Green: the number the feed-forward step moved most.' },
+    { color: 'feedforward', mark: 'bar', label: 'Green: the number this step moved most.' },
     { color: 'attention', mark: 'arc', label: 'Orange lines: attention, for comparison.' },
   ],
   layers: [
-    { color: 'layers', mark: 'frame', label: 'Teal: the stack of blocks, the current one filled.' },
-    { color: 'numbers', mark: 'bar', label: 'Violet bars: the running vector of the last position.' },
-    { color: 'layers', mark: 'bar', label: 'Teal bars: the numbers this block changed most.' },
+    { color: 'layers', mark: 'frame', label: 'Teal: the stack, the current block filled.' },
+    { color: 'numbers', mark: 'bar', label: 'Violet bars: the last position\'s running vector.' },
+    { color: 'layers', mark: 'bar', label: 'Teal bars: what this block changed most.' },
   ],
   scores: [
     CHIPS,
@@ -52,10 +52,10 @@ export const COLOR_KEYS: Record<ChapterId, ColorKeyEntry[]> = {
   loop: [
     CHIPS,
     { color: 'append', mark: 'frame', label: 'Indigo: tokens appended by the loop.' },
-    { color: 'pick', mark: 'frame', label: 'The status strip lights each stage in its colour.' },
+    { color: 'pick', mark: 'frame', label: 'Status strip: each stage lights in its colour.' },
   ],
   reality: [
     CHIPS,
-    { color: 'scores', mark: 'frame', label: 'Rose: the live reply. Fluent is not the same as true.' },
+    { color: 'scores', mark: 'frame', label: 'Rose: the live reply, for you to judge.' },
   ],
 }

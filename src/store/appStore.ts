@@ -23,9 +23,6 @@ export const MAX_SPEED = 3
 export interface AppStoreState {
   chapterId: ChapterId | null
   setChapterId: (id: ChapterId) => void
-  openDrawers: Partial<Record<ChapterId, boolean>>
-  toggleDrawer: (id: ChapterId) => void
-  closeDrawer: (id: ChapterId) => void
 
   inputText: string
   setInputText: (text: string) => void
@@ -103,9 +100,6 @@ export const useAppStore = create<AppStoreState>()(
     (set) => ({
       chapterId: null,
       setChapterId: (chapterId) => set((s) => ({ chapterId, ...(s.fetchStatus === 'error' ? { fetchStatus: 'idle' as FetchStatus, fetchError: null } : {}) })),
-      openDrawers: {},
-      toggleDrawer: (id) => set((s) => ({ openDrawers: { ...s.openDrawers, [id]: !s.openDrawers[id] } })),
-      closeDrawer: (id) => set((s) => ({ openDrawers: { ...s.openDrawers, [id]: false } })),
 
       inputText: DEFAULT_INPUT_TEXT,
       setInputText: (inputText) => set({ inputText, selectedTokenIndex: null, feedForwardRuns: 0, ...generationInitial }),
@@ -150,7 +144,7 @@ export const useAppStore = create<AppStoreState>()(
       debugMode: false,
       toggleDebugMode: () => set((s) => ({ debugMode: !s.debugMode })),
 
-      resetAll: () => set({ ...settingsInitial, ...generationInitial, openDrawers: {} }),
+      resetAll: () => set({ ...settingsInitial, ...generationInitial }),
     }),
     {
       name: 'ai-explainer-storage-v4',
