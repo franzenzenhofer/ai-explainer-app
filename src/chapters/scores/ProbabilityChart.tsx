@@ -40,21 +40,24 @@ function BarRow({ label, title, probability, maxProbability, selected, onClick }
       <button
         type="button"
         aria-pressed={selected}
-        aria-label={`${title}: ${formatPercent(probability)}`}
         onClick={onClick}
         className={cn(
           'grid min-h-11 w-full grid-cols-[7rem_minmax(0,1fr)_4.5rem] items-center gap-3 rounded-[3px] px-2 text-left hover:bg-wash sm:grid-cols-[10rem_minmax(0,1fr)_5rem]',
           selected && 'tint-accent',
         )}
       >
-        <span title={title} className="line-clamp-2 break-words py-1 text-base font-semibold leading-tight text-ink">{label}</span>
+        <span title={label} className="line-clamp-2 break-words py-1 text-base font-semibold leading-tight text-ink">{label}</span>
         <span className="block h-5">
           <span
             className={cn('block h-full', selected ? 'bg-accent' : 'bg-ink')}
             style={{ width: barWidth(probability, maxProbability) }}
           />
         </span>
-        <span className="text-right text-base tabular-nums text-ink">{formatPercent(probability)}</span>
+        <span className="text-right text-base tabular-nums text-ink">
+          {' '}
+          {formatPercent(probability)}
+          <span className="sr-only">, {title}</span>
+        </span>
       </button>
     </li>
   )
@@ -69,7 +72,7 @@ export function ProbabilityChart({ top, tailProbability, tailLabel, selectedRank
         <BarRow
           key={candidate.token}
           label={formatTokenDisplay(candidate.token)}
-          title={`Rank ${rank + 1}, "${formatTokenDisplay(candidate.token)}"`}
+          title={`rank ${rank + 1}`}
           probability={candidate.probability}
           maxProbability={maxProbability}
           selected={rank === selectedRank}

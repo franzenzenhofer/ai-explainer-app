@@ -19,7 +19,7 @@ function TokenDetail() {
   const tokens = useTokens()
   const selected = useAppStore((s) => s.selectedTokenIndex)
   const token = selected === null ? undefined : tokens[selected]
-  if (!token) return <p className="m-0 text-lg text-ink-2">Tap a token to see its ID.</p>
+  if (!token) return <p className="m-0 text-lg text-ink-2">No token chosen yet.</p>
   return (
     <p className="m-0 text-lg" aria-live="polite">
       <span className="font-semibold">&quot;{formatTokenDisplay(token.text)}&quot;</span>: token ID{' '}
