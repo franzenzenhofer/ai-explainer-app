@@ -24,7 +24,7 @@ export function ExperimentPicker({ selectedId, disabled, onPick }: ExperimentPic
             disabled={disabled}
             onClick={() => onPick(experiment.id)}
             className={cn(
-              'flex min-h-11 items-center gap-2 rounded-lg border-2 px-3 text-left text-base font-semibold transition-colors disabled:cursor-not-allowed disabled:opacity-60',
+              'flex min-h-11 items-center gap-2 rounded-lg border-2 px-3 text-left text-base font-semibold transition hover:scale-[1.02] active:scale-[0.98] disabled:hover:scale-100 disabled:cursor-not-allowed disabled:opacity-60',
               chosen ? 'border-[var(--accent)] bg-[var(--accent)] text-paper' : 'border-[var(--concept-soft)] bg-paper text-ink hover:border-[var(--accent)]',
             )}
           >

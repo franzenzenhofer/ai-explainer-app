@@ -1,12 +1,13 @@
 // The head types researchers have documented, each linked to the passage that describes it.
 import { SOURCES } from '../../core/chapters'
+import { MODEL_SPECS } from '../../core/types'
 import { KNOWN_HEAD_TYPES } from './headTypes'
 
 export function HeadTypesList() {
   return (
     <div>
       <p className="m-0 mb-3 text-base text-ink-2">
-        Each head in each layer learns its own pattern. These three are documented with evidence; most heads have no simple name.
+        Each head in each block learns its own pattern; {MODEL_SPECS.modelName} alone has {MODEL_SPECS.layers * MODEL_SPECS.headsPerLayer} heads ({MODEL_SPECS.headsPerLayer} in each of {MODEL_SPECS.layers} blocks). These three are documented with evidence; most heads have no simple name.
       </p>
       <ul className="m-0 grid list-none gap-4 p-0 md:grid-cols-3">
         {KNOWN_HEAD_TYPES.map((head) => (

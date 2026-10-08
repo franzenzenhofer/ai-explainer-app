@@ -71,7 +71,7 @@ export function BPEVisualizer() {
         </AnimatePresence>
       </div>
       <div className="flex items-center gap-3" aria-hidden="true">
-        <span className="text-base font-semibold text-ink-2">Merge {shown} of {steps.length - 1}</span>
+        <span className="text-base font-semibold text-ink-2">Merge {shown} of {steps.length - 1}: {steps[shown].pieces.length} {steps[shown].pieces.length === 1 ? 'piece' : 'pieces'}</span>
         <span className="h-2 flex-1 overflow-hidden rounded-full" style={{ background: 'var(--concept-soft)' }}>
           <motion.span className="block h-full rounded-full" style={{ background: 'var(--concept)' }} animate={{ width: `${(shown / Math.max(1, steps.length - 1)) * 100}%` }} />
         </span>

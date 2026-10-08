@@ -59,6 +59,9 @@ function Cloud({ table }: { table: Gpt2Table }) {
   )
 }
 
+// The faint grid behind the map, like the old app's semantic space.
+const MAP_GRID = 'linear-gradient(to right, rgb(124 58 237 / 0.07) 1px, transparent 1px), linear-gradient(to bottom, rgb(124 58 237 / 0.07) 1px, transparent 1px)'
+
 function MapBody({ table, tokens, selectedIndex, outside }: TokenMapProps) {
   const labels = useMemo(
     () =>
@@ -78,7 +81,9 @@ function MapBody({ table, tokens, selectedIndex, outside }: TokenMapProps) {
     [table, selected],
   )
   return (
-    <div role="img" aria-label="Map of the demo tokens with the tokens of your text labelled" className="relative min-h-0 w-full flex-1 rounded-lg border-2 border-[var(--concept-soft)] bg-paper">
+    <div role="img" aria-label="Map of the demo tokens with the tokens of your text labelled" className="relative min-h-0 w-full flex-1 rounded-lg border-2 border-[var(--concept-soft)] bg-paper"
+      style={{ backgroundImage: MAP_GRID, backgroundSize: '10% 10%' }}
+    >
       <Cloud table={table} />
       {neighbours.map((neighbour) => (
         <motion.span

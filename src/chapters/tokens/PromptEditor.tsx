@@ -15,6 +15,7 @@ export function PromptEditor({ onDone }: PromptEditorProps) {
         id="prompt-editor"
         value={inputText}
         autoFocus
+        placeholder="Type any text here"
         rows={2}
         onChange={(event) => setInputText(event.target.value)}
         onKeyDown={(event) => event.key === 'Escape' && onDone()}
