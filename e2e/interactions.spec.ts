@@ -60,7 +60,7 @@ test('numbers: real GPT-2 numbers, a grey token outside the demo set', async ({ 
 
 test('attention: arcs only point left; the grid fits', async ({ page }) => {
   await open(page, '/attention')
-  const paths = await page.locator('[data-visual] svg path').evaluateAll((elements) => elements.map((element) => element.getAttribute('d') ?? ''))
+  const paths = await page.locator('[data-visual] svg:not(.lucide) path').evaluateAll((elements) => elements.map((element) => element.getAttribute('d') ?? ''))
   expect(paths.length).toBeGreaterThan(0)
   for (const d of paths) {
     const numbers = d.match(/-?\d+(\.\d+)?/g)?.map(Number) ?? []

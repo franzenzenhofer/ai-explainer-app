@@ -1,45 +1,64 @@
-// The stack of blocks, drawn bottom-up: token + position at the bottom, the last block on top.
-// Each row is a button that jumps to the vector after that block.
+// The stack drawn bottom-up: token + position at the bottom, block 12 on top, each block made of an
+// attention part (orange) and a feed-forward part (green). A violet "vector" marker climbs to the block
+// the reader is looking at. The buttons to jump to a block are in BlockPicker.
+import { motion } from 'motion/react'
+import { CONCEPT_COLORS } from '../../core/colors'
 import { MODEL_SPECS } from '../../core/types'
 import { cn } from '../../core/utils/cn'
 
-interface LayerStackProps {
-  selectedBlock: number
-  onSelect: (block: number) => void
-}
+export const SLAB_PX = 24
+const SLAB_GAP_PX = 2
+// Height of the heading line above the slabs (16px text plus its margin).
+const HEADING_PX = 28
+const LAYERS = CONCEPT_COLORS.layers
 
 export function blockLabel(block: number): string {
   return block === 0 ? 'Token + position' : `Block ${block}: attention + feed-forward`
 }
 
-export function LayerStack({ selectedBlock, onSelect }: LayerStackProps) {
-  const blocks = Array.from({ length: MODEL_SPECS.layers + 1 }, (_, block) => block).reverse()
+function Slab({ block, selectedBlock }: { block: number; selectedBlock: number }) {
+  const selected = block === selectedBlock
+  const passed = block < selectedBlock
   return (
-    <ol
-      aria-label={`The ${MODEL_SPECS.layers} blocks of ${MODEL_SPECS.modelName}, bottom to top`}
-      className="m-0 flex list-none flex-col gap-1 p-0"
+    <li
+      className={cn('flex items-center justify-between gap-2 rounded-md border-2 px-2 text-base font-semibold leading-none transition-colors duration-300')}
+      style={{
+        height: SLAB_PX,
+        background: selected ? LAYERS.solid : passed ? LAYERS.tint : '#ffffff',
+        borderColor: selected || passed ? LAYERS.solid : LAYERS.soft,
+        color: selected ? '#ffffff' : LAYERS.strong,
+      }}
     >
-      {blocks.map((block) => {
-        const selected = block === selectedBlock
-        const passed = block < selectedBlock
-        return (
-          <li key={block}>
-            <button
-              type="button"
-              aria-pressed={selected}
-              onClick={() => onSelect(block)}
-              className={cn(
-                'flex min-h-11 w-full items-center border-l-4 px-3 text-left text-base transition-colors',
-                selected && 'tint-accent border-accent font-semibold text-ink',
-                !selected && passed && 'border-ink bg-wash text-ink',
-                !selected && !passed && 'border-rule bg-paper text-ink-2 hover:bg-wash',
-              )}
-            >
-              {blockLabel(block)}
-            </button>
-          </li>
-        )
-      })}
-    </ol>
+      <span className="whitespace-nowrap">{block === 0 ? 'Token + position' : `Block ${block}`}</span>
+      {block > 0 && (
+        <span className="flex gap-1" aria-hidden="true">
+          <span className="block h-3 w-5 rounded-sm" style={{ background: CONCEPT_COLORS.attention.solid }} />
+          <span className="block h-3 w-5 rounded-sm" style={{ background: CONCEPT_COLORS.feedforward.solid }} />
+        </span>
+      )}
+    </li>
+  )
+}
+
+export function LayerStack({ selectedBlock }: { selectedBlock: number }) {
+  const blocks = Array.from({ length: MODEL_SPECS.layers + 1 }, (_, block) => block).reverse()
+  const fromTop = MODEL_SPECS.layers - selectedBlock
+  return (
+    <div className="relative w-60 shrink-0 pr-20 max-sm:w-auto" aria-hidden="true">
+      <p className="m-0 mb-1 whitespace-nowrap text-base font-bold" style={{ color: LAYERS.strong }}>
+        {MODEL_SPECS.modelName}: {MODEL_SPECS.layers} blocks
+      </p>
+      <ol className="m-0 flex list-none flex-col p-0" style={{ gap: SLAB_GAP_PX }}>
+        {blocks.map((block) => <Slab key={block} block={block} selectedBlock={selectedBlock} />)}
+      </ol>
+      <motion.span
+        className="absolute right-0 flex items-center gap-1 rounded-full px-2 text-base font-bold text-paper shadow-md"
+        style={{ height: SLAB_PX, background: CONCEPT_COLORS.numbers.solid }}
+        animate={{ top: HEADING_PX + fromTop * (SLAB_PX + SLAB_GAP_PX) }}
+        transition={{ type: 'spring', stiffness: 220, damping: 22 }}
+      >
+        {'←'} vector
+      </motion.span>
+    </div>
   )
 }
