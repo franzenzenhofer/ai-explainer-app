@@ -190,10 +190,32 @@ html[data-mode="flow"] .slide-overlay {
   }
 }
 
+/* Inside a scrolling box the outer ring would be clipped, so the halo pulses inward instead. */
+.overflow-y-auto .halo,
+.overflow-auto .halo {
+  animation-name: halo-pulse-inset;
+}
+
+@keyframes halo-pulse-inset {
+  0%, 100% {
+    box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--concept) 55%, transparent);
+  }
+  50% {
+    box-shadow: inset 0 0 0 3px color-mix(in srgb, var(--concept) 85%, transparent), inset 0 0 12px 2px color-mix(in srgb, var(--concept) 45%, transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   .halo {
     animation: none !important;
     box-shadow: 0 0 0 4px color-mix(in srgb, var(--concept) 55%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .overflow-y-auto .halo,
+  .overflow-auto .halo {
+    box-shadow: inset 0 0 0 4px color-mix(in srgb, var(--concept) 70%, transparent);
   }
 }
 
