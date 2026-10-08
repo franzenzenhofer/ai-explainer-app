@@ -1,5 +1,6 @@
 // The bottom bar of every slide: Back, a clickable dot per slide with the counter, Next.
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
+import { motion } from 'motion/react'
 import { useAppStore } from '../../store/appStore'
 import { CONCEPT_COLORS } from '../colors'
 import { CHAPTERS, chapterIndex, neighbourChapter, type ChapterId } from '../chapters'
@@ -23,10 +24,11 @@ function Dots({ current }: { current: ChapterId }) {
               title={chapter.shortName}
               className="flex h-11 w-8 items-center justify-center"
             >
-              <span
-                className={cn('block rounded-full transition-all', active ? 'h-4 w-4' : 'h-2.5 w-2.5 opacity-50 hover:opacity-100')}
-                style={{ background: color, boxShadow: active ? `0 0 0 3px ${color}33` : undefined }}
-              />
+              {active ? (
+                <motion.span layoutId="active-slide-dot" className="block h-4 w-4 rounded-full" style={{ background: color, boxShadow: `0 0 0 4px ${color}33` }} />
+              ) : (
+                <span className="block h-2.5 w-2.5 rounded-full opacity-50 transition-opacity hover:opacity-100" style={{ background: color }} />
+              )}
             </ChapterLink>
           </li>
         )
@@ -35,7 +37,7 @@ function Dots({ current }: { current: ChapterId }) {
   )
 }
 
-const NAV_BUTTON = 'inline-flex min-h-11 items-center gap-1 rounded-lg border-2 px-3 text-base font-semibold no-underline'
+const NAV_BUTTON = 'inline-flex min-h-11 items-center gap-1 rounded-lg border-2 px-3 text-base font-semibold no-underline transition-transform hover:scale-[1.03] active:scale-95'
 
 export function SlideNav({ current }: { current: ChapterId }) {
   const previous = neighbourChapter(current, -1)
@@ -43,7 +45,7 @@ export function SlideNav({ current }: { current: ChapterId }) {
   const resetAll = useAppStore((s) => s.resetAll)
   const position = chapterIndex(current) + 1
   return (
-    <div className="slide-nav flex items-center justify-between gap-3">
+    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="slide-nav flex items-center justify-between gap-3">
       <div className="flex min-w-48 items-center gap-2">
         {previous && (
           <ChapterLink chapter={previous} className={cn(NAV_BUTTON, 'border-ink/15 bg-paper text-ink hover:border-ink/40')}>
@@ -74,6 +76,6 @@ export function SlideNav({ current }: { current: ChapterId }) {
           </ChapterLink>
         )}
       </div>
-    </div>
+    </motion.div>
   )
 }

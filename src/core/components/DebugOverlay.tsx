@@ -1,4 +1,5 @@
 // DebugOverlay - developer panel, toggled from the store with Cmd/Ctrl + Shift + D.
+import { motion } from 'motion/react'
 import type { ReactNode } from 'react'
 import { useDebug } from '../hooks/useDebug'
 import { useAppStore } from '../../store/appStore'
@@ -18,7 +19,13 @@ export function DebugOverlay() {
   const state = useAppStore()
   if (!debugMode) return null
   return (
-    <aside aria-label="Debug state" className="fixed bottom-4 right-4 z-50 w-80 border-2 border-ink bg-paper p-4 text-base">
+    <motion.aside
+      initial={{ x: 40, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 30 }}
+      aria-label="Debug state"
+      className="fixed bottom-4 right-4 z-50 w-80 rounded-xl border-2 border-ink/20 bg-paper p-4 text-base shadow-xl"
+    >
       <div className="mb-2 flex items-center justify-between">
         <span className="font-semibold">Debug</span>
         <button type="button" onClick={toggleDebugMode} className="min-h-11 px-3 underline">Close</button>
@@ -34,6 +41,6 @@ export function DebugOverlay() {
         <Row label="known steps" value={Object.keys(state.loopSteps).length} />
         <Row label="calls used" value={state.apiCallsUsed} />
       </dl>
-    </aside>
+    </motion.aside>
   )
 }

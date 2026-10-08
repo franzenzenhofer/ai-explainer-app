@@ -1,6 +1,7 @@
 // The pipeline drawn large for the intro: the first five stages left to right, the last four right to
 // left underneath (a snake), and an arrow from Append back to Text. Cards fade in one after the other.
 import { motion } from 'motion/react'
+import type { CSSProperties } from 'react'
 import { ArrowDown, ArrowLeft, ArrowRight, ArrowUp, BarChart3, Cpu, Dices, Eye, Hash, Layers, Puzzle, Repeat, Type, type LucideIcon } from 'lucide-react'
 import { CONCEPT_COLORS, type StageId } from '../../core/colors'
 import { PIPELINE, getChapter, type PipelineStage } from '../../core/chapters'
@@ -56,6 +57,7 @@ function StageCard({ stage, index }: { stage: PipelineStage; index: number }) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * CARD_DELAY_S, duration: 0.35 }}
       className="relative"
+      style={{ '--o': index } as CSSProperties}
     >
       {direction && <FlowArrow direction={direction} color={color.solid} />}
       <ChapterLink
@@ -81,16 +83,16 @@ export function PipelineLoop() {
   const loop = CONCEPT_COLORS.append
   return (
     <div className="relative mx-auto flex w-full max-w-[1180px] flex-col gap-6" aria-label="The pipeline, from text to the appended token and back">
-      <ol className="m-0 grid list-none grid-cols-5 gap-4 p-0">
+      <ol className="intro-row m-0 grid list-none grid-cols-5 gap-4 p-0">
         {first.map((stage, index) => <StageCard key={stage.id} stage={stage} index={index} />)}
       </ol>
-      <ol className="m-0 grid list-none grid-cols-5 gap-4 p-0">
+      <ol className="intro-row m-0 grid list-none grid-cols-5 gap-4 p-0">
         <motion.li
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: PIPELINE.length * CARD_DELAY_S + 0.2 }}
           className="relative flex flex-col items-center justify-center gap-1 rounded-2xl border-2 border-dashed p-3 text-center"
-          style={{ borderColor: loop.solid, color: loop.strong }}
+          style={{ borderColor: loop.solid, color: loop.strong, '--o': PIPELINE.length } as CSSProperties}
         >
           <FlowArrow direction="up" color={loop.solid} />
           <Repeat aria-hidden="true" size={28} />

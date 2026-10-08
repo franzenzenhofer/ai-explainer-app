@@ -1,6 +1,7 @@
 // An overlay panel on top of the slide ("Go deeper", "Sources"). It never extends the page: the panel
 // scrolls inside itself. Escape and the Close button close it; focus moves to Close when it opens.
 import { X } from 'lucide-react'
+import { motion } from 'motion/react'
 import { useEffect, useId, useRef, type ReactNode } from 'react'
 import { useEscape } from '../navigation/navigation'
 
@@ -16,8 +17,16 @@ export function Overlay({ title, onClose, children }: OverlayProps) {
   useEscape(true, onClose)
   useEffect(() => closeRef.current?.focus(), [])
   return (
-    <div className="slide-overlay absolute inset-0 z-40 flex items-center justify-center bg-slate-900/20 p-8" onClick={onClose}>
-      <div
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      className="slide-overlay absolute inset-0 z-40 flex items-center justify-center bg-slate-900/20 p-8"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96, y: 12 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.25 }}
         role="dialog"
         aria-modal="true"
         aria-labelledby={titleId}
@@ -39,7 +48,7 @@ export function Overlay({ title, onClose, children }: OverlayProps) {
           </button>
         </div>
         <div className="min-h-0 overflow-y-auto px-6 py-5">{children}</div>
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

@@ -16,14 +16,14 @@ export function IntroChapter() {
   return (
     <SlideStage theme={themeOf(chapter)} slideId={chapter.id}>
       <SlideTop id={chapter.id} />
-      <div className="slide-title text-center">
+      <motion.div initial={{ opacity: 0, y: -20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }} className="slide-title text-center">
         <h1 data-claim tabIndex={-1} className="m-0 text-[2.5rem] font-extrabold leading-tight tracking-tight text-ink outline-none">
           {chapter.claim}
         </h1>
         <p className="m-0 mt-1 text-xl text-ink-2">
           It predicts the next token, appends it, and runs again. These are the stages you will see, one slide each, each in its own colour.
         </p>
-      </div>
+      </motion.div>
       <div className="slide-main intro-main" data-fit>
         <PipelineLoop />
         <ChipLegend />

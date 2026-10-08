@@ -142,6 +142,31 @@ html[data-mode="flow"] .slide-overlay {
   }
 }
 
+@media (max-width: 899px) {
+  html[data-mode="flow"] .slide-top > nav {
+    order: 3;
+    flex-basis: 100%;
+  }
+  html[data-mode="flow"] .slide-top > a {
+    flex: 1;
+  }
+  html[data-mode="flow"] .intro-row {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-mode="flow"] .intro-row > li {
+    order: var(--o);
+  }
+  html[data-mode="flow"] .intro-row [aria-hidden="true"].absolute {
+    display: none;
+  }
+  html[data-mode="flow"] h1[data-claim] {
+    font-size: 1.75rem;
+  }
+  html[data-mode="flow"] .slide-nav {
+    justify-content: center;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;
