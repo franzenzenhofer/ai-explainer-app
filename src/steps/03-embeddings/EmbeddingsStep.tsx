@@ -4,7 +4,7 @@ import { AlertCircle } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import { useTokens, useEmbeddings } from '../../core/hooks/useDerived'
 import { StepLayout, TokenList } from '../../core/components'
-import { MODEL_SPECS } from '../../core/types'
+import { LARGE_MODEL_SPECS, MODEL_SPECS, TOKENIZER_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
 import { getNearestNeighbors } from './embeddings'
 import { SemanticSpace } from './SemanticSpace'
@@ -36,14 +36,14 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
           <div>
             <h4 className="text-sm font-semibold text-blue-900">What are Embeddings?</h4>
             <p className="mt-0.5 text-xs text-blue-800">
-              Each token becomes a <strong>vector</strong> — a list of {MODEL_SPECS.embeddingDim.toLocaleString()} numbers.
+              Each token becomes a <strong>vector</strong> - a list of numbers: {MODEL_SPECS.embeddingDim.toLocaleString()} in the {MODEL_SPECS.modelName} demo model.
               For example, the token &quot;king&quot; might become:
             </p>
             <p className="mt-1 rounded border border-blue-200 bg-white/80 px-2 py-1 font-mono text-[11px] text-blue-900">
-              [0.231, -1.872, 0.544, 3.019, -0.712, ... 4,096 numbers total]
+              [0.231, -1.872, 0.544, 3.019, -0.712, ... {MODEL_SPECS.embeddingDim.toLocaleString()} numbers total in {MODEL_SPECS.modelName}]
             </p>
             <p className="mt-1 text-xs text-blue-800">
-              These numbers are <strong>not predefined</strong> — the model <strong>learns</strong> them during training.
+              These numbers are <strong>not predefined</strong> - the model <strong>learns</strong> them during training.
               By reading billions of sentences, it adjusts each vector so that tokens used in similar contexts
               (like &quot;king&quot; and &quot;queen&quot;) end up with similar numbers. It&apos;s like GPS coordinates for meaning:
               nearby coordinates = similar meaning.
@@ -65,7 +65,7 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
           and &quot;The <strong>queen</strong> ruled the land.&quot; Because &quot;king&quot; and &quot;queen&quot;
           appear in the same contexts, the training process gradually pushes their vectors closer together.
           Tokens that never appear in similar contexts drift apart. After billions of examples,
-          the vectors encode rich relationships — entirely from patterns, no human labeling needed.
+          the vectors encode rich relationships - entirely from patterns, no human labeling needed.
         </p>
       </motion.div>
 
@@ -134,7 +134,7 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
         <div className="mb-1">
           <h3 className="text-sm font-semibold text-slate-700">Semantic Space (Simplified 2D View)</h3>
           <p className="text-xs text-orange-600 font-medium">
-            This is a 2-dimensional simplification — real models use {MODEL_SPECS.embeddingDim.toLocaleString()} dimensions per token
+            This is a 2-dimensional simplification - {MODEL_SPECS.modelName} uses {MODEL_SPECS.embeddingDim.toLocaleString()} dimensions per token ({LARGE_MODEL_SPECS.modelName}: {LARGE_MODEL_SPECS.embeddingDim.toLocaleString()})
           </p>
         </div>
         <SemanticSpace
@@ -156,17 +156,17 @@ export function EmbeddingsStep({ stepNumber, totalSteps, stepConfig }: StepProps
             <div className="text-2xl font-bold text-slate-900">
               {MODEL_SPECS.embeddingDim.toLocaleString()}
             </div>
-            <div className="text-xs text-slate-500">Dimensions per token</div>
+            <div className="text-xs text-slate-500">Dimensions per token ({MODEL_SPECS.modelName})</div>
           </div>
           <div>
             <div className="text-2xl font-bold text-slate-900">
-              {MODEL_SPECS.vocabulary.toLocaleString()}
+              {TOKENIZER_SPECS.vocabulary.toLocaleString()}
             </div>
-            <div className="text-xs text-slate-500">Vocabulary size</div>
+            <div className="text-xs text-slate-500">{TOKENIZER_SPECS.name} tokenizer vocabulary</div>
           </div>
         </div>
         <p className="mt-1.5 text-center text-[11px] text-slate-400">
-          Each token becomes a {MODEL_SPECS.embeddingDim}-dimensional list of numbers
+          In {MODEL_SPECS.modelName}, each token becomes a list of {MODEL_SPECS.embeddingDim} numbers
         </p>
       </motion.div>
     </div>

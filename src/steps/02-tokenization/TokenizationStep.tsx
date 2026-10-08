@@ -5,7 +5,7 @@ import { Scissors, AlertCircle } from 'lucide-react'
 import { useAppStore } from '../../store/appStore'
 import { useTokens } from '../../core/hooks/useDerived'
 import { StepLayout, TokenList, LabeledCounter } from '../../core/components'
-import { MODEL_SPECS } from '../../core/types'
+import { TOKENIZER_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
 import { getTokenStats } from './tokenizer'
 import { BPEVisualizer } from './BPEVisualizer'
@@ -43,10 +43,10 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
           <div>
             <h4 className="text-sm font-semibold text-blue-900">What are Tokens?</h4>
             <p className="mt-0.5 text-xs text-blue-800">
-              The AI never sees your text as letters. It splits it into <strong>tokens</strong> — small pieces of text
+              The AI never sees your text as letters. It splits it into <strong>tokens</strong> - small pieces of text
               with a fixed ID number. A token can be a whole word like &quot;the&quot;, part of a word like &quot;ing&quot;,
-              or punctuation. Example: &quot;Großmutter&quot; (grandmother) becomes two tokens: [&quot;Groß&quot;, &quot;mutter&quot;].
-              Tokens are the only units the AI predicts — that is why it sometimes miscounts letters or misspells words.
+              or punctuation. Example: &quot;Großmutter&quot; (grandmother) becomes four tokens: [&quot;Gro&quot;, &quot;ß&quot;, &quot;m&quot;, &quot;utter&quot;].
+              Tokens are the only units the AI predicts - that is why it sometimes miscounts letters or misspells words.
             </p>
           </div>
         </div>
@@ -125,9 +125,9 @@ export function TokenizationStep({ stepNumber, totalSteps, stepConfig }: StepPro
         transition={{ delay: 0.4 }}
       >
         <p className="text-sm text-slate-500">
-          Modern language models use <strong className="text-slate-900">{MODEL_SPECS.vocabulary.toLocaleString()}</strong> unique tokens
+          The {TOKENIZER_SPECS.name} tokenizer has a vocabulary of <strong className="text-slate-900">{TOKENIZER_SPECS.vocabulary.toLocaleString()}</strong> tokens
           <br />
-          <span className="text-xs text-slate-400">Tokenizer: same one used by ChatGPT and similar models</span>
+          <span className="text-xs text-slate-400">{TOKENIZER_SPECS.name}, the tokenizer OpenAI publishes for {TOKENIZER_SPECS.publishedFor}</span>
         </p>
       </motion.div>
     </div>

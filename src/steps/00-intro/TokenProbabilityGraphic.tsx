@@ -64,7 +64,7 @@ export function TokenProbabilityGraphic() {
         The One Idea: Predict the Next Token
       </h3>
       <p className="mb-1 text-center text-xs text-slate-500">
-        The AI knows a probability between every token and every other token — about 200,000 in total.
+        For the text so far, the AI computes a fresh probability for every token in its vocabulary (about 200,000), then picks one.
       </p>
       <p className="mb-3 text-center text-[11px] font-medium text-amber-600">
         A token is a piece of text. "tokenization" → "token" + "ization"

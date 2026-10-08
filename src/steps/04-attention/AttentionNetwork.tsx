@@ -4,6 +4,8 @@ import { useMemo, useRef, useState, useEffect, type CSSProperties } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import type { Token, AttentionWeight } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
+import { ProvenanceBadge, type Provenance } from '../../core/components/ProvenanceBadge'
+export const provenance: Provenance = 'simulated'
 
 interface AttentionNetworkProps {
   tokens: Token[]
@@ -80,6 +82,7 @@ export function AttentionNetwork({
       ref={containerRef}
       className="relative w-full min-h-[380px] h-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-r from-slate-900 via-slate-800 to-slate-900"
     >
+      <ProvenanceBadge provenance={provenance} />
       {/* SVG for lines */}
       <svg className="absolute inset-0 pointer-events-none" width={dimensions.width} height={dimensions.height}>
         <defs>

@@ -73,7 +73,7 @@ export function AttentionStep({ stepNumber, totalSteps, stepConfig }: StepProps)
     <div className="flex flex-wrap items-center gap-4">
       <div className="flex-1 min-w-[180px]">
         <ControlSlider
-          label="Layer"
+          label={`Layer (${MODEL_SPECS.modelName} size)`}
           value={selectedLayer}
           onChange={setSelectedLayer}
           min={0}
@@ -85,7 +85,7 @@ export function AttentionStep({ stepNumber, totalSteps, stepConfig }: StepProps)
       </div>
       <div className="flex-1 min-w-[180px]">
         <ControlSlider
-          label="Attention Head"
+          label={`Attention Head (${MODEL_SPECS.modelName} size)`}
           value={selectedHead}
           onChange={setSelectedHead}
           min={0}

@@ -12,39 +12,26 @@ import { getTokenColor } from '../../core/utils/colors'
 
 const MAX_TOKENS = 30
 
-type Phase = 'intake' | 'processing' | 'calculating' | 'choosing' | 'reveal' | null
+// One call returns the whole continuation, so after the fetch the page only replays it token by token.
+type Phase = 'replaying' | 'reveal' | null
 
-const PHASE_STYLES: Record<NonNullable<Phase>, { label: string; dotClass: string; textClass: string; bgClass: string }> = {
-  intake: {
-    label: '', // dynamic — filled with token count
+const PHASE_STYLES: Record<NonNullable<Phase>, { dotClass: string; textClass: string; bgClass: string }> = {
+  replaying: {
     dotClass: 'bg-orange-500',
     textClass: 'text-orange-700',
     bgClass: 'border-orange-200 bg-orange-50',
   },
-  processing: {
-    label: 'Processing input...',
-    dotClass: 'bg-blue-500',
-    textClass: 'text-blue-700',
-    bgClass: 'border-blue-200 bg-blue-50',
-  },
-  calculating: {
-    label: 'Calculating next possible tokens...',
-    dotClass: 'bg-amber-500',
-    textClass: 'text-amber-700',
-    bgClass: 'border-amber-200 bg-amber-50',
-  },
-  choosing: {
-    label: 'Choosing next token...',
-    dotClass: 'bg-emerald-500',
-    textClass: 'text-emerald-700',
-    bgClass: 'border-emerald-200 bg-emerald-50',
-  },
   reveal: {
-    label: '', // filled dynamically with token text
     dotClass: 'bg-violet-500',
     textClass: 'text-violet-700',
     bgClass: 'border-violet-300 bg-violet-50',
   },
+}
+
+const FETCHING_STYLE = {
+  dotClass: 'bg-blue-500',
+  textClass: 'text-blue-700',
+  bgClass: 'border-blue-200 bg-blue-50',
 }
 
 export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
@@ -63,7 +50,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
   const [phase, setPhase] = useState<Phase>(null)
   const [revealText, setRevealText] = useState<string>('')
   const [revealColor, setRevealColor] = useState<number>(0)
-  const [intakeCount, setIntakeCount] = useState<number>(0)
+  const [replayPosition, setReplayPosition] = useState<number>(0)
   const tokenIndexRef = useRef(0)
   const phaseTimeoutsRef = useRef<number[]>([])
 
@@ -103,7 +90,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     }
   }, [tokens, setIsGenerating])
 
-  // 5-phase cycle: intake → processing → calculating → choosing → reveal → add
+  // Replay cycle for one already fetched token: replaying -> reveal -> add
   useEffect(() => {
     clearPhaseTimeouts()
 
@@ -116,22 +103,19 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     }
 
     const totalInterval = 2500 / generationSpeed
-    const step = totalInterval / 6 // 6 steps: intake + 3 phases + reveal + add
+    const step = totalInterval / 3
 
     const nextToken = pendingTokens[tokenIndexRef.current]
 
-    setIntakeCount(tokens.length + generatedTokens.length)
-    setPhase('intake')
+    setReplayPosition(tokenIndexRef.current + 1)
+    setPhase('replaying')
 
-    const t1 = window.setTimeout(() => setPhase('processing'), step)
-    const t2 = window.setTimeout(() => setPhase('calculating'), step * 2)
-    const t3 = window.setTimeout(() => setPhase('choosing'), step * 3)
-    const t4 = window.setTimeout(() => {
+    const revealTimeout = window.setTimeout(() => {
       setRevealText(nextToken.text)
       setRevealColor(nextToken.colorIndex)
       setPhase('reveal')
-    }, step * 4)
-    const t5 = window.setTimeout(() => {
+    }, step * 2)
+    const addTimeout = window.setTimeout(() => {
       addGeneratedToken({
         id: generatedTokens.length,
         text: nextToken.text,
@@ -140,11 +124,11 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
       })
       tokenIndexRef.current++
       setPhase(null)
-    }, step * 5)
+    }, step * 3)
 
-    phaseTimeoutsRef.current = [t1, t2, t3, t4, t5]
+    phaseTimeoutsRef.current = [revealTimeout, addTimeout]
     return clearPhaseTimeouts
-  }, [isGenerating, generatedTokens.length, generationSpeed, pendingTokens, tokens.length, addGeneratedToken, setIsGenerating, clearPhaseTimeouts])
+  }, [isGenerating, generatedTokens.length, generationSpeed, pendingTokens, addGeneratedToken, setIsGenerating, clearPhaseTimeouts])
 
   const handleStart = () => {
     if (pendingTokens.length === 0 || generatedTokens.length === 0) {
@@ -185,9 +169,6 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     setPhase(null)
   }
 
-  const showCursor = isGenerating || isLoading ||
-    (pendingTokens.length > 0 && generatedTokens.length < pendingTokens.length)
-
   const leftPanel = <GenerationPipeline isGenerating={isGenerating} />
 
   const controls = (
@@ -210,7 +191,7 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
     <div className="flex h-full flex-col gap-2">
       {/* Generated Output */}
       <div className={`flex-1 overflow-auto rounded-lg border p-3 transition-all duration-300 ${
-        phase === 'intake'
+        phase === 'replaying'
           ? 'border-orange-400 bg-orange-50/60 ring-2 ring-orange-300/50'
           : 'border-slate-200 bg-white'
       }`}>
@@ -228,9 +209,9 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
               {token.text}
             </motion.span>
           ))}
-          {showCursor && (
+          {isLoading && (
             <motion.span
-              className="ml-1 inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 align-middle text-[11px] font-medium text-emerald-700"
+              className="ml-1 inline-flex items-center gap-1 rounded border border-emerald-200 bg-emerald-50 px-1.5 py-0.5 align-middle text-base font-medium text-emerald-700"
               animate={{ opacity: [0.6, 1] }}
               transition={{ duration: 0.8, repeat: Infinity, repeatType: 'reverse' }}
             >
@@ -240,8 +221,15 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
         </div>
       </div>
 
-      {/* Phase status line — full width, fixed height, no layout shifts */}
-      <PhaseStatusLine phase={phase} revealText={revealText} revealColor={revealColor} intakeCount={intakeCount} />
+      {/* Phase status line - full width, fixed height, no layout shifts */}
+      <PhaseStatusLine
+        phase={phase}
+        isLoading={isLoading}
+        revealText={revealText}
+        revealColor={revealColor}
+        replayPosition={replayPosition}
+        replayTotal={pendingTokens.length}
+      />
 
       {/* Token Stream */}
       <div>
@@ -310,29 +298,37 @@ export function GenerationStep({ stepNumber, totalSteps, stepConfig }: StepProps
 
 // --- Sub-components ---
 
-function PhaseStatusLine({ phase, revealText, revealColor, intakeCount }: {
+function PhaseStatusLine({ phase, isLoading, revealText, revealColor, replayPosition, replayTotal }: {
   phase: Phase
+  isLoading: boolean
   revealText: string
   revealColor: number
-  intakeCount: number
+  replayPosition: number
+  replayTotal: number
 }) {
-  if (!phase) return <div className="h-7" /> // stable placeholder — no layout shift
+  if (isLoading) {
+    return (
+      <div className={`flex min-h-[44px] items-center gap-2 rounded-md border px-2.5 ${FETCHING_STYLE.bgClass}`}>
+        <span className={`h-2 w-2 rounded-full ${FETCHING_STYLE.dotClass} animate-pulse`} />
+        <span className={`text-base font-medium ${FETCHING_STYLE.textClass}`}>
+          Requesting the continuation from the model...
+        </span>
+      </div>
+    )
+  }
+  if (!phase) return <div className="min-h-[44px]" /> // stable placeholder, no layout shift
 
   const style = PHASE_STYLES[phase]
 
   return (
-    <div className={`flex h-7 items-center gap-2 rounded-md border px-2.5 transition-colors duration-150 ${style.bgClass}`}>
+    <div className={`flex min-h-[44px] items-center gap-2 rounded-md border px-2.5 transition-colors duration-150 ${style.bgClass}`}>
       <span className={`h-2 w-2 rounded-full ${style.dotClass} animate-pulse`} />
-      {phase === 'intake' ? (
-        <span className="text-xs font-medium">
-          <span className={style.textClass}>Reading all </span>
-          <span className="inline-block rounded bg-orange-200 px-1.5 py-0.5 font-mono font-bold text-orange-900">
-            {intakeCount}
-          </span>
-          <span className={style.textClass}> tokens into context...</span>
+      {phase === 'replaying' ? (
+        <span className={`text-base font-medium ${style.textClass}`}>
+          Continuation fetched; replaying token {replayPosition} of {replayTotal}
         </span>
-      ) : phase === 'reveal' ? (
-        <span className="text-xs font-medium">
+      ) : (
+        <span className="text-base font-medium">
           <span className={style.textClass}>Next token: </span>
           <span
             className="inline-block rounded px-1.5 py-0.5 font-mono font-bold"
@@ -344,8 +340,6 @@ function PhaseStatusLine({ phase, revealText, revealColor, intakeCount }: {
             {revealText}
           </span>
         </span>
-      ) : (
-        <span className={`text-xs font-medium ${style.textClass}`}>{style.label}</span>
       )}
     </div>
   )

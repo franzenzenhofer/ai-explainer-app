@@ -1,15 +1,15 @@
 // Tokenizer logic - REAL tiktoken tokenization (o200k_base)
 import { getEncoding } from 'js-tiktoken'
-import type { Token } from '../../core/types'
+import { TOKENIZER_SPECS, type Token } from '../../core/types'
 
-// Use o200k_base - the tokenizer used by modern language models
+// Use o200k_base - the tokenizer OpenAI publishes for gpt-4o
 // Falls back to cl100k_base if o200k not available
 let encoder: ReturnType<typeof getEncoding> | null = null
 
 function getEncoder() {
   if (!encoder) {
     try {
-      // Try o200k_base first (modern models)
+      // Try o200k_base first
       encoder = getEncoding('o200k_base')
     } catch {
       // Fallback to cl100k_base
@@ -108,8 +108,8 @@ export function demonstrateBPE(word: string): Array<{ step: string; result: stri
 // Get encoder info
 export function getTokenizerInfo() {
   return {
-    name: 'o200k_base',
-    description: 'Tokenizer used by modern language models',
-    vocabSize: 200_000,
+    name: TOKENIZER_SPECS.name,
+    description: `Tokenizer OpenAI publishes for ${TOKENIZER_SPECS.publishedFor}`,
+    vocabSize: TOKENIZER_SPECS.vocabulary,
   }
 }

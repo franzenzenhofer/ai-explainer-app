@@ -24,7 +24,7 @@ export function IntroStep(_props: StepProps) {
           It predicts the next token. Over and over again.
         </p>
         <p className="mt-2 text-sm text-slate-500">
-          An interactive walk-through — in 8 small steps — of the one idea every modern AI runs on.
+          An interactive walk-through - in 8 small steps - of the one idea every modern AI runs on.
         </p>
       </motion.div>
 

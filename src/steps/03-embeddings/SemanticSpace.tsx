@@ -6,6 +6,8 @@ import type { Token } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
 import { get2DPosition } from './embeddings'
 import { cn } from '../../core/utils/cn'
+import { ProvenanceBadge, type Provenance } from '../../core/components/ProvenanceBadge'
+export const provenance: Provenance = 'simulated'
 
 interface SemanticSpaceProps {
   tokens: Token[]
@@ -68,6 +70,7 @@ export function SemanticSpace({ tokens, selectedIndex, onTokenClick }: SemanticS
       className="relative h-full w-full overflow-hidden rounded-xl border border-slate-200 bg-slate-50"
       onClick={() => onTokenClick(null)}
     >
+      <ProvenanceBadge provenance={provenance} />
       {/* Grid Background */}
       <svg className="absolute inset-0" width="100%" height="100%">
         <defs>

@@ -31,7 +31,7 @@ const SAMPLE_PROMPTS = [
   },
   {
     label: 'Punctuation',
-    text: 'Hello, world! How are you? I\'m fine... "Really?" Yes! No? Maybe: perhaps; definitely—absolutely! @AI #tokenization $100 50% (parentheses) [brackets] {braces}',
+    text: 'Hello, world! How are you? I\'m fine... "Really?" Yes! No? Maybe: perhaps; definitely-absolutely! @AI #tokenization $100 50% (parentheses) [brackets] {braces}',
     lang: 'en',
   },
   {

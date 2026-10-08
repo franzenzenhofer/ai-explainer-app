@@ -7,6 +7,8 @@ import { getTokenColor } from '../../core/utils/colors'
 import { generatePredictions } from './sampling'
 import { useAppStore } from '../../store/appStore'
 import { formatTokenDisplay } from '../../core/utils/formatters'
+import { ProvenanceBadge, type Provenance } from '../../core/components/ProvenanceBadge'
+export const provenance: Provenance = 'simulated'
 
 interface PredictionNetworkProps {
   inputTokens: Token[]
@@ -100,6 +102,7 @@ export function PredictionNetwork({
       className="relative h-full w-full overflow-auto rounded-xl border border-slate-200 bg-gradient-to-r from-slate-50 via-white to-yellow-50"
       style={{ minHeight: 320 }}
     >
+      <ProvenanceBadge provenance={provenance} />
       {/* SVG for connection lines */}
       <svg className="pointer-events-none absolute inset-0" width={dimensions.width} height={dimensions.height}>
         {/* Gradient definitions for lines */}

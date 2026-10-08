@@ -5,7 +5,7 @@ import { AlertCircle, Thermometer, Filter, Percent, BarChart3, Network } from 'l
 import { useAppStore } from '../../store/appStore'
 import { usePredictions, useTokens } from '../../core/hooks/useDerived'
 import { StepLayout, ControlSlider, ControlPresets } from '../../core/components'
-import { MODEL_SPECS } from '../../core/types'
+import { TOKENIZER_SPECS } from '../../core/types'
 import type { StepProps } from '../../core/types/step-props'
 import { ProbabilityChart } from './ProbabilityChart'
 import { PredictionNetwork } from './PredictionNetwork'
@@ -92,8 +92,8 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
           <div>
             <h4 className="text-sm font-semibold text-blue-900">How does the model choose the next token?</h4>
             <p className="mt-0.5 text-xs text-blue-800">
-              The model calculates a <strong>probability</strong> for each of the {MODEL_SPECS.vocabulary.toLocaleString()} possible tokens
-              in its vocabulary. Think of it like a weighted dice — some outcomes are more likely than others.
+              The model calculates a <strong>probability</strong> for each of the {TOKENIZER_SPECS.vocabulary.toLocaleString()} tokens
+              in the {TOKENIZER_SPECS.name} vocabulary. Think of it like a weighted dice - some outcomes are more likely than others.
               <strong> Temperature</strong> controls creativity: low = predictable, high = more random.
               <strong> Top-K</strong> limits choices to the K most likely tokens.
               <strong> Top-P</strong> limits choices until cumulative probability reaches P%.
@@ -195,13 +195,13 @@ export function PredictionStep({ stepNumber, totalSteps, stepConfig }: StepProps
           </div>
           <div>
             <div className="text-lg font-bold text-slate-900">
-              {predictions[0] ? (predictions[0].probability * 100).toFixed(1) + '%' : '—'}
+              {predictions[0] ? (predictions[0].probability * 100).toFixed(1) + '%' : '-'}
             </div>
             <div className="text-[10px] text-slate-500">Top probability</div>
           </div>
           <div>
-            <div className="text-lg font-bold text-slate-900">{MODEL_SPECS.vocabulary.toLocaleString()}</div>
-            <div className="text-[10px] text-slate-500">Total vocabulary</div>
+            <div className="text-lg font-bold text-slate-900">{TOKENIZER_SPECS.vocabulary.toLocaleString()}</div>
+            <div className="text-[10px] text-slate-500">{TOKENIZER_SPECS.name} vocabulary</div>
           </div>
         </div>
       </motion.div>

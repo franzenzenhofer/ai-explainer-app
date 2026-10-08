@@ -3,29 +3,25 @@ import { motion } from 'motion/react'
 import { Play, RotateCcw } from 'lucide-react'
 import { useStepAnimation } from '../../core/hooks/useAnimation'
 import { getTokenColor } from '../../core/utils/colors'
+import { TOKENIZER_SPECS } from '../../core/types'
+import { tokenize } from './tokenizer'
 
 const DEMO_WORD = 'Großmutter'
 
+const REAL_TOKENS = tokenize(DEMO_WORD).map((token) => token.text)
+
+// Two honest stages: the characters, and the real o200k_base result. The merge order in between
+// is not shown because it is not computed here.
 const BPE_STEPS = [
   {
     phase: 'Characters',
-    description: 'Start with individual characters',
-    tokens: ['G', 'r', 'o', 'ß', 'm', 'u', 't', 't', 'e', 'r'],
-  },
-  {
-    phase: 'Common Pairs',
-    description: 'Merge frequent character pairs',
-    tokens: ['Gr', 'oß', 'mu', 'tt', 'er'],
-  },
-  {
-    phase: 'Substrings',
-    description: 'Merge into common substrings',
-    tokens: ['Groß', 'mutter'],
+    description: 'Start with the individual characters',
+    tokens: Array.from(DEMO_WORD),
   },
   {
     phase: 'Final',
-    description: 'Found in vocabulary (2 tokens)',
-    tokens: ['Groß', 'mutter'],
+    description: `The ${TOKENIZER_SPECS.name} tokenizer returns ${REAL_TOKENS.length} tokens`,
+    tokens: REAL_TOKENS,
   },
 ]
 

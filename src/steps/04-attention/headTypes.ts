@@ -54,7 +54,7 @@ export const KNOWN_HEAD_TYPES: HeadType[] = [
   },
   {
     name: 'Negative Name Mover Head',
-    what: 'Works against the correct answer — actively boosts the wrong name, acting as opposition to Name Mover Heads.',
+    what: 'Works against the correct answer - actively boosts the wrong name, acting as opposition to Name Mover Heads.',
     example: '"Mary gave to John. John gave back to __" → increases logit of "John" (the wrong answer)',
     category: 'Name Circuit',
   },
@@ -123,7 +123,7 @@ export const KNOWN_HEAD_TYPES: HeadType[] = [
   },
   {
     name: 'Attention Sink Head',
-    what: 'Assigns disproportionate attention to the first token (BOS) regardless of content — a "no-op" mechanism that prevents representational collapse.',
+    what: 'Assigns disproportionate attention to the first token (BOS) regardless of content - a "no-op" mechanism that prevents representational collapse.',
     example: 'Across many layers, the BOS token receives 90%+ weight even though it carries no semantic meaning',
     category: 'Structural',
   },
@@ -135,20 +135,20 @@ export const KNOWN_HEAD_TYPES: HeadType[] = [
   },
   {
     name: 'Streaming Head',
-    what: 'Only attends to recent tokens and the attention sink — handles local coherence in long documents.',
+    what: 'Only attends to recent tokens and the attention sink - handles local coherence in long documents.',
     example: 'In a 100,000-token document, only attends to the last few hundred tokens for grammar and flow',
     category: 'Structural',
   },
   {
     name: 'Subword Merge Head',
     what: 'Merges tokenized subword pieces back into a complete word representation.',
-    example: '"understanding" → ["under", "standing"] — the head at "standing" attends to "under" to reunify the word',
+    example: '"understanding" → ["under", "standing"] - the head at "standing" attends to "under" to reunify the word',
     category: 'Structural',
   },
   // === Linguistic ===
   {
     name: 'Syntactic Head',
-    what: 'Attends along grammatical dependency arcs — subject→verb, verb→object, adjective→noun.',
+    what: 'Attends along grammatical dependency arcs - subject→verb, verb→object, adjective→noun.',
     example: '"The large cat quickly chased the mouse" → links "chased" to subject "cat" and object "mouse"',
     category: 'Linguistic',
   },
@@ -160,7 +160,7 @@ export const KNOWN_HEAD_TYPES: HeadType[] = [
   },
   {
     name: 'Gender Head',
-    what: 'Encodes gender-related information, driving gendered pronoun resolution — sometimes reflecting training biases.',
+    what: 'Encodes gender-related information, driving gendered pronoun resolution - sometimes reflecting training biases.',
     example: '"The nurse said __ would help" → biased toward "she" over "he" due to occupational stereotypes',
     category: 'Linguistic',
   },
@@ -186,7 +186,7 @@ export const KNOWN_HEAD_TYPES: HeadType[] = [
   // === In-Context Learning ===
   {
     name: 'Function Vector Head',
-    what: 'Encodes the abstract task demonstrated by few-shot examples (not just pattern matching — actual task encoding).',
+    what: 'Encodes the abstract task demonstrated by few-shot examples (not just pattern matching - actual task encoding).',
     example: '"hot→cold, big→small" → encodes the "antonym" task, enabling "fast→slow" without exact pattern match',
     category: 'In-Context Learning',
   },

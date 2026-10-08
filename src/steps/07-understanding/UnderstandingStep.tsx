@@ -1,4 +1,4 @@
-// Step 7: Understanding - The Prediction Engine (AI-Powered!)
+// Step 7: Reality Check
 import { useState, useCallback, useRef, useEffect } from 'react'
 import { motion, AnimatePresence } from 'motion/react'
 import { Bird, Brain, Sparkles, Send, RotateCcw } from 'lucide-react'
@@ -6,52 +6,8 @@ import { StepLayout } from '../../core/components'
 import type { StepProps } from '../../core/types/step-props'
 import type { Token } from '../../core/types'
 import { generateWithGemini } from '../../services/gemini'
-
-interface TestCase {
-  id: string
-  question: string
-  expectedIssue: string
-  explanation: string
-  mechanicalTruth: string
-}
-
-const TEST_CASES: TestCase[] = [
-  {
-    id: 'calculation',
-    question: 'What is 347 × 892? Show your work.',
-    expectedIssue: 'No real calculation',
-    explanation: 'AI cannot actually calculate! It predicts tokens that LOOK like math. Without "tool use" (calling a calculator), it\'s just guessing numbers that seem plausible. The answer 309,524 is correct - but AI might give wrong answers for unusual numbers because it\'s pattern-matching, not computing.',
-    mechanicalTruth: 'Token prediction ≠ calculation. Tool use required for real math.',
-  },
-  {
-    id: 'sensory',
-    question: 'What does the color red feel like when you touch it? Describe the texture.',
-    expectedIssue: 'No physical grounding',
-    explanation: 'AI has no body, no senses, no experience. It generates plausible-sounding descriptions by combining text patterns about "red", "feel", and "texture" - but it has never touched or seen anything.',
-    mechanicalTruth: 'Pattern recombination, not sensory experience.',
-  },
-  {
-    id: 'novel',
-    question: 'I invented a game where you score points by "flurbing" - but only on Tuesdays. What\'s the best flurbing strategy?',
-    expectedIssue: 'No true reasoning',
-    explanation: 'With made-up concepts, the AI can only remix existing patterns. It will confidently give advice about "flurbing" despite having zero understanding of what it means.',
-    mechanicalTruth: 'Confident nonsense - high probability, zero knowledge.',
-  },
-  {
-    id: 'self',
-    question: 'Are you conscious? Do you truly understand what I\'m asking?',
-    expectedIssue: 'No self-awareness',
-    explanation: 'The AI generates text that sounds self-aware because that\'s what appears in training data. It\'s predicting "what would a conscious entity say?" - not actually being conscious.',
-    mechanicalTruth: 'Token prediction mimicking consciousness.',
-  },
-  {
-    id: 'hallucination',
-    question: 'Tell me about the famous 1987 chess match between Magnus Carlsen and Garry Kasparov.',
-    expectedIssue: 'Confident hallucination',
-    explanation: 'This event never happened (Carlsen was born 1990). But "famous chess match" + "1987" + famous names = high probability tokens. The AI generates confident fiction.',
-    mechanicalTruth: 'High probability ≠ truth.',
-  },
-]
+import { EXPERIMENTS, findExperiment, resolveVerdict, type ReaderChoice } from './experiments'
+import { VerdictPanel } from './VerdictPanel'
 
 export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepProps) {
   const [selectedTest, setSelectedTest] = useState<string | null>(null)
@@ -60,6 +16,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
   const [aiResponse, setAiResponse] = useState<string | null>(null)
   const [responseTokens, setResponseTokens] = useState<Token[]>([])
   const [showParrot, setShowParrot] = useState(true)
+  const [choice, setChoice] = useState<ReaderChoice | null>(null)
 
   // AbortController to cancel requests when navigating away
   const abortControllerRef = useRef<AbortController | null>(null)
@@ -83,6 +40,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
     abortControllerRef.current = new AbortController()
 
     setIsLoading(true)
+    setChoice(null)
     setAiResponse(null)
     setResponseTokens([])
 
@@ -114,7 +72,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
   }, [])
 
   const handleTestCase = useCallback((testId: string) => {
-    const test = TEST_CASES.find(t => t.id === testId)
+    const test = findExperiment(testId)
     if (test) {
       setSelectedTest(testId)
       askAI(test.question)
@@ -132,10 +90,13 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
     setSelectedTest(null)
     setAiResponse(null)
     setResponseTokens([])
+    setChoice(null)
     setCustomQuestion('')
   }, [])
 
-  const currentTest = TEST_CASES.find(t => t.id === selectedTest)
+  const currentTest = findExperiment(selectedTest)
+  const computedVerdict = currentTest && aiResponse ? resolveVerdict(currentTest, aiResponse, null) : null
+  const verdict = currentTest && aiResponse ? resolveVerdict(currentTest, aiResponse, choice) : null
 
   const leftPanel = (
     <div className="flex h-full flex-col gap-2">
@@ -192,7 +153,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
               exit={{ opacity: 0, scale: 0.8 }}
             >
               <Brain className="h-12 w-12 text-purple-500" />
-              <h4 className="text-sm font-medium text-slate-800">Prediction Engine</h4>
+              <h4 className="text-sm font-medium text-slate-800">Next-token predictor</h4>
               <p className="max-w-xs text-center text-xs text-slate-500">
                 Calculates next-token probabilities from patterns.
               </p>
@@ -252,9 +213,9 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
     <div className="flex h-full flex-col gap-2">
       {/* Test Case Buttons */}
       <div>
-        <h3 className="mb-1 text-xs font-medium text-slate-500">Test the AI's Limitations</h3>
+        <h3 className="mb-1 text-xs font-medium text-slate-500">Test the AI</h3>
         <div className="grid grid-cols-2 gap-2">
-          {TEST_CASES.map((test) => (
+          {EXPERIMENTS.map((test) => (
             <motion.button
               key={test.id}
               onClick={() => handleTestCase(test.id)}
@@ -268,7 +229,7 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
             >
-              <span className="font-medium">{test.expectedIssue}</span>
+              <span className="font-medium">{test.label}</span>
             </motion.button>
           ))}
         </div>
@@ -392,22 +353,14 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
                 </div>
               )}
 
-              {/* Explanation */}
               {currentTest && (
-                <motion.div
-                  className="rounded-lg bg-red-50 border border-red-200 p-3"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.3 }}
-                >
-                  <span className="text-xs font-semibold text-red-800">
-                    Issue: {currentTest.expectedIssue}
-                  </span>
-                  <p className="text-xs text-red-700 mt-1">{currentTest.explanation}</p>
-                  <p className="text-xs font-medium text-red-900 mt-2">
-                    {currentTest.mechanicalTruth}
-                  </p>
-                </motion.div>
+                <VerdictPanel
+                  experiment={currentTest}
+                  choice={choice}
+                  verdict={verdict}
+                  checkedAutomatically={computedVerdict !== null}
+                  onChoose={setChoice}
+                />
               )}
 
               {selectedTest === 'custom' && (
@@ -459,8 +412,8 @@ export function UnderstandingStep({ stepNumber, totalSteps, stepConfig }: StepPr
 
   return (
     <StepLayout
-      title="The Prediction Engine"
-      subtitle="Next-Token Probabilities"
+      title={stepConfig.title}
+      subtitle={stepConfig.subtitle}
       accentColor={stepConfig.accentColor}
       leftPanel={leftPanel}
       rightPanel={rightPanel}

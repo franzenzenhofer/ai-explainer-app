@@ -50,10 +50,26 @@ export type StepId =
   | 'understanding'
 
 // Model specifications (used throughout the app)
+// The demo model is GPT-2 small (12 layers, 12 heads, 768 numbers per token), the same sizes as
+// GPT-3 Small in Table 2.1 of https://arxiv.org/pdf/2005.14165. Every place that shows one of
+// these numbers must also show modelName. Sizes of closed models are not published.
 export const MODEL_SPECS = {
-  vocabulary: 200_000,
-  embeddingDim: 4096,
+  modelName: 'GPT-2 small',
+  embeddingDim: 768,
   layers: 12,
   headsPerLayer: 12,
-  tokenizerName: 'o200k_base',
+} as const
+
+// For scale only: GPT-3 175B, Table 2.1 of https://arxiv.org/pdf/2005.14165
+export const LARGE_MODEL_SPECS = {
+  modelName: 'GPT-3 175B',
+  embeddingDim: 12_288,
+  layers: 96,
+} as const
+
+// The tokenizer's vocabulary (regular tokens in o200k_base). It belongs to the tokenizer, not to the demo model.
+export const TOKENIZER_SPECS = {
+  name: 'o200k_base',
+  vocabulary: 199_998,
+  publishedFor: 'gpt-4o',
 } as const

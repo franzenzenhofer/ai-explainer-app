@@ -4,6 +4,8 @@ import type { Token, EmbeddingVector } from '../../core/types'
 import { MODEL_SPECS } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
 import { formatVectorValue } from '../../core/utils/formatters'
+import { ProvenanceBadge, type Provenance } from '../../core/components/ProvenanceBadge'
+export const provenance: Provenance = 'simulated'
 
 interface VectorDisplayProps {
   token: Token
@@ -20,15 +22,16 @@ export function VectorDisplay({ token, embedding }: VectorDisplayProps) {
     <motion.div
       initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      className="rounded-lg border border-slate-200 bg-white p-2.5"
+      className="relative rounded-lg border border-slate-200 bg-white p-2.5"
     >
+      <ProvenanceBadge provenance={provenance} />
       <div className="mb-2 flex items-center justify-between">
         <h4 className="text-sm font-medium text-slate-500">
           Embedding for "
           <span style={{ color }}>{token.text}</span>"
         </h4>
         <span className="text-xs text-slate-400">
-          {MODEL_SPECS.embeddingDim} dimensions
+          {MODEL_SPECS.embeddingDim} dimensions ({MODEL_SPECS.modelName})
         </span>
       </div>
 
@@ -68,7 +71,7 @@ export function VectorDisplay({ token, embedding }: VectorDisplayProps) {
 
       {/* Ellipsis indicator */}
       <div className="mt-2 text-center text-xs text-slate-400">
-        ... and {MODEL_SPECS.embeddingDim - DISPLAY_DIMS} more dimensions
+        ... and {MODEL_SPECS.embeddingDim - DISPLAY_DIMS} more dimensions in {MODEL_SPECS.modelName}
       </div>
     </motion.div>
   )

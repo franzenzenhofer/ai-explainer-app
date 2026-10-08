@@ -3,6 +3,8 @@ import { useMemo, useRef, useState, useEffect, type CSSProperties } from 'react'
 import { motion } from 'motion/react'
 import type { Token } from '../../core/types'
 import { getTokenColor } from '../../core/utils/colors'
+import { ProvenanceBadge, type Provenance } from '../../core/components/ProvenanceBadge'
+export const provenance: Provenance = 'simulated'
 
 interface TokenFlowProps {
   inputTokens: Token[]
@@ -66,6 +68,7 @@ export function TokenFlow({ inputTokens, generatedTokens, accentColor }: TokenFl
       ref={containerRef}
       className="relative h-full w-full overflow-hidden rounded-xl border border-slate-200 bg-gradient-to-b from-slate-50 to-white"
     >
+      <ProvenanceBadge provenance={provenance} />
       {/* SVG for connecting lines */}
       <svg
         className="pointer-events-none absolute inset-0"
