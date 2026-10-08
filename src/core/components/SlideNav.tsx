@@ -2,6 +2,7 @@
 import { ChevronLeft, ChevronRight, RotateCcw } from 'lucide-react'
 import { motion } from 'motion/react'
 import { useFirstPaint } from '../hooks/useFirstPaint'
+import { useNextHalo } from '../hooks/useHalo'
 import { useAppStore } from '../../store/appStore'
 import { CONCEPT_COLORS } from '../colors'
 import { CHAPTERS, chapterIndex, neighbourChapter, type ChapterId } from '../chapters'
@@ -46,6 +47,7 @@ export function SlideNav({ current }: { current: ChapterId }) {
   const resetAll = useAppStore((s) => s.resetAll)
   const position = chapterIndex(current) + 1
   const firstPaint = useFirstPaint()
+  const nextHalo = useNextHalo(current)
   return (
     <motion.div initial={firstPaint ? false : { opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }} className="slide-nav flex items-center justify-between gap-3">
       <div className="flex min-w-48 items-center gap-2">
@@ -68,12 +70,12 @@ export function SlideNav({ current }: { current: ChapterId }) {
       </div>
       <div className="flex min-w-48 justify-end">
         {next ? (
-          <ChapterLink chapter={next} className={cn(NAV_BUTTON, 'border-[var(--concept-strong)] bg-[var(--concept-strong)] text-white hover:opacity-90')}>
+          <ChapterLink chapter={next} className={cn(NAV_BUTTON, nextHalo, 'border-[var(--concept-strong)] bg-[var(--concept-strong)] text-white hover:opacity-90')}>
             Next: {next.shortName}
             <ChevronRight aria-hidden="true" size={20} />
           </ChapterLink>
         ) : (
-          <ChapterLink chapter={CHAPTERS[0]} className={cn(NAV_BUTTON, 'border-[var(--concept-strong)] bg-[var(--concept-strong)] text-white')}>
+          <ChapterLink chapter={CHAPTERS[0]} className={cn(NAV_BUTTON, nextHalo, 'border-[var(--concept-strong)] bg-[var(--concept-strong)] text-white')}>
             Back to the start
           </ChapterLink>
         )}

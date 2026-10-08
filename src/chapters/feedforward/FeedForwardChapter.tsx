@@ -2,6 +2,7 @@
 // the four steps of a run light up, then every column changes at once. The toggle draws the attention
 // step on top, where lines cross between columns.
 import { useMemo } from 'react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { useAppStore, type FeedForwardView } from '../../store/appStore'
 import { useAttentionWeights, useTokens } from '../../core/hooks/useDerived'
 import { Button, SlideLayout, ToggleGroup, VisualFrame } from '../../core/components'
@@ -45,6 +46,11 @@ export function FeedForwardChapter() {
   const view = useAppStore((s) => s.feedForwardView)
   const setView = useAppStore((s) => s.setFeedForwardView)
   const { step, start } = useRunSteps(runFeedForward)
+  const halo = useActionHalo('feedforward')
+  const run = () => {
+    halo.used()
+    start()
+  }
   const columns = useMemo(() => columnsAfterRuns(tokens, runs), [tokens, runs])
   const highlights = useHighlights(runs, columns)
   const lines = useMemo(() => attentionLines(weights), [weights])
@@ -75,7 +81,7 @@ export function FeedForwardChapter() {
             </div>
           </div>
           <div className="flex items-center gap-3 max-sm:flex-wrap" data-primary-control>
-            <Button variant="primary" onClick={start} disabled={step !== null}>
+            <Button variant="primary" className={halo.className} onClick={run} disabled={step !== null}>
               Run the block
             </Button>
             <span className="text-base font-semibold text-[var(--concept-strong)]">Show:</span>

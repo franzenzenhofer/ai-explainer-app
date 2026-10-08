@@ -2,6 +2,7 @@
 // from its merge ranks. Start from the bytes, merge the pair with the lowest rank, repeat. Each merge
 // is animated: the right half slides into the left one and the new piece lights up.
 import { AnimatePresence, motion } from 'motion/react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { useMemo, useState } from 'react'
 import { useStepAnimation } from '../../core/hooks/useAnimation'
 import { TOKENIZER_SPECS } from '../../core/types'
@@ -49,14 +50,19 @@ export function BPEVisualizer() {
   const fresh = mergedPosition(steps, shown)
   const running = isRunning && !isComplete
   const playLabel = currentIndex < 0 ? 'Start' : running ? 'Pause' : 'Again'
-  const onPlay = () => (running ? stop() : start())
+  const halo = useActionHalo('tokens')
+  const onPlay = () => {
+    halo.used()
+    if (running) stop()
+    else start()
+  }
 
   return (
     <div className="flex min-h-0 flex-1 flex-col gap-3" data-bpe>
       <div className="flex flex-wrap items-center gap-2">
         <ToggleGroup label="Word" options={DEMO_WORDS.map((value) => ({ value, label: value }))} value={word} onChange={(value) => { reset(); setWord(value) }} />
         <span className="mx-1 h-8 w-px bg-rule" aria-hidden="true" />
-        <Button variant="primary" onClick={onPlay}>{playLabel}</Button>
+        <Button variant="primary" className={halo.className} onClick={onPlay}>{playLabel}</Button>
         <Button onClick={stepForward} disabled={isComplete || running}>Next merge</Button>
         <Button onClick={reset}>Reset</Button>
       </div>

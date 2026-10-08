@@ -1,6 +1,7 @@
 // Slide 9: append and repeat. The old generation phase animation, extended: every run lights the
 // stages in their colours, the pick flies to the end of the text, with Play, Step, Reset and Speed.
 import { useEffect, useRef } from 'react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { useAppStore, MAX_SPEED, MIN_SPEED } from '../../store/appStore'
 import { LOOP_MODEL } from '../../core/types'
 import { Button, ControlSlider, SlideLayout, VisualFrame, type Provenance } from '../../core/components'
@@ -32,10 +33,15 @@ function LoopControls() {
   const running = useRunStore((s) => s.stage !== null)
   const done = phase === 'limit' || phase === 'ended'
   const stepBlocked = isPlaying || running || phase === 'fetching' || done
+  const halo = useActionHalo('loop')
+  const togglePlay = () => {
+    halo.used()
+    setIsPlaying(!isPlaying)
+  }
   return (
     <div className="flex flex-wrap items-end justify-between gap-x-6 gap-y-2" data-primary-control>
       <div className="flex gap-2">
-        <Button variant="primary" onClick={() => setIsPlaying(!isPlaying)} disabled={done} className="min-w-24">
+        <Button variant="primary" onClick={togglePlay} disabled={done} className={`min-w-24 ${halo.className}`}>
           {isPlaying ? 'Pause' : 'Play'}
         </Button>
         <Button onClick={() => void runPick()} disabled={stepBlocked}>Step</Button>

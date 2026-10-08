@@ -35,6 +35,8 @@ interface ToggleOption<Value extends string> {
 
 interface ToggleGroupProps<Value extends string> {
   label: string
+  // Extra class for one option, for example the halo on the option to try next.
+  accentOption?: { value: Value; className: string }
   options: ToggleOption<Value>[]
   value: Value
   onChange: (value: Value) => void
@@ -42,7 +44,7 @@ interface ToggleGroupProps<Value extends string> {
 
 // A row of buttons where one is chosen; the chosen one is tinted and outlined in the slide's colour, so it
 // never looks like a primary action button.
-export function ToggleGroup<Value extends string>({ label, options, value, onChange }: ToggleGroupProps<Value>) {
+export function ToggleGroup<Value extends string>({ label, options, value, onChange, accentOption }: ToggleGroupProps<Value>) {
   return (
     <div role="group" aria-label={label} className="flex flex-wrap gap-2">
       {options.map((option) => {
@@ -56,6 +58,7 @@ export function ToggleGroup<Value extends string>({ label, options, value, onCha
             className={cn(
               'min-h-11 rounded-lg border-2 px-3 text-base font-semibold transition-colors',
               chosen ? 'border-[var(--accent)] bg-[var(--concept-tint)] text-[var(--accent)] shadow-[inset_0_-3px_0_var(--accent)]' : 'border-ink/15 bg-paper text-ink-2 hover:border-ink/40',
+              accentOption?.value === option.value && accentOption.className,
             )}
           >
             {option.label}

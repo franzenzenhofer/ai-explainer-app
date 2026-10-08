@@ -1,6 +1,7 @@
 // One button per stage of the stack (0 = token + position, 1 to 12 = the blocks), plus Play,
 // Block down and Block up.
 import { Button } from '../../core/components/Button'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { MODEL_SPECS } from '../../core/types'
 import { cn } from '../../core/utils/cn'
 import { blockLabel } from './LayerStack'
@@ -13,11 +14,16 @@ interface BlockPickerProps {
 }
 
 export function BlockPicker({ selectedBlock, onSelect, playing, onPlay }: BlockPickerProps) {
+  const halo = useActionHalo('layers')
+  const play = () => {
+    halo.used()
+    onPlay()
+  }
   const blocks = Array.from({ length: MODEL_SPECS.layers + 1 }, (_, block) => block)
   return (
     <div className="flex flex-col gap-2" data-primary-control>
       <div className="flex flex-wrap gap-2">
-        <Button variant="primary" onClick={onPlay}>{playing ? 'Pause' : 'Play: flow up the stack'}</Button>
+        <Button variant="primary" className={halo.className} onClick={play}>{playing ? 'Pause' : 'Play: flow up the stack'}</Button>
         <Button onClick={() => onSelect(selectedBlock - 1)} disabled={selectedBlock === 0}>Block down</Button>
         <Button onClick={() => onSelect(selectedBlock + 1)} disabled={selectedBlock === MODEL_SPECS.layers}>Block up</Button>
       </div>

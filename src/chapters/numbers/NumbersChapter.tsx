@@ -1,6 +1,7 @@
 // Slide: each token becomes a list of numbers. Real GPT-2 small numbers, loaded when the slide opens:
 // pick a chip, watch it turn into its 768 numbers, see its most similar tokens and the map of tokens.
 import { useMemo } from 'react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { useAppStore } from '../../store/appStore'
 import { useTokens } from '../../core/hooks/useDerived'
 import { useLoaded } from '../../core/hooks/useLoaded'
@@ -22,6 +23,12 @@ function tokensOutsideSet(table: Gpt2Table | null, texts: string[]): ReadonlySet
 }
 
 // Until a chip is picked, show the first token that has real numbers.
+// The next token after the chosen one that has numbers, for the halo; null when there is none.
+function nextInSet(active: number, count: number, outside: ReadonlySet<number>): number | null {
+  for (let index = active + 1; index < count; index++) if (!outside.has(index)) return index
+  return null
+}
+
 function firstInSet(count: number, outside: ReadonlySet<number>): number {
   const index = Array.from({ length: count }, (_, position) => position).find((position) => !outside.has(position))
   return index ?? 0
@@ -59,10 +66,24 @@ export function NumbersChapter() {
   const token = tokens[active]
   const caption = table ? `${VECTOR_CAPTION} ${mapCaption(table)}` : VECTOR_CAPTION
 
+  const halo = useActionHalo('numbers')
+  const nextChip = nextInSet(active, tokens.length, outside)
+  const pickToken = (index: number) => {
+    halo.used()
+    setSelected(index)
+  }
   return (
     <SlideLayout id="numbers">
       <div data-primary-control className="max-h-[6.75rem] shrink-0 overflow-y-auto p-1">
-        <SentenceTokens tokens={tokens} selectedIndex={active} onSelect={setSelected} label="Pick a token" muted={outside} mutedHint={NOT_IN_SET} />
+        <SentenceTokens
+          tokens={tokens}
+          selectedIndex={active}
+          onSelect={pickToken}
+          label="Pick a token"
+          muted={outside}
+          mutedHint={NOT_IN_SET}
+          accentChip={halo.active && nextChip !== null ? { index: nextChip, className: halo.className } : undefined}
+        />
       </div>
       {token && (
         <div className="flex min-h-0 flex-1 flex-col [&>figure]:flex-1">

@@ -1,6 +1,7 @@
 // Slide 7: one score for every token. The model's real top candidates after the chosen position, plus
 // all remaining tokens together, as a chart or as the network of the old app.
 import { useState } from 'react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { useAppStore } from '../../store/appStore'
 import { usePredictionPosition, useTokens } from '../../core/hooks/useDerived'
 import { SentenceTokens, SlideLayout, ToggleGroup, VisualFrame } from '../../core/components'
@@ -50,6 +51,11 @@ export function ScoresChapter() {
   const position = usePredictionPosition()
   const setSelectedTokenIndex = useAppStore((s) => s.setSelectedTokenIndex)
   const [view, setView] = useState<ScoresView>('chart')
+  const halo = useActionHalo('scores')
+  const chooseView = (next: ScoresView) => {
+    halo.used()
+    setView(next)
+  }
   const contextTokens = tokens.slice(0, position + 1)
   const context = contextTokens.map((token) => token.text).join('')
 
@@ -60,7 +66,13 @@ export function ScoresChapter() {
         title="Probability of each next token"
         provenance={provenance}
         caption={CAPTION}
-        actions={<ToggleGroup label="Scores view" options={VIEWS} value={view} onChange={setView} />}
+        actions={<ToggleGroup
+            label="Scores view"
+            options={VIEWS}
+            value={view}
+            onChange={chooseView}
+            accentOption={halo.active ? { value: 'network', className: halo.className } : undefined}
+          />}
       >
         <LiveListGate context={context}>
           {(step) => <Body key={`${context}-${view}`} step={step} view={view} context={contextTokens} />}

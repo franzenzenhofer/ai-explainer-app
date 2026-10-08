@@ -69,6 +69,10 @@ export interface AppStoreState {
   setGenerationSpeed: (speed: number) => void
   resetGeneration: () => void
 
+  // Slides whose main action the reader has used this visit; the halo then moves to the Next button.
+  haloUsed: Partial<Record<ChapterId, true>>
+  markHaloUsed: (id: ChapterId) => void
+
   debugMode: boolean
   toggleDebugMode: () => void
 
@@ -143,6 +147,9 @@ export const useAppStore = create<AppStoreState>()(
       setIsPlaying: (isPlaying) => set({ isPlaying }),
       setGenerationSpeed: (generationSpeed) => set({ generationSpeed }),
       resetGeneration: () => set(generationInitial),
+
+      haloUsed: {},
+      markHaloUsed: (id) => set((s) => (s.haloUsed[id] ? s : { haloUsed: { ...s.haloUsed, [id]: true } })),
 
       debugMode: false,
       toggleDebugMode: () => set((s) => ({ debugMode: !s.debugMode })),

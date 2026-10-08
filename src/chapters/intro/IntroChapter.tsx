@@ -2,6 +2,7 @@
 // drawn as a loop (the pick joins the text and everything runs again), then Start and Full screen.
 import { motion } from 'motion/react'
 import { useFirstPaint } from '../../core/hooks/useFirstPaint'
+import { HALO_CLASS } from '../../core/hooks/useHalo'
 import { Play } from 'lucide-react'
 import { getChapter, themeOf } from '../../core/chapters'
 import { FullscreenButton } from '../../core/components/FullscreenButton'
@@ -39,7 +40,7 @@ export function IntroChapter() {
       >
         <ChapterLink
           chapter={getChapter('home')}
-          className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-[var(--accent)] px-6 text-xl font-bold text-paper no-underline shadow-md hover:opacity-90"
+          className={`${HALO_CLASS} inline-flex min-h-12 items-center gap-2 rounded-xl bg-[var(--accent)] px-6 text-xl font-bold text-paper no-underline shadow-md hover:opacity-90`}
         >
           <Play aria-hidden="true" size={22} />
           Start

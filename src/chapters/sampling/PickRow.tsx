@@ -1,6 +1,7 @@
 // "Pick 5 times": the button, the five picks dropping into the row in amber, and how many candidates
 // the settings kept.
 import { AnimatePresence, motion } from 'motion/react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import type { PredictionCandidate } from '../../core/types'
 import { CONCEPT_COLORS } from '../../core/colors'
 import { Button } from '../../core/components/Button'
@@ -15,10 +16,15 @@ interface PickRowProps {
 }
 
 export function PickRow({ round, picks, rolling, onRoll }: PickRowProps) {
+  const halo = useActionHalo('sampling')
+  const roll = () => {
+    halo.used()
+    onRoll()
+  }
   const pick = CONCEPT_COLORS.pick
   return (
     <div className="flex min-h-11 items-center gap-3" data-primary-control>
-      <Button variant="primary" onClick={onRoll} disabled={rolling} className="shrink-0">
+      <Button variant="primary" onClick={roll} disabled={rolling} className={`shrink-0 ${halo.className}`}>
         {round === 0 ? `Pick ${PICKS_PER_ROLL} times` : 'Pick again'}
       </Button>
       {round === 0 ? (

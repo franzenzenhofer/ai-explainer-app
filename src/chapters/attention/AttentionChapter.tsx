@@ -1,5 +1,6 @@
 // Slide: looking back. Pick a token and a pattern; arcs, a grid or a network show where it looks.
 import { useState } from 'react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { useAppStore } from '../../store/appStore'
 import { useAttentionWeights, useTokens } from '../../core/hooks/useDerived'
 import { SlideLayout } from '../../core/components'
@@ -30,12 +31,17 @@ export function AttentionChapter() {
   const [mode, setMode] = useAttentionMode()
   const [headTypesOpen, setHeadTypesOpen] = useState(false)
   const query = selected !== null && selected < tokens.length ? selected : defaultQuery(tokens)
+  const halo = useActionHalo('attention')
+  const selectToken = (index: number) => {
+    halo.used()
+    setSelected(index)
+  }
   const footer = <LensPicker onShowHeadTypes={() => setHeadTypesOpen(true)} />
 
   return (
     <SlideLayout id="attention" drawerExtra={<HeadTypesList />}>
       {tokens.length > 0 ? (
-        <AttentionView mode={mode} onMode={setMode} data={{ tokens, weights, query, drawKey: `${lens}-${query}` }} onSelect={setSelected} footer={footer} />
+        <AttentionView mode={mode} onMode={setMode} data={{ tokens, weights, query, drawKey: `${lens}-${query}` }} onSelect={selectToken} footer={footer} />
       ) : (
         <p className="m-0 text-lg text-ink-2">Type some text in the box above to see attention.</p>
       )}

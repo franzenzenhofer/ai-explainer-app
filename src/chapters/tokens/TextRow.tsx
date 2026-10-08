@@ -1,6 +1,7 @@
 // Your text at the top of the Tokens slide: shown as plain text or edited in place, with the buttons
 // to edit it and to try a hard sample.
 import { ArrowDown } from 'lucide-react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { useAppStore } from '../../store/appStore'
 import { Button } from '../../core/components/Button'
 import { PromptEditor } from './PromptEditor'
@@ -14,6 +15,11 @@ interface TextRowProps {
 
 export function TextRow({ panel, onToggle }: TextRowProps) {
   const inputText = useAppStore((s) => s.inputText)
+  const halo = useActionHalo('tokens')
+  const edit = () => {
+    halo.used()
+    onToggle('edit')
+  }
   return (
     <div className="flex items-start gap-2" data-primary-control>
       <div className="min-w-0 flex-1">
@@ -26,7 +32,7 @@ export function TextRow({ panel, onToggle }: TextRowProps) {
           </p>
         )}
       </div>
-      <Button variant="primary" aria-expanded={panel === 'edit'} onClick={() => onToggle('edit')}>
+      <Button variant="primary" className={halo.className} aria-expanded={panel === 'edit'} onClick={edit}>
         {panel === 'edit' ? 'Done editing' : 'Edit text'}
       </Button>
       <Button aria-expanded={panel === 'samples'} onClick={() => onToggle('samples')}>

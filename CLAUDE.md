@@ -10,7 +10,7 @@ npm run typecheck  # astro check (gate 1)
 npm run lint       # eslint flat config, typescript-eslint strict + react-hooks (gate 2)
 npm run test       # vitest run, includes live calls to the deployed worker (gate 3)
 npm run build      # Build static site to ./dist (gate 4)
-npm run test:e2e   # Playwright walk of all eleven slides at 1280x720, 1440x900, 1920x1080 and 390x844, strict fit checks on; BASE_URL=<url> targets a deployed site
+npm run test:e2e   # Playwright: eleven slides at 1280x720, 1440x900, 1920x1080 and 390x844 (strict fit), load stability (CLS + frame sampling), halo; BASE_URL=<url> targets a deployed site
 npm run deploy     # Build + deploy to Cloudflare Pages (no gates)
 ./deploy.sh        # All four gates, then deploy; refuses to deploy when any gate fails
 ```
@@ -60,6 +60,10 @@ app/src/
   and token identity colours (same token text, same colour, on every slide; chips show the token ID).
 - Every visual module exports `provenance` and passes it to its `VisualFrame` (content test).
 - Text >= 16px, touch targets >= 44px, light theme only, motion respects prefers-reduced-motion.
+- No jitter on load: whatever renders on the first paint is final (`useFirstPaint`, no entrance);
+  automatic entrances only fade or grow bars, never move; skeletons keep the size of the real content.
+  `e2e/stability.spec.ts` samples every frame for 4 s and asserts CLS < 0.01 and no element moving > 1px.
+- One halo per slide (`useActionHalo`): on the main action until used, then on the Next button.
 
 ## Deployment Pipeline
 

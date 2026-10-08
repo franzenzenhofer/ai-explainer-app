@@ -13,9 +13,11 @@ interface SentenceTokensProps {
   mutedHint?: string
   showIds?: boolean
   size?: ChipSize
+  // Extra class for one chip, for example the halo on the token to try next.
+  accentChip?: { index: number; className: string }
 }
 
-export function SentenceTokens({ tokens, selectedIndex, onSelect, label, muted, mutedHint, showIds = true, size = 'md' }: SentenceTokensProps) {
+export function SentenceTokens({ tokens, selectedIndex, onSelect, label, muted, mutedHint, showIds = true, size = 'md', accentChip }: SentenceTokensProps) {
   if (tokens.length === 0) return <p className="m-0 text-lg text-ink-2">Type some text to see its tokens.</p>
   const runKey = tokens.map((token) => token.tokenId).join('-')
   return (
@@ -31,6 +33,7 @@ export function SentenceTokens({ tokens, selectedIndex, onSelect, label, muted, 
             muted={isMuted}
             size={size}
             order={index}
+            className={accentChip?.index === index ? accentChip.className : undefined}
             onClick={() => onSelect(index)}
             label={`Token ${index + 1}: "${token.text}", ID ${token.tokenId}${isMuted && mutedHint ? `, ${mutedHint}` : ''}`}
           />

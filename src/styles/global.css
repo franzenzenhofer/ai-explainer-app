@@ -175,6 +175,28 @@ html[data-mode="flow"] .slide-overlay {
   }
 }
 
+/* The halo on the control to use next: a soft ring that pulses in the slide's colour. Box-shadow only,
+   so no size changes. With reduced motion it is a static ring. */
+.halo {
+  animation: halo-pulse 1.8s ease-in-out infinite;
+}
+
+@keyframes halo-pulse {
+  0%, 100% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--concept) 40%, transparent), 0 0 0 0 color-mix(in srgb, var(--concept) 35%, transparent);
+  }
+  50% {
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--concept) 40%, transparent), 0 0 16px 7px color-mix(in srgb, var(--concept) 45%, transparent);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .halo {
+    animation: none !important;
+    box-shadow: 0 0 0 4px color-mix(in srgb, var(--concept) 55%, transparent);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

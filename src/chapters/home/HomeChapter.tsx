@@ -1,6 +1,7 @@
 // Slide 1: the token machine, live. Press: a real model picks the next token, the stages light up in
 // their colours, the candidates grow as rose bars, the pick is framed amber and flies to the end.
 import { useEffect, useRef } from 'react'
+import { useActionHalo } from '../../core/hooks/useHalo'
 import { useAppStore } from '../../store/appStore'
 import { LOOP_MODEL } from '../../core/types'
 import { Button, SlideLayout, VisualFrame, type Provenance } from '../../core/components'
@@ -24,9 +25,14 @@ const CAPTION = `Real: ${LOOP_MODEL.name} picks each token and reports the proba
 function HomeControls() {
   const phase = useAppStore(generationPhase)
   const running = useRunStore((s) => s.stage !== null)
+  const halo = useActionHalo('home')
+  const pick = () => {
+    halo.used()
+    void runPick()
+  }
   return (
     <div className="flex flex-wrap items-center gap-2" data-primary-control>
-      <Button variant="primary" onClick={() => void runPick()} disabled={running || phase === 'fetching' || phase === 'limit' || phase === 'ended'}>
+      <Button variant="primary" className={halo.className} onClick={pick} disabled={running || phase === 'fetching' || phase === 'limit' || phase === 'ended'}>
         Pick the next token
       </Button>
       <ChapterLink
