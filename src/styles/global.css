@@ -1,6 +1,6 @@
 @import "tailwindcss";
 
-/* Light theme only. Black type on white, one accent per chapter for highlight states. */
+/* Light theme only. Concept colours come from src/core/colors.ts as CSS variables on the stage. */
 :root {
   --paper: #ffffff;
   --ink: #0b0b0c;
@@ -42,13 +42,110 @@ html {
 body {
   margin: 0;
   background: var(--paper);
-  font-size: 1.125rem;
-  line-height: 1.55;
+  font-size: 1rem;
+  line-height: 1.5;
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
+/* The stage. Presentation mode: a 1280x720 canvas scaled to the window (see Layout.astro and
+   SlideStage.tsx). Flow mode: the slide reflows and the page scrolls. */
+.stage-viewport {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: #e8edf3;
+}
+
+.stage-canvas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px 20px 6px;
+  background:
+    radial-gradient(circle at 12% 0%, var(--concept-tint) 0, transparent 45%),
+    linear-gradient(165deg, var(--concept-tint) 0%, #ffffff 45%, #ffffff 70%, var(--concept-tint) 100%);
+}
+
+html[data-mode="stage"] .stage-canvas {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: 1280px;
+  height: 720px;
+  transform: translate(-50%, -50%) scale(var(--stage-scale, 1));
+  box-shadow: 0 0 0 1px rgb(15 23 42 / 0.06), 0 10px 40px rgb(15 23 42 / 0.08);
+}
+
+.slide-main {
+  flex: 1;
+  min-height: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 14px;
+}
+
+.intro-main {
+  grid-template-columns: minmax(0, 1fr);
+  align-content: center;
+}
+
+.slide-visual {
+  min-height: 0;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.slide-visual > .visual-frame:only-child {
+  flex: 1;
+}
+
+.slide-side {
+  min-height: 0;
+  padding: 10px 14px 12px;
+  border: 2px solid var(--concept-soft);
+  border-radius: 16px;
+  background: rgb(255 255 255 / 0.85);
+}
+
+html[data-mode="stage"] .slide-visual,
+html[data-mode="stage"] .slide-side {
+  overflow: hidden;
+}
+
+html[data-mode="flow"] .stage-viewport {
+  position: static;
+  overflow: visible;
+}
+
+html[data-mode="flow"] .stage-canvas {
+  min-height: 100dvh;
+  padding: 12px 16px;
+  gap: 12px;
+}
+
+html[data-mode="flow"] .slide-overlay {
+  position: fixed;
+}
+
+@media (max-width: 1099px) {
+  html[data-mode="flow"] .slide-main {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  html[data-mode="flow"] .slide-title,
+  html[data-mode="flow"] .slide-nav,
+  html[data-mode="flow"] .slide-top {
+    flex-wrap: wrap;
+  }
+  html[data-mode="flow"] .slide-prompt {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
   }
 }
 
@@ -63,7 +160,7 @@ body {
 
 /* The tint behind a highlighted element. */
 .tint-accent {
-  background: color-mix(in srgb, var(--accent) 12%, white);
+  background: var(--concept-tint, color-mix(in srgb, var(--accent) 12%, white));
 }
 
 /* Range inputs: a black track and a square thumb, 44px tall hit area. */
@@ -76,23 +173,26 @@ input[type="range"] {
 }
 
 input[type="range"]::-webkit-slider-runnable-track {
-  height: 4px;
-  background: var(--ink);
+  height: 6px;
+  border-radius: 3px;
+  background: var(--concept-soft, var(--rule-strong));
 }
 
 input[type="range"]::-webkit-slider-thumb {
   appearance: none;
   width: 22px;
   height: 22px;
-  margin-top: -9px;
-  background: var(--paper);
-  border: 3px solid var(--accent);
-  border-radius: 3px;
+  margin-top: -8px;
+  background: var(--accent);
+  border: 3px solid var(--paper);
+  border-radius: 50%;
+  box-shadow: 0 0 0 2px var(--accent);
 }
 
 input[type="range"]::-moz-range-track {
-  height: 4px;
-  background: var(--ink);
+  height: 6px;
+  border-radius: 3px;
+  background: var(--concept-soft, var(--rule-strong));
 }
 
 input[type="range"]::-moz-range-thumb {

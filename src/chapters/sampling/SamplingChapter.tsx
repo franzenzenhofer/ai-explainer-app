@@ -2,7 +2,7 @@
 // the picker in the browser, then rolled five times at once.
 import { useMemo } from 'react'
 import { useAppStore } from '../../store/appStore'
-import { ChapterLayout, VisualFrame } from '../../core/components'
+import { SlideLayout, VisualFrame } from '../../core/components'
 import { LOOP_MODEL } from '../../core/types'
 import { formatPercent } from '../../core/utils/formatters'
 import { applySampling } from '../../model/sampling'
@@ -44,10 +44,10 @@ function Picker({ step }: { step: LoopStep }) {
 export function SamplingChapter() {
   const context = useAppStore((s) => s.inputText)
   return (
-    <ChapterLayout id="sampling">
+    <SlideLayout id="sampling">
       <VisualFrame title="The list after the settings" provenance={provenance} caption={CAPTION}>
         <LiveListGate context={context}>{(step) => <Picker step={step} />}</LiveListGate>
       </VisualFrame>
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

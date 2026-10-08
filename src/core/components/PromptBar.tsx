@@ -17,9 +17,11 @@ export function PromptBar() {
       <button
         type="button"
         onClick={() => setDraft(inputText)}
-        className="flex min-h-11 w-full min-w-0 items-center gap-3 rounded-[3px] border border-rule px-3 text-left text-base hover:border-rule-strong"
+        className="flex min-h-11 w-full min-w-0 items-center gap-3 rounded-lg border-2 bg-paper px-3 text-left text-base hover:border-ink/40"
+        style={{ borderColor: 'var(--concept-soft)' }}
         aria-label={`Your text: ${inputText}. Edit`}
       >
+        <span className="shrink-0 font-semibold text-ink-2">Your text:</span>
         <span className="min-w-0 flex-1 truncate text-ink">{inputText}</span>
         <span className="shrink-0 font-semibold text-ink-2 underline underline-offset-4">Edit</span>
       </button>
@@ -36,9 +38,9 @@ export function PromptBar() {
         onChange={(event) => setDraft(event.target.value)}
         onBlur={() => save()}
         onKeyDown={(event) => event.key === 'Escape' && setDraft(null)}
-        className="min-h-11 min-w-0 flex-1 rounded-[3px] border-2 border-ink px-3 text-base text-ink"
+        className="min-h-11 min-w-0 flex-1 rounded-lg border-2 border-[var(--accent)] bg-paper px-3 text-base text-ink"
       />
-      <button type="submit" className="min-h-11 rounded-[3px] bg-ink px-4 text-base font-semibold text-paper">Save</button>
+      <button type="submit" className="min-h-11 rounded-lg bg-[var(--accent)] px-4 text-base font-semibold text-paper">Save</button>
     </form>
   )
 }

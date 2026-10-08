@@ -1,20 +1,17 @@
 // A real link to a chapter route that navigates in place on a plain click.
-import type { MouseEvent, ReactNode } from 'react'
+import type { AnchorHTMLAttributes, MouseEvent } from 'react'
 import type { Chapter } from '../chapters'
 import { navigateTo } from './navigation'
 
-interface ChapterLinkProps {
+interface ChapterLinkProps extends Omit<AnchorHTMLAttributes<HTMLAnchorElement>, 'href'> {
   chapter: Chapter
-  className?: string
-  children: ReactNode
-  current?: 'page'
   onNavigate?: () => void
 }
 
 const isPlainClick = (event: MouseEvent) =>
   event.button === 0 && !event.metaKey && !event.ctrlKey && !event.shiftKey && !event.altKey
 
-export function ChapterLink({ chapter, className, children, current, onNavigate }: ChapterLinkProps) {
+export function ChapterLink({ chapter, onNavigate, children, ...rest }: ChapterLinkProps) {
   const onClick = (event: MouseEvent<HTMLAnchorElement>) => {
     if (!isPlainClick(event)) return
     event.preventDefault()
@@ -22,7 +19,7 @@ export function ChapterLink({ chapter, className, children, current, onNavigate 
     navigateTo(chapter)
   }
   return (
-    <a href={chapter.route} className={className} onClick={onClick} aria-current={current}>
+    <a {...rest} href={chapter.route} onClick={onClick}>
       {children}
     </a>
   )

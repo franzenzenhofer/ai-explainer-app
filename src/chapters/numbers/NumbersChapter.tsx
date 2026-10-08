@@ -3,7 +3,7 @@ import { useMemo } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { useTokens } from '../../core/hooks/useDerived'
 import { useLoaded } from '../../core/hooks/useLoaded'
-import { ChapterLayout, SentenceTokens, type Provenance } from '../../core/components'
+import { SlideLayout, SentenceTokens, type Provenance } from '../../core/components'
 import { loadGpt2Table, lookupToken, type Gpt2Table } from '../../model/gpt2Table'
 import { TokenMap } from './TokenMap'
 import { TokenVector } from './TokenVector'
@@ -28,7 +28,7 @@ export function NumbersChapter() {
   const outside = useMemo(() => tokensOutsideSet(table, tokens.map((entry) => entry.text)), [table, tokens])
 
   return (
-    <ChapterLayout id="numbers">
+    <SlideLayout id="numbers">
       <div data-primary-control className="mb-8">
         <SentenceTokens
           tokens={tokens}
@@ -45,6 +45,6 @@ export function NumbersChapter() {
           <TokenMap state={state} tokens={tokens} selectedIndex={active} outside={outside} />
         </div>
       )}
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

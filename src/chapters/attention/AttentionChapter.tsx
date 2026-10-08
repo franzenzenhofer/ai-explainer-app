@@ -1,7 +1,7 @@
 // Chapter 4: looking back. Pick a token and a lens; arcs or a grid show where it looks.
 import { useAppStore } from '../../store/appStore'
 import { useAttentionWeights, useTokens } from '../../core/hooks/useDerived'
-import { ChapterLayout, ToggleGroup } from '../../core/components'
+import { SlideLayout, ToggleGroup } from '../../core/components'
 import { defaultQuery } from '../../model/attention'
 import { AttentionView } from './AttentionView'
 import { HeadTypesList } from './HeadTypesList'
@@ -17,7 +17,7 @@ export function AttentionChapter() {
   const query = selected !== null && selected < tokens.length ? selected : defaultQuery(tokens)
 
   return (
-    <ChapterLayout id="attention" drawerExtra={<HeadTypesList />}>
+    <SlideLayout id="attention" drawerExtra={<HeadTypesList />}>
       {tokens.length > 0 ? (
         <AttentionView view={view} tokens={tokens} weights={weights} query={query} onSelect={setSelected} />
       ) : (
@@ -38,6 +38,6 @@ export function AttentionChapter() {
           />
         </div>
       </div>
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

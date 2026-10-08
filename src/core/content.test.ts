@@ -8,7 +8,8 @@ import { renderToStaticMarkup } from 'react-dom/server'
 import { describe, expect, it } from 'vitest'
 import { MODEL_SPECS, TOKENIZER_SPECS } from './types'
 import { ProvenanceBadge } from './components/ProvenanceBadge'
-import { ChapterLayout } from './components/ChapterLayout'
+import { SlideLayout } from './components/SlideLayout'
+import { CONCEPT_COLORS } from './colors'
 import { CHAPTERS, CHAPTER_IDS, SOURCES, chapterFromPath } from './chapters'
 import { KNOWN_HEAD_TYPES } from '../chapters/attention/headTypes'
 import { CHAPTER_COMPONENTS } from '../components/App'
@@ -28,17 +29,20 @@ const sourceFiles = listSourceFiles(SRC_ROOT)
 const read = (path: string) => readFileSync(path, 'utf8')
 const shortName = (path: string) => relative(SRC_ROOT, path)
 
-// Section 4 of the plan: the ten routes, in order.
-const PLAN_ROUTES = ['/', '/tokens', '/numbers', '/attention', '/feedforward', '/layers', '/scores', '/sampling', '/loop', '/reality']
+// Section 4 of the plan plus the intro slide: the token machine moved to /machine.
+const PLAN_ROUTES = ['/', '/machine', '/tokens', '/numbers', '/attention', '/feedforward', '/layers', '/scores', '/sampling', '/loop', '/reality']
 
 describe('chapter config', () => {
-  it('has the ten chapters with the routes from the plan, in order', () => {
+  it('has the eleven slides with the routes from the plan, in order', () => {
     expect(CHAPTERS.map((chapter) => chapter.route)).toEqual(PLAN_ROUTES)
     expect(CHAPTERS.map((chapter) => chapter.id)).toEqual([...CHAPTER_IDS])
   })
 
-  it.each(CHAPTERS.map((chapter) => [chapter.id, chapter] as const))('%s has a claim, a look-for line, a drawer and sources', (_id, chapter) => {
+  it.each(CHAPTERS.map((chapter) => [chapter.id, chapter] as const))('%s has a claim, a look-for line, an explanation, a colour key, a drawer and sources', (_id, chapter) => {
     expect(chapter.claim.trim().length).toBeGreaterThan(20)
+    for (const part of [chapter.explain.what, chapter.explain.how, chapter.explain.why]) expect(part.trim().length).toBeGreaterThan(20)
+    expect(chapter.colorKey.length).toBeGreaterThan(0)
+    for (const entry of chapter.colorKey) expect(entry.color === 'identity' || entry.color in CONCEPT_COLORS).toBe(true)
     expect(chapter.lookFor.trim().length).toBeGreaterThan(10)
     expect(chapter.drawer.length).toBeGreaterThan(0)
     for (const section of chapter.drawer) expect(section.paragraphs.length).toBeGreaterThan(0)
@@ -53,7 +57,8 @@ describe('chapter config', () => {
   it('finds the chapter for a path with or without a trailing slash', () => {
     expect(chapterFromPath('/tokens')?.id).toBe('tokens')
     expect(chapterFromPath('/tokens/')?.id).toBe('tokens')
-    expect(chapterFromPath('/')?.id).toBe('home')
+    expect(chapterFromPath('/')?.id).toBe('intro')
+    expect(chapterFromPath('/machine/')?.id).toBe('home')
     expect(chapterFromPath('/nope')).toBeNull()
   })
 
@@ -62,16 +67,21 @@ describe('chapter config', () => {
   })
 })
 
-describe('chapter layout', () => {
-  it.each(CHAPTER_IDS)('%s renders exactly one claim, a closed drawer, the sources and a Next link', (id) => {
-    const html = renderToStaticMarkup(createElement(ChapterLayout, { id, children: createElement('p', null, 'visual') }))
+describe('slide layout', () => {
+  it.each(CHAPTER_IDS.filter((id) => id !== 'intro'))('%s renders one claim, the explanation, the colour key, the pipeline and a Next link', (id) => {
+    const html = renderToStaticMarkup(createElement(SlideLayout, { id, children: createElement('p', null, 'visual') }))
+    const chapter = CHAPTERS.find((candidate) => candidate.id === id)
     expect(html.match(/data-claim=/g)).toHaveLength(1)
-    expect(html).toContain('aria-expanded="false"')
-    expect(html).toContain('data-sources')
-    expect(html).toMatch(/Next|Back to the start/)
-    for (const key of CHAPTERS.find((chapter) => chapter.id === id)?.sources ?? []) {
-      expect(html).toContain(SOURCES[key].url.replace(/&/g, '&amp;').replace(/'/g, '&#x27;'))
-    }
+    expect(html).toContain('data-explain')
+    expect(html).toContain('data-color-key')
+    expect(html).toContain('aria-label="Pipeline"')
+    expect(html).toContain('Go deeper')
+    expect(html).toMatch(/Next: |Back to the start/)
+    expect(html).toContain(chapter?.explain.what.replace(/'/g, '&#x27;').replace(/"/g, '&quot;'))
+  })
+
+  it('cites every source of a slide in the sources list', () => {
+    for (const chapter of CHAPTERS) expect(chapter.sources.every((key) => SOURCES[key].url.startsWith('https://'))).toBe(true)
   })
 })
 
@@ -84,7 +94,7 @@ describe('provenance badges', () => {
   const visualFiles = sourceFiles.filter((path) => path.endsWith('.tsx') && read(path).includes('<VisualFrame'))
 
   it('finds visuals in every chapter folder', () => {
-    for (const id of CHAPTER_IDS) {
+    for (const id of CHAPTER_IDS.filter((chapterId) => chapterId !== 'intro')) {
       expect(visualFiles.some((path) => shortName(path).startsWith(`chapters/${id}/`)), id).toBe(true)
     }
   })

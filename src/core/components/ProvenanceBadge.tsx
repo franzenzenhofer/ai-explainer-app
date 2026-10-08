@@ -13,8 +13,8 @@ const BADGE_TITLE: Record<Provenance, string> = {
 }
 
 const BADGE_STYLE: Record<Provenance, string> = {
-  real: 'border-real text-real',
-  simulated: 'border-simulated text-simulated',
+  real: 'border-real bg-green-50 text-real',
+  simulated: 'border-simulated bg-amber-50 text-simulated',
 }
 
 interface ProvenanceBadgeProps {
@@ -26,7 +26,7 @@ export function ProvenanceBadge({ provenance }: ProvenanceBadgeProps) {
     <span
       title={BADGE_TITLE[provenance]}
       data-provenance={provenance}
-      className={`inline-flex shrink-0 items-center rounded-[2px] border-2 px-2 text-base font-semibold leading-7 ${BADGE_STYLE[provenance]}`}
+      className={`inline-flex shrink-0 items-center rounded-full border-2 px-3 text-base font-semibold leading-7 ${BADGE_STYLE[provenance]}`}
     >
       {BADGE_TEXT[provenance]}
     </span>

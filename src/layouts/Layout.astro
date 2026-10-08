@@ -19,6 +19,22 @@ const { title, description } = Astro.props
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
     <title>{title}</title>
+    <script is:inline>
+      // Presentation mode when the window holds the 1280x720 stage at 100% or more; flow mode otherwise.
+      ;(function () {
+        var STAGE_W = 1280, STAGE_H = 720, MIN_W = 700
+        function fit() {
+          var w = window.innerWidth, h = window.innerHeight
+          var scale = Math.min(w / STAGE_W, h / STAGE_H)
+          var stage = w >= MIN_W && scale >= 1
+          var root = document.documentElement
+          root.dataset.mode = stage ? 'stage' : 'flow'
+          root.style.setProperty('--stage-scale', String(stage ? scale : 1))
+        }
+        fit()
+        window.addEventListener('resize', fit)
+      })()
+    </script>
   </head>
   <body>
     <slot />

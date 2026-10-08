@@ -1,7 +1,7 @@
 // Chapter 1: the token machine, live. Press, a real model picks the next token and it joins the text.
 import { useAppStore } from '../../store/appStore'
 import { LOOP_MODEL } from '../../core/types'
-import { Button, ChapterLayout, VisualFrame, type Provenance } from '../../core/components'
+import { Button, SlideLayout, VisualFrame, type Provenance } from '../../core/components'
 import { getChapter } from '../../core/chapters'
 import { ChapterLink } from '../../core/navigation/ChapterLink'
 import { GeneratedText } from '../loop/GeneratedText'
@@ -39,7 +39,7 @@ function HomeControls() {
 
 export function HomeChapter() {
   return (
-    <ChapterLayout id="home">
+    <SlideLayout id="home">
       <VisualFrame
         title="Text so far"
         provenance={provenance}
@@ -53,6 +53,6 @@ export function HomeChapter() {
       </VisualFrame>
       <HomeControls />
       <LoopDiagram />
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

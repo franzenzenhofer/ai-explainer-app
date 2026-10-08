@@ -1,7 +1,7 @@
 // Chapter 9: append and repeat. The live loop with Play, Step, speed and Reset.
 import { useAppStore, MAX_SPEED, MIN_SPEED } from '../../store/appStore'
 import { LOOP_MODEL } from '../../core/types'
-import { Button, ChapterLayout, ControlSlider, VisualFrame, type Provenance } from '../../core/components'
+import { Button, SlideLayout, ControlSlider, VisualFrame, type Provenance } from '../../core/components'
 import { GeneratedText } from './GeneratedText'
 import { GenerationStatus } from './GenerationStatus'
 import { NextCandidates } from './NextCandidates'
@@ -50,7 +50,7 @@ export function LoopChapter() {
   const appendedCount = useAppStore((s) => s.appended.length)
   const isPlaying = useAppStore((s) => s.isPlaying)
   return (
-    <ChapterLayout id="loop">
+    <SlideLayout id="loop">
       <VisualFrame
         title="The text grows one token at a time"
         provenance={provenance}
@@ -65,6 +65,6 @@ export function LoopChapter() {
         <NextCandidates interactive={!isPlaying} />
       </VisualFrame>
       <LoopControls />
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

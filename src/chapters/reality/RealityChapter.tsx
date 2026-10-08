@@ -1,6 +1,6 @@
 // Chapter 10: what this means. Experiments with a live model; the reader judges every answer.
 import { useCallback, useRef, useState } from 'react'
-import { Button, ChapterLayout } from '../../core/components'
+import { Button, SlideLayout } from '../../core/components'
 import { CUSTOM_QUESTION_ID, CustomQuestionForm } from './CustomQuestionForm'
 import { ExperimentPicker } from './ExperimentPicker'
 import { LiveAnswer } from './LiveAnswer'
@@ -39,7 +39,7 @@ export function RealityChapter() {
   }
 
   return (
-    <ChapterLayout id="reality" drawerExtra={<RealitySummary />}>
+    <SlideLayout id="reality" drawerExtra={<RealitySummary />}>
       <LiveAnswer
         question={run?.question ?? null}
         experiment={findExperiment(run?.experimentId ?? null)}
@@ -60,6 +60,6 @@ export function RealityChapter() {
       <div className="mt-8">
         <CustomQuestionForm disabled={asking} onAsk={(question) => start({ question, experimentId: null })} />
       </div>
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

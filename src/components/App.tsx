@@ -1,10 +1,12 @@
-// The app shell: picks the chapter from the URL (first render) or the store (after client-side
+// The app shell: picks the slide from the URL (first render) or the store (after client-side
 // navigation), keeps the browser history in step and restores the saved prompt after mount.
 import { useEffect, type ComponentType } from 'react'
+import { MotionConfig } from 'motion/react'
 import { useAppStore } from '../store/appStore'
 import { getChapter, type ChapterId } from '../core/chapters'
-import { useArrowKeyNavigation, useHistorySync } from '../core/navigation/navigation'
+import { useHistorySync, usePresentationKeys } from '../core/navigation/navigation'
 import { DebugOverlay } from '../core/components/DebugOverlay'
+import { IntroChapter } from '../chapters/intro/IntroChapter'
 import { HomeChapter } from '../chapters/home/HomeChapter'
 import { TokensChapter } from '../chapters/tokens/TokensChapter'
 import { NumbersChapter } from '../chapters/numbers/NumbersChapter'
@@ -17,6 +19,7 @@ import { LoopChapter } from '../chapters/loop/LoopChapter'
 import { RealityChapter } from '../chapters/reality/RealityChapter'
 
 export const CHAPTER_COMPONENTS: Record<ChapterId, ComponentType> = {
+  intro: IntroChapter,
   home: HomeChapter,
   tokens: TokensChapter,
   numbers: NumbersChapter,
@@ -38,7 +41,7 @@ interface AppProps {
 export function App({ initialChapter }: AppProps) {
   const current = useAppStore((s) => s.chapterId) ?? initialChapter
   useHistorySync()
-  useArrowKeyNavigation(current)
+  usePresentationKeys(current)
 
   useEffect(() => {
     void useAppStore.persist.rehydrate()
@@ -52,10 +55,11 @@ export function App({ initialChapter }: AppProps) {
   }, [current])
 
   const Chapter = CHAPTER_COMPONENTS[current]
+  // reducedMotion="user": every motion animation is skipped when the reader asks for reduced motion.
   return (
-    <>
+    <MotionConfig reducedMotion="user">
       <Chapter key={current} />
       <DebugOverlay />
-    </>
+    </MotionConfig>
   )
 }

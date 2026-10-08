@@ -58,8 +58,8 @@ export function ControlPresets({ label, presets, currentValue, onChange }: Contr
             aria-pressed={active}
             onClick={() => onChange(preset.value)}
             className={cn(
-              'min-h-11 rounded-[3px] border-2 px-3 text-base font-medium',
-              active ? 'tint-accent border-accent text-ink' : 'border-rule text-ink-2 hover:border-rule-strong',
+              'min-h-11 rounded-lg border-2 px-3 text-base font-semibold',
+              active ? 'border-[var(--accent)] bg-[var(--accent)] text-paper' : 'border-ink/15 bg-paper text-ink-2 hover:border-ink/40',
             )}
           >
             {preset.label}

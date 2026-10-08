@@ -3,7 +3,7 @@
 import { useMemo, type ReactNode } from 'react'
 import { useAppStore, type FeedForwardView } from '../../store/appStore'
 import { useAttentionWeights, useTokens } from '../../core/hooks/useDerived'
-import { Button, ChapterLayout, ToggleGroup, VisualFrame } from '../../core/components'
+import { Button, SlideLayout, ToggleGroup, VisualFrame } from '../../core/components'
 import { MODEL_SPECS } from '../../core/types'
 import { AttentionArcsBand, Columns, provenance } from './FeedForwardAnimation'
 import { attentionLines, columnsAfterRuns, COLUMN_LENGTH, mostChangedIndex } from './columns'
@@ -50,7 +50,7 @@ export function FeedForwardChapter() {
   const summary = `${tokens.length} columns of ${COLUMN_LENGTH} numbers, one column per token`
 
   return (
-    <ChapterLayout id="feedforward">
+    <SlideLayout id="feedforward">
       <VisualFrame title="One small network, every column on its own" provenance={provenance} caption={CAPTION}>
         <div className="space-y-8">
           {view === 'withAttention' && (
@@ -75,6 +75,6 @@ export function FeedForwardChapter() {
         </Button>
         <ToggleGroup label="What to show" options={VIEW_OPTIONS} value={view} onChange={setView} />
       </div>
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

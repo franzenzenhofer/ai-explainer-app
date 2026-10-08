@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { usePredictionPosition, useTokens } from '../../core/hooks/useDerived'
-import { ChapterLayout, SentenceTokens, VisualFrame } from '../../core/components'
+import { SlideLayout, SentenceTokens, VisualFrame } from '../../core/components'
 import { LOOP_MODEL } from '../../core/types'
 import { formatPercent, formatTokenDisplay } from '../../core/utils/formatters'
 import type { LoopStep } from '../../model/loopSteps'
@@ -54,7 +54,7 @@ export function ScoresChapter() {
   }
 
   return (
-    <ChapterLayout id="scores">
+    <SlideLayout id="scores">
       <div className="mb-8">
         <p className="m-0 mb-3 text-base font-semibold">Predict from here: tap a token</p>
         <SentenceTokens
@@ -88,6 +88,6 @@ export function ScoresChapter() {
           )}
         </LiveListGate>
       </VisualFrame>
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

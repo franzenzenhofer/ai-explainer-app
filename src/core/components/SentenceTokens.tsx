@@ -1,48 +1,39 @@
-// The shared token picker: the prompt drawn inline, each token a real button with a 44px target.
-// Boundaries show as alternating underlines; the selected token carries the chapter accent.
+// The shared token picker: the prompt as colourful token chips with their IDs, staggered in when the
+// text changes. Each chip is a real button; the selected one carries a ring in the slide's colour.
 import type { Token } from '../types'
-import { cn } from '../utils/cn'
-import { formatTokenInline } from '../utils/formatters'
+import { TokenChip, type ChipSize } from './TokenChip'
 
 interface SentenceTokensProps {
   tokens: Token[]
   selectedIndex: number | null
   onSelect: (index: number) => void
   label: string
-  // Positions to mark in the accent without selecting them (for example, the keys a query attends to).
-  marked?: ReadonlySet<number>
   // Positions drawn in grey with a hint that they have no data in the current visual.
   muted?: ReadonlySet<number>
   mutedHint?: string
+  showIds?: boolean
+  size?: ChipSize
 }
 
-const UNDERLINES = ['border-ink', 'border-rule-strong']
-
-export function SentenceTokens({ tokens, selectedIndex, onSelect, label, marked, muted, mutedHint }: SentenceTokensProps) {
+export function SentenceTokens({ tokens, selectedIndex, onSelect, label, muted, mutedHint, showIds = true, size = 'md' }: SentenceTokensProps) {
   if (tokens.length === 0) return <p className="m-0 text-lg text-ink-2">Type some text to see its tokens.</p>
+  const runKey = tokens.map((token) => token.tokenId).join('-')
   return (
-    <div role="group" aria-label={label} className="flex flex-wrap items-end gap-x-1 gap-y-2">
+    <div key={runKey} role="group" aria-label={label} className="flex flex-wrap items-center gap-1.5">
       {tokens.map((token, index) => {
-        const selected = index === selectedIndex
-        const highlighted = marked?.has(index) ?? false
         const isMuted = muted?.has(index) ?? false
         return (
-          <button
+          <TokenChip
             key={`${index}-${token.tokenId}`}
-            type="button"
-            aria-pressed={selected}
-            aria-label={`Token ${index + 1}: "${token.text}", ID ${token.tokenId}${isMuted && mutedHint ? `, ${mutedHint}` : ''}`}
-            title={isMuted ? mutedHint : undefined}
+            text={token.text}
+            tokenId={showIds ? token.tokenId : undefined}
+            selected={index === selectedIndex}
+            muted={isMuted}
+            size={size}
+            order={index}
             onClick={() => onSelect(index)}
-            className={cn(
-              'inline-flex min-h-11 min-w-11 items-end justify-center whitespace-pre border-b-4 px-1 pb-1 text-2xl leading-tight transition-colors sm:text-[1.75rem]',
-              isMuted ? 'border-dotted text-ink-3' : 'text-ink',
-              selected ? 'tint-accent border-accent' : highlighted ? 'border-accent' : UNDERLINES[index % 2],
-              !selected && 'hover:bg-wash',
-            )}
-          >
-            {formatTokenInline(token.text)}
-          </button>
+            label={`Token ${index + 1}: "${token.text}", ID ${token.tokenId}${isMuted && mutedHint ? `, ${mutedHint}` : ''}`}
+          />
         )
       })}
     </div>

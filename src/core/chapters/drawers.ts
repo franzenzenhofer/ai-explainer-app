@@ -10,6 +10,21 @@ const LARGE_WIDTH = LARGE_MODEL_SPECS.embeddingDim.toLocaleString('en-US')
 const EXPORT_SOURCE = `${MODEL_SPECS.modelName} (${GPT2_EXPORT.model}, revision ${GPT2_EXPORT.revision}), exported once by ${GPT2_EXPORT.script} in this app's repository`
 
 export const DRAWERS: Record<ChapterId, DrawerSection[]> = {
+  intro: [
+    {
+      heading: 'How to move through the slides',
+      paragraphs: [
+        'Right arrow, Space or Page Down shows the next slide; Left arrow or Page Up the previous one. F switches full screen on and off, Escape closes a panel like this one. The dots at the bottom jump to any slide.',
+        'The coloured bar at the top is the whole machine. The stage of the current slide is filled in; every stage is a link.',
+      ],
+    },
+    {
+      heading: 'Real or simulated',
+      paragraphs: [
+        `Every visual carries a badge. Real means the numbers come from a real tokenizer (${TOKENIZER_SPECS.name}) or a real model (${MODEL_SPECS.modelName} for the inside view, ${LOOP_MODEL.name} live for the predictions). Simulated means the values only illustrate the arithmetic.`,
+      ],
+    },
+  ],
   home: [
     {
       heading: 'What a token is, in one line',

@@ -4,9 +4,10 @@ import { cn } from '../utils/cn'
 
 export type ButtonVariant = 'primary' | 'secondary'
 
+// Primary buttons are filled in the slide's concept colour; secondary ones are white.
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: 'border-ink bg-ink text-paper hover:bg-ink-2 disabled:border-rule-strong disabled:bg-rule-strong',
-  secondary: 'border-ink bg-paper text-ink hover:bg-wash disabled:border-rule-strong disabled:text-ink-3',
+  primary: 'border-[var(--accent)] bg-[var(--accent)] text-paper hover:opacity-90 disabled:border-rule-strong disabled:bg-rule-strong',
+  secondary: 'border-ink/20 bg-paper text-ink hover:border-ink/50 disabled:border-rule disabled:text-ink-3',
 }
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,7 +19,7 @@ export function Button({ variant = 'secondary', className, type = 'button', ...p
     <button
       type={type}
       className={cn(
-        'inline-flex min-h-11 items-center justify-center gap-2 rounded-[3px] border-2 px-5 text-base font-semibold transition-colors disabled:cursor-not-allowed',
+        'inline-flex min-h-11 items-center justify-center gap-2 rounded-lg border-2 px-4 text-base font-semibold transition-colors disabled:cursor-not-allowed',
         VARIANTS[variant],
         className,
       )}
@@ -39,7 +40,7 @@ interface ToggleGroupProps<Value extends string> {
   onChange: (value: Value) => void
 }
 
-// A row of buttons where one is chosen; the chosen one carries the chapter accent.
+// A row of buttons where one is chosen; the chosen one is filled in the slide's colour.
 export function ToggleGroup<Value extends string>({ label, options, value, onChange }: ToggleGroupProps<Value>) {
   return (
     <div role="group" aria-label={label} className="flex flex-wrap gap-2">
@@ -52,8 +53,8 @@ export function ToggleGroup<Value extends string>({ label, options, value, onCha
             aria-pressed={chosen}
             onClick={() => onChange(option.value)}
             className={cn(
-              'min-h-11 rounded-[3px] border-2 px-4 text-base font-medium transition-colors',
-              chosen ? 'tint-accent border-accent text-ink' : 'border-rule bg-paper text-ink-2 hover:border-rule-strong',
+              'min-h-11 rounded-lg border-2 px-3 text-base font-semibold transition-colors',
+              chosen ? 'border-[var(--accent)] bg-[var(--accent)] text-paper' : 'border-ink/15 bg-paper text-ink-2 hover:border-ink/40',
             )}
           >
             {option.label}

@@ -2,7 +2,7 @@
 import { useState } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { useTokens } from '../../core/hooks/useDerived'
-import { Button, ChapterLayout, SentenceTokens, VisualFrame, type Provenance } from '../../core/components'
+import { Button, SlideLayout, SentenceTokens, VisualFrame, type Provenance } from '../../core/components'
 import { TOKENIZER_SPECS } from '../../core/types'
 import { formatTokenDisplay } from '../../core/utils/formatters'
 import { tokenByteLength } from '../../model/tokenizer'
@@ -38,7 +38,7 @@ export function TokensChapter() {
   const toggle = (target: Panel) => setPanel((open) => (open === target ? 'none' : target))
 
   return (
-    <ChapterLayout
+    <SlideLayout
       id="tokens"
       drawerExtra={
         <div className="space-y-8">
@@ -82,6 +82,6 @@ export function TokensChapter() {
           />
         </div>
       )}
-    </ChapterLayout>
+    </SlideLayout>
   )
 }

@@ -3,7 +3,7 @@
 import { useMemo } from 'react'
 import { useAppStore } from '../../store/appStore'
 import { useLoaded } from '../../core/hooks/useLoaded'
-import { Button, ChapterLayout, VisualFrame, type Provenance } from '../../core/components'
+import { Button, SlideLayout, VisualFrame, type Provenance } from '../../core/components'
 import { LoadNotice } from '../../core/components/LoadNotice'
 import { VectorStrip } from '../../core/components/VectorStrip'
 import { LARGE_MODEL_SPECS, MODEL_SPECS } from '../../core/types'
@@ -81,10 +81,10 @@ function Body({ activations }: { activations: Gpt2Activations }) {
 export function LayersChapter() {
   const state = useLoaded(loadGpt2Activations)
   return (
-    <ChapterLayout id="layers">
+    <SlideLayout id="layers">
       <VisualFrame title="The stack, and one running vector" provenance={provenance} caption={CAPTION}>
         {state.status === 'ready' ? <Body activations={state.value} /> : <LoadNotice state={state} what="the GPT-2 block numbers" />}
       </VisualFrame>
-    </ChapterLayout>
+    </SlideLayout>
   )
 }
